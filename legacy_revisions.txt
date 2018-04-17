@@ -1,0 +1,14 @@
+Tue Apr 17 00:19:27 2018 -0400;
+added back a redwall abbey inspiration note to the settings discussion
+
+Mon Apr 16 18:33:29 2018 -0400;
+added SciFey settings details and a more interesting story conflict proposition.  Also renamed Snowy Glade room to Atrium Glade, following Nuvi's description of sockets and this being one of many landing points in Fuzziolump
+
+Wed Apr 11 23:38:17 2018 -0400;
+apparently the dynamic linking actually works, though the Twine IDE doesn't like it.  Added multiple visit handling to snowy glade
+
+Wed Apr 11 19:02:28 2018 -0400;
+experimenting with conversation exit mechanic
+
+Tue Apr 10 23:52:03 2018 -0400;
+updating story file to replace busty fairy guide with adorbs winged otter.  This story is supposed to showcase my GOOD qualities, oh self, you blighted chipwhich
