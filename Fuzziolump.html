@@ -18,7 +18,17 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">var known_id_nuvi = false;
+var test = 0;
+
+function Affinities(){
+	this.nuvi_affinity = 0;
+}
+
+var playerAffinities = new Affinities();
+	
+
 
 
 
@@ -71,10 +81,10 @@ take it
 take it
 [[leave it -&gt;Ancient Table]] </tw-passagedata><tw-passagedata pid="11" name="copper_wire_taken" tags="" position="682,341" size="100,100">(set: $inv to $inv + (a: &quot;copper_wire&quot;))</tw-passagedata><tw-passagedata pid="12" name="Dryer" tags="" position="230,187" size="100,100">Ducking down peer to inside, you&#39;re greeted by a pleasant surprise -- your clothes are fully dry for once!  As you pull clothes from the dryer and pile them in your hamper, you note that only a single sock of your favorite pair is present and accounted for. They&#39;re the super-fuzzy wooly kind, and are patterned with kittens playing with balls of yarn on one and puppies chasing sticks on the other.  Looking down at the lonely puppy sock, your heart aches a little.  Poor guy.  Practically climbing halfway into the dryer, you reach and flail about for the errant kitten sock to no avail.  
 
-Re-adjusting yourself, you poke your head in to take a closer look, expecting ruefully to see only empty dryer walls. Instead, you see the head, forelegs, and fuzzy whiskers of an otter staring at you with anxiety quaking in its fathomless black eyes.  Before you can react, he boops your nose with a soft paw, his expression apprehensive. After a bizarre moment staring at each other in this manner, reality begins to spin and you fear someone has turned the dryer on with you halfway inside!  You close your eyes, bracing for the inevitable pain as you evaluate the strength of the dryer&#39;s tumble cycle first-hand.  There&#39;s no pain, however, and after only a few dizzying seconds [[the world-&gt;Atrium Glade]] stills.</tw-passagedata><tw-passagedata pid="13" name="Atrium Glade" tags="fluffy_forest fuzziolump socket" position="228,345" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+Re-adjusting yourself, you poke your head in to take a closer look, expecting ruefully to see only empty dryer walls. Instead, you see the head, forelegs, and fuzzy whiskers of an otter staring at you with anxiety quaking in its fathomless black eyes.  Before you can react, he boops your nose with a soft paw, his expression apprehensive. After a bizarre moment staring at each other in this manner, reality begins to spin and you fear someone has turned the dryer on with you halfway inside!  You close your eyes, bracing for the inevitable pain as you evaluate the strength of the dryer&#39;s tumble cycle first-hand.  There&#39;s no pain, however, and after only a few dizzying seconds [[the world-&gt;Atrium Glade]] stills.</tw-passagedata><tw-passagedata pid="13" name="Atrium Glade" tags="fluffy_forest fuzziolump socket" position="228,347" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
 Only, it&#39;s a different world than the one you left.  A cool breeze and the unmistakeable smell of pine needles coaxes you to open your eyes.
 
-You find yourself in a wintry forest glade. Evergreen foliage, bearing a light sprinkling of snow such that it resembles sugar-dusted sweets, surrounds you.  The otter, which sports a pair of fluffy brown wings the same shade as its sleek tawny fur, flits about your head, appraisingly.  
+You find yourself in a wintry forest glade. [[Evergreen foliage-&gt;Atrium_Glade_Foliage]], bearing a light sprinkling of snow such that it resembles sugar-dusted sweets, surrounds you.  The otter, which sports a pair of fluffy brown wings the same shade as its sleek tawny fur, flits about your head, appraisingly.  
 
 &lt;&lt;else&gt;&gt;
 A refreshing cool breeze carresses your cheek and ruffles the wintergreen foliage.  Only the gentle fwump fwump of the otter&#39;s wings breaks the tranquil silence, a comforting constant.
@@ -85,7 +95,12 @@ You feel the need to speak:
 [[&quot;Where am I?&quot;-&gt;Atrium_Glade_Where_Player]]
 [[&quot;Who are you?&quot;-&gt;Atrium_Glade_Who_Nuvi]]
 [[&quot;What are you?&quot;-&gt;Atrium_Glade_What_Nuvi]]
-[[&quot;I really like your wings!&quot;-&gt;Atrium_Glade_Wings_Compliment_Nuvi][$nuvi_affinity += 1]]
+[[&quot;I really like your wings!&quot;-&gt;Atrium_Glade_Wings_Compliment_Nuvi][$playerAffinities.nuvi_affinity += 1]]
+
+// looks like Sugarcube will not create a variable for you on the fly as part of an operation like this; $nuvi_affinity needs to have already been set somewhere
+//[[&quot;Test&quot;][$nuvi_affinity += 1]]
+test is: &lt;&lt;print $test&gt;&gt;
+Affinity is: &lt;&lt;print $playerAffinities.nuvi_affinity&gt;&gt;
 
 </tw-passagedata><tw-passagedata pid="14" name="Alpha_Thanks_Player_Of_Romantic_Interest" tags="alpha user-targeted" position="812,329" size="100,100">/*something to the tune of &#39;hope you&#39;ve enjoyed exploring the land of Fuzziolump!  Speaking of exploring, would you like to explore a relationship with me?&#39; [cripes that sounds lame.  Think of better phrasing if we go with this one] and/or something referencing celebratory redwall-esque feasts in game and say &#39;speaking of feasting, would you like to get dinner sometime?*/</tw-passagedata><tw-passagedata pid="15" name="Atrium_Glade_Where_Player" tags="query conversation" position="24,482" size="100,100">&quot;You&#39;ve landed in the glorious world of [[Fuzziolump-&gt;Fuzziolump_Desc]], a reality born from your own species&#39; collective psyche! /*something about advent of electricity and telecomm tech leading to quantum tunneling/entanglement signal propagation and accidental influence of the development of life in this alternate universe.  Also something more directly SciFey, such that the particular thoughts/feelings conveyed by those signals matter and were shaping Fuzziolump even before telecomm simply from being experienced by humans.  Explains the personification of memes in the lumpkins, but not so much why they&#39;re mystified by human tech that comes through dryers.*/ To use more modern terminology, we were born of the internet... but in a good way!
 
@@ -107,7 +122,7 @@ Okay, much more interesting story idea based on new SciFey setting -- the Fuzzio
 -Rooms:
 --Atrium Glade
 --Badger Maze
---Armborial Spider Web City
+--Arborial Spider Web City
 --Salamander Volcano
 --Unicorn Plains
 --Siren Grotto
@@ -138,4 +153,4 @@ Okay, much more interesting story idea based on new SciFey setting -- the Fuzzio
 
 2. </tw-passagedata><tw-passagedata pid="20" name="Atrium_Glade_Wings_Compliment_Nuvi" tags="nuvi character_dev affinities" position="468,358" size="100,100">&quot;Why thank you, human!  They help me execute precise maneuvers in the air, but other than that they&#39;re mostly for show -- I fly by lessening the effect of gravity on myself with _&lt;todo: some wordplay on mana/magic&gt;&quot;  He zooms around your head, swimming through the air without flapping his wings to demonstrate.
 
-[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata></tw-storydata>
+[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="23" name="&quot;Test&quot;" tags="" position="228,495" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
