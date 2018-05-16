@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="25" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="24" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 
 
@@ -23,7 +23,10 @@
 
 
 
-</style><script role="script" id="twine-user-script" type="text/twine-javascript">var known_id_nuvi = false;
+</style><script role="script" id="twine-user-script" type="text/twine-javascript">
+Config.history.maxStates = 0;   // no history limit
+//alert("config ctor: "+Config.constructor);
+var known_id_nuvi = false;
 var test = 0;
 
 function Affinities(){
@@ -31,6 +34,17 @@ function Affinities(){
 }
 
 var playerAffinities = new Affinities();
+
+/*
+Config.constructor.prototype.combat = function Combat(){
+	this.name = "";
+	this.actors = {};
+	this.getName = function(){
+		return this.name;	
+	}
+}
+*/
+
 	
 
 
@@ -196,14 +210,61 @@ d. dig up the root (find out what imagination and emotion specifically fuels Hol
 }</tw-passagedata><tw-passagedata pid="20" name="Atrium_Glade_Wings_Compliment_Nuvi" tags="nuvi character_dev affinities" position="468,358" size="100,100">&quot;Why thank you, human!  They help me execute precise maneuvers in the air, but other than that they&#39;re mostly for show -- I fly by lessening the effect of gravity on myself with _&lt;todo: some wordplay on mana/magic&gt;&quot;  He zooms around your head, swimming through the air without flapping his wings to demonstrate.
 
 [[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="23" name="&quot;Test&quot;" tags="" position="228,495" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="24" name="Test Arena" tags="dev test" position="723,627.5" size="100,100">&lt;&lt;script&gt;&gt;
-var combatPassage = Story.get(&quot;CombatArena&quot;);
-combatPassage.prototype.testField = &quot;helloarena&quot;;
+//var combatPassage = Story.get(&quot;CombatArena&quot;);
+//combatPassage.prototype.testField = &quot;helloarena&quot;;
+//Would need to modify the prototype of Passage itself
 &lt;&lt;/script&gt;&gt;
-[[&quot;Try your luck in the combat arena!&quot;-&gt;CombatArena]]</tw-passagedata><tw-passagedata pid="25" name="CombatArena" tags="" position="880,626" size="100,100">&lt;&lt;script&gt;&gt;
+&lt;&lt;set $npcs to {
+	&quot;Ralph&quot;		: {name: &quot;Ralph&quot;, hp: 10, inventory:[]},
+	&quot;Jane&quot;		: {name: &quot;Jane&quot;, hp: 10, inventory:[]}
+}&gt;&gt;
+
+&lt;&lt;set $player = {name: &quot;Playername&quot;, hp: 10, inventory:[&quot;key&quot;, &quot;sword&quot;]}&gt;&gt;
+
+&lt;&lt;set $village = []&gt;&gt;
+&lt;&lt;set $village.push(&quot;Ralph&quot;)&gt;&gt;	/% ralph is placed in the village %/
+
+Ralph&#39;s HP: &lt;&lt;= $npcs[&quot;Ralph&quot;].hp&gt;&gt;
+
+First Village&#39;s HP: &lt;&lt;= $npcs[$village[0]].hp&gt;&gt;
+&lt;&lt;set $combat to {
+	&quot;player&quot;		: {name: &quot;Ralph&quot;, hp: 10, inventory:[], toString(){
+			return &quot;Name: &quot;+this.name+&quot;, HP: &quot;+this.hp+&quot;, inv: &quot;+this.inventory;
+		}
+	},
+	&quot;enemy&quot;		: {name: &quot;Jane&quot;, hp: 10, inventory:[]}
+}&gt;&gt;
+[[&quot;Try your luck in the combat arena!&quot;-&gt;CombatArena]]</tw-passagedata><tw-passagedata pid="25" name="CombatArena" tags="" position="881,624" size="100,100">&lt;&lt;script&gt;&gt;
+/*
 //alert(&quot;Current Passage is &quot;+passage());
 //alert(&quot;visited CombatArena: &quot;+hasVisited(passage()));
 var combatPassage = Story.get(passage());//Story.get(&quot;CombatArena&quot;);
 Passage.prototype.testField = &quot;&quot;
+Passage.prototype.testMethod = function() {
+    return this.testField;
+}
 combatPassage.testField = &quot;test&quot;
-alert(combatPassage.testField);
+alert(combatPassage.testMethod());
+*/
+/*
+var myCombat = new Combat();
+myCombat.name = &quot;The battle of impossible love!&quot;;
+alert(&quot;Watch as the wind and warriors rage as one in: &quot;+myCombat.getName());
+*/
+State.variables.combat[&quot;player&quot;].inventory[0] = &quot;Rusty Jagged Sword&quot;
+alert(&quot;Player is &quot;+State.variables.combat[&quot;player&quot;]);
+&lt;&lt;/script&gt;&gt;
+</tw-passagedata><tw-passagedata pid="26" name="CombatDef" tags="dev testing" position="854,489" size="100,100">&lt;&lt;script&gt;&gt;
+alert(&quot;inside CombatDef&quot;);
+// todo: I&#39;m getting Combat not defined and the alert is showing, so I guess the scope of this js is the script blocks?
+function Combat(){
+	this.name = &quot;&quot;;
+};
+&lt;&lt;/script&gt;&gt;
+&lt;&lt;script&gt;&gt;
+alert(&quot;inside CombatDef second block&quot;);
+// throws Combat undefined error; js inside script blocks must have script block scope
+var myCombat = new Combat();
+myCombat.name = &quot;testCombat&quot;;
+alert(&quot;combat name is &quot;+myCombat.name);
 &lt;&lt;/script&gt;&gt;</tw-passagedata></tw-storydata>
