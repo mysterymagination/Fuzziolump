@@ -1,4 +1,46 @@
-<tw-storydata name="Fuzziolump" startnode="24" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="27" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">body {
+background-color: #EBEBEB;
+}
+
+#enemy {
+	width: 100%;
+	position: center;
+	padding: 1em;
+	border: solid #000 0.05em; 
+	border-radius: 0.1em;
+	background-color: #EBE;
+	font-size:1.5rem; 
+	color:#000;
+	text-align:left; 
+	box-shadow: #000 0.5em 0.5em 0;
+}
+
+#player {
+	width: 100%;
+	position: center;
+	padding: 1em;
+	border: solid #000 0.05em; 
+	border-radius: 0.1em;
+	background-color: #B0E0E6;
+	font-size:1.5rem; 
+	color:#000;
+	text-align:left; 
+	box-shadow: #000 0.5em 0.5em 0;
+}
+
+#combatlog {
+	width: 100%;
+	position: center;
+	padding: 2em;
+	border: solid #000 0.05em; 
+	border-radius: 0.1em;
+	margin: auto;
+	background-color: #ffffff;
+	font-size:1.5rem; 
+	color:#000;
+	text-align:left; 
+	box-shadow: #000 0.5em 0.5em 0;
+}
 
 
 
@@ -267,4 +309,11 @@ alert(&quot;inside CombatDef second block&quot;);
 var myCombat = new Combat();
 myCombat.name = &quot;testCombat&quot;;
 alert(&quot;combat name is &quot;+myCombat.name);
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="27" name="CombatReady" tags="dev testing" position="265,834" size="100,100">&lt;&lt;script&gt;&gt;
+variables().ehp = 200;
+variables().eatkname = &quot;MOTHERF*CKING FIRE&quot;;
+&lt;&lt;/script&gt;&gt;
+[[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="28" name="DragonFight" tags="" position="265,984" size="100,100">&lt;&lt;script&gt;&gt;
+alert(&quot;ehp is &quot;+State.variables.ehp);
+alert(&quot;eatk is &quot;+State.variables.eatkname);
 &lt;&lt;/script&gt;&gt;</tw-passagedata></tw-storydata>
