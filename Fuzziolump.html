@@ -1,6 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="27" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">body {
-background-color: #EBEBEB;
-}
+<tw-storydata name="Fuzziolump" startnode="1" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -41,6 +39,7 @@ background-color: #EBEBEB;
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
 }
+
 
 
 
@@ -110,6 +109,7 @@ Config.constructor.prototype.combat = function Combat(){
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -144,10 +144,10 @@ take it
 take it
 [[leave it -&gt;Ancient Table]] </tw-passagedata><tw-passagedata pid="11" name="copper_wire_taken" tags="" position="682,341" size="100,100">(set: $inv to $inv + (a: &quot;copper_wire&quot;))</tw-passagedata><tw-passagedata pid="12" name="Dryer" tags="" position="230,187" size="100,100">Ducking down peer to inside, you&#39;re greeted by a pleasant surprise -- your clothes are fully dry for once!  As you pull clothes from the dryer and pile them in your hamper, you note that only a single sock of your favorite pair is present and accounted for. They&#39;re the super-fuzzy wooly kind, and are patterned with kittens playing with balls of yarn on one and puppies chasing sticks on the other.  Looking down at the lonely puppy sock, your heart aches a little.  Poor guy.  Practically climbing halfway into the dryer, you reach and flail about for the errant kitten sock to no avail.  
 
-Re-adjusting yourself, you poke your head in to take a closer look, expecting ruefully to see only empty dryer walls. Instead, you see the head, forelegs, and fuzzy whiskers of an otter staring at you with anxiety quaking in its fathomless black eyes.  Before you can react, he boops your nose with a soft paw, his expression apprehensive. After a bizarre moment staring at each other in this manner, reality begins to spin and you fear someone has turned the dryer on with you halfway inside!  You close your eyes, bracing for the inevitable pain as you evaluate the strength of the dryer&#39;s tumble cycle first-hand.  There&#39;s no pain, however, and after only a few dizzying seconds [[the world-&gt;Atrium Glade]] stills.</tw-passagedata><tw-passagedata pid="13" name="Atrium Glade" tags="fluffy_forest fuzziolump socket" position="228,347" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+Re-adjusting yourself, you poke your head in to take a closer look, expecting ruefully to see only empty dryer walls. Instead, you see the head, forelegs, and fuzzy whiskers of an otter staring at you with anxiety quaking in its fathomless black eyes.  He&#39;s wearing a darling little tophat, bowtie, and a gold-rimmed monocle adorns one eye.  Before you can react, he boops your nose with a soft paw, his expression apprehensive. After a bizarre moment staring at each other in this manner, reality begins to spin and you fear someone has turned the dryer on with you halfway inside!  You close your eyes, bracing for the inevitable pain as you evaluate the strength of the dryer&#39;s tumble cycle first-hand.  There&#39;s no pain, however, and after only a few dizzying seconds [[the world-&gt;Atrium Glade]] stills.</tw-passagedata><tw-passagedata pid="13" name="Atrium Glade" tags="fluffy_forest fuzziolump socket" position="228,347" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
 Only, it&#39;s a different world than the one you left.  A cool breeze and the unmistakeable smell of pine needles coaxes you to open your eyes.
 
-You find yourself in a wintry forest glade. [[Evergreen foliage-&gt;Atrium_Glade_Foliage]], bearing a light sprinkling of snow such that it resembles sugar-dusted sweets, surrounds you.  The otter, which sports a pair of fluffy brown wings the same shade as its sleek tawny fur, flits about your head, appraisingly.  
+You find yourself in a wintry forest glade. [[Evergreen foliage-&gt;Atrium_Glade_Foliage]], bearing a light sprinkling of snow such that it resembles sugar-dusted sweets, surrounds you.  The otter, which sports a pair of fluffy brown wings the same shade as its sleek tawny fur, flits about your head, appraisingly.  His little tophat tilts gently back and forth in a hypnotizing pattern, in time with the rhythm of his lazy wing beats.  
 
 &lt;&lt;else&gt;&gt;
 A refreshing cool breeze carresses your cheek and ruffles the wintergreen foliage.  Only the gentle fwump fwump of the otter&#39;s wings breaks the tranquil silence, a comforting constant.
@@ -161,7 +161,7 @@ You feel the need to speak:
 [[&quot;I really like your wings!&quot;-&gt;Atrium_Glade_Wings_Compliment_Nuvi][$playerAffinities.nuvi_affinity += 1]]
 
 // looks like Sugarcube will not create a variable for you on the fly as part of an operation like this; $nuvi_affinity needs to have already been set somewhere
-//[[&quot;Test&quot;][$nuvi_affinity += 1]]
+//[&quot;Test&quot;][$nuvi_affinity += 1]
 test is: &lt;&lt;print $test&gt;&gt;
 Affinity is: &lt;&lt;print $playerAffinities.nuvi_affinity&gt;&gt;
 
@@ -169,12 +169,12 @@ Affinity is: &lt;&lt;print $playerAffinities.nuvi_affinity&gt;&gt;
 
 &quot;Specifically, you&#39;re standing in the Atrium Glade.  This is one of many portals to and from Earth that we call sockets.  Each socket has its own quirks, but generally conform to two main rules: they can operate two ways (Fuzziolump-&gt;Earth, Earth-&gt;Fuzziolump), and they can only be opened from Fuzziolump.  I like the Atrium Glade because everything looks like it should be in a bakery window!&quot;  The otter licks his fuzzy chops wistfully.
 
-[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="16" name="Atrium_Glade_Who_Nuvi" tags="query conversation" position="203,655" size="100,100">&lt;&lt;set $known_id_nuvi to true&gt;&gt;
+[[&quot;Why did you bring me here?&quot;-&gt;Fuzziolump_Main_Quest_Desc]]</tw-passagedata><tw-passagedata pid="16" name="Atrium_Glade_Who_Nuvi" tags="query conversation" position="339,653" size="100,100">&lt;&lt;set $known_id_nuvi to true&gt;&gt;
 My name is Nuvi, and I&#39;m here to be your adorably helpful guide.  No, I am not optional.  No, you cannot set me to silent mode.
 
 [[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="17" name="Atrium_Glade_What_Nuvi" tags="query conversation" position="374,530" size="100,100">Crossing his little paws, &lt;&lt;if $known_id_nuvi&gt;&gt;Nuvi&lt;&lt;else&gt;&gt;the winged otter&lt;&lt;/if&gt;&gt; huffs, &quot;That&#39;s a rather rude question.  But I understand; you&#39;re used to a world with only a single sapient species -- how lonely you must be!  I&#39;d wager that where you&#39;re from, socialization is terribly dull for those who fit in, and all but impossible for those who don&#39;t.  &lt;&lt;if $known_id_world&gt;&gt;Fuzziolump&lt;&lt;else&gt;&gt;This world&lt;&lt;/if&gt;&gt; doesn&#39;t have that problem.&quot;
 
-[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="18" name="Fuzziolump_Desc" tags="desc conversation" position="35,649" size="100,100">&quot;Oh, it&#39;s a wondrous place full of multifarious sapient species.  You&#39;ll recognize many of our denizens&#39; general forms, but they&#39;re quite different from the simple animals in your world.&quot;
+[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="18" name="Fuzziolump_Desc" tags="desc conversation" position="194,513" size="100,100">&quot;Oh, it&#39;s a wondrous place full of multifarious sapient species.  You&#39;ll recognize many of our denizens&#39; general forms, but they&#39;re quite different from the simple animals in your world.&quot;
 
 [[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="19" name="brainstorming" tags="design brainstorm dev" position="1,0" size="100,100">-Magic System: nanites?  It could go with the whole crap from Earth lost in dryers theme, though it wouldn&#39;t explain immediately how Fuzziolump came to be in the first place.  Anyway, I was thinking nanites that are sensitive to specific electromagnetic fields generated by thought patterns of organisms, and take predictable actions based on the field modulations.  This would effectively allow for psychic/emotional magic by proxy, and could even explain how the creatures of FUzziolump came to be as they are (genetic manipulation to create sapience and foment nanite propogation and maximum evolution efficiency).
 
@@ -251,7 +251,7 @@ d. dig up the root (find out what imagination and emotion specifically fuels Hol
 5. Having decided on a strategy, the human exits the Wombat Warren and heads towards the Blissful Blossoms forest to the West, where Holly makes her home.  On the way, the human is challenged by Puck, a pesky small god of the wind who listens to secrets and overheard the planning session with the council; he is in love with Holly, and will not hear of any suppression of her growth.  He fights the human!  
 }</tw-passagedata><tw-passagedata pid="20" name="Atrium_Glade_Wings_Compliment_Nuvi" tags="nuvi character_dev affinities" position="468,358" size="100,100">&quot;Why thank you, human!  They help me execute precise maneuvers in the air, but other than that they&#39;re mostly for show -- I fly by lessening the effect of gravity on myself with _&lt;todo: some wordplay on mana/magic&gt;&quot;  He zooms around your head, swimming through the air without flapping his wings to demonstrate.
 
-[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="23" name="&quot;Test&quot;" tags="" position="228,495" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="24" name="Test Arena" tags="dev test" position="723,627.5" size="100,100">&lt;&lt;script&gt;&gt;
+[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">todo: add the sprig of holly to the inventory; this will help the player with Holly later</tw-passagedata><tw-passagedata pid="23" name="Test Arena" tags="dev test" position="723,627" size="100,100">&lt;&lt;script&gt;&gt;
 //var combatPassage = Story.get(&quot;CombatArena&quot;);
 //combatPassage.prototype.testField = &quot;helloarena&quot;;
 //Would need to modify the prototype of Passage itself
@@ -276,7 +276,7 @@ First Village&#39;s HP: &lt;&lt;= $npcs[$village[0]].hp&gt;&gt;
 	},
 	&quot;enemy&quot;		: {name: &quot;Jane&quot;, hp: 10, inventory:[]}
 }&gt;&gt;
-[[&quot;Try your luck in the combat arena!&quot;-&gt;CombatArena]]</tw-passagedata><tw-passagedata pid="25" name="CombatArena" tags="" position="881,624" size="100,100">&lt;&lt;script&gt;&gt;
+[[&quot;Try your luck in the combat arena!&quot;-&gt;CombatArena]]</tw-passagedata><tw-passagedata pid="24" name="CombatArena" tags="" position="881,624" size="100,100">&lt;&lt;script&gt;&gt;
 /*
 //alert(&quot;Current Passage is &quot;+passage());
 //alert(&quot;visited CombatArena: &quot;+hasVisited(passage()));
@@ -296,7 +296,7 @@ alert(&quot;Watch as the wind and warriors rage as one in: &quot;+myCombat.getNa
 State.variables.combat[&quot;player&quot;].inventory[0] = &quot;Rusty Jagged Sword&quot;
 alert(&quot;Player is &quot;+State.variables.combat[&quot;player&quot;]);
 &lt;&lt;/script&gt;&gt;
-</tw-passagedata><tw-passagedata pid="26" name="CombatDef" tags="dev testing" position="854,489" size="100,100">&lt;&lt;script&gt;&gt;
+</tw-passagedata><tw-passagedata pid="25" name="CombatDef" tags="dev testing" position="854,489" size="100,100">&lt;&lt;script&gt;&gt;
 alert(&quot;inside CombatDef&quot;);
 // todo: I&#39;m getting Combat not defined and the alert is showing, so I guess the scope of this js is the script blocks?
 function Combat(){
@@ -309,11 +309,19 @@ alert(&quot;inside CombatDef second block&quot;);
 var myCombat = new Combat();
 myCombat.name = &quot;testCombat&quot;;
 alert(&quot;combat name is &quot;+myCombat.name);
-&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="27" name="CombatReady" tags="dev testing" position="265,834" size="100,100">&lt;&lt;script&gt;&gt;
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="26" name="CombatReady" tags="dev testing" position="265,834" size="100,100">&lt;&lt;script&gt;&gt;
 variables().ehp = 200;
 variables().eatkname = &quot;MOTHERF*CKING FIRE&quot;;
 &lt;&lt;/script&gt;&gt;
-[[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="28" name="DragonFight" tags="" position="265,984" size="100,100">&lt;&lt;script&gt;&gt;
+[[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="27" name="DragonFight" tags="" position="265,984" size="100,100">&lt;&lt;script&gt;&gt;
 alert(&quot;ehp is &quot;+State.variables.ehp);
 alert(&quot;eatk is &quot;+State.variables.eatkname);
-&lt;&lt;/script&gt;&gt;</tw-passagedata></tw-storydata>
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="28" name="Fuzziolump_Main_Quest_Desc" tags="desc conversation quest" position="2,673" size="100,100">&quot;Ah yes, our great need.  You see, Fuzziolump has long been a place of peace for the most part, but recently there has been an upwelling of violence and turmoil.  The cause is our gods.  
+
+We didn&#39;t have any at first.  The fully mortal lumpkins are quite complex enough, and even with the vast sum of Earth&#39;s imaginings it took ages for us to develop.  Several centuries have passed since we grew smart enough to start recording our history, and it seems the more we wrote and thought and felt the experiences of life, the faster Fuzziolump grew.  Its own denizens&#39; imaginings fuel it in addition to Earth&#39;s pool of creative energy, and this exponentiation has led to more potent lifeforms.  Effectively, gods.
+
+Now, this might be cause for celebration -- a whole new category of sapient life, more deeply sapient than any of us can fathom!  Unfortunately, power and depth of mind do not equate to wisdom.  The young gods of Fuzziolump are all very different, but their common trait is an understandable lack of experience combined with an unprecedented ability to influence the world around them.  Some have even learned to syphon off the creative energy Fuzziolump thrives on, and threaten to collapse this world in on itself.  It isn&#39;t clear what would happen the gods if this world perished, but I and my loved ones and millions more like us would surely be snuffed out like the humble little candle flames we are.  I cannot allow that to happen.
+
+//todo: refresh page on click here
+
+What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  You create every day -- you must know how to turn that power off, or keep it under control?&quot;</tw-passagedata></tw-storydata>
