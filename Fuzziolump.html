@@ -64,6 +64,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -87,6 +88,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -249,6 +251,13 @@ c. prune (find out what imagination and emotion specifically fuels Holly, and fi
 d. dig up the root (find out what imagination and emotion specifically fuels Holly, and find a way to starve her of same until she wilts) [effect: Nuvi aff -10,  council aff: -5]
 
 5. Having decided on a strategy, the human exits the Wombat Warren and heads towards the Blissful Blossoms forest to the West, where Holly makes her home.  On the way, the human is challenged by Puck, a pesky small god of the wind who listens to secrets and overheard the planning session with the council; he is in love with Holly, and will not hear of any suppression of her growth.  He fights the human!  
+}
+
+Demo Scope{
+ -intro meeting Nuvi and with basic Fuzziolump setting description
+ -travel to Wombat Warrens and entry puzzle
+ -discussion about gods and how to prune them with council
+ -combat with Puck
 }</tw-passagedata><tw-passagedata pid="20" name="Atrium_Glade_Wings_Compliment_Nuvi" tags="nuvi character_dev affinities" position="468,358" size="100,100">&quot;Why thank you, human!  They help me execute precise maneuvers in the air, but other than that they&#39;re mostly for show -- I fly by lessening the effect of gravity on myself with _&lt;todo: some wordplay on mana/magic&gt;&quot;  He zooms around your head, swimming through the air without flapping his wings to demonstrate.
 
 [[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">todo: add the sprig of holly to the inventory; this will help the player with Holly later</tw-passagedata><tw-passagedata pid="23" name="Test Arena" tags="dev test" position="723,627" size="100,100">&lt;&lt;script&gt;&gt;
@@ -309,11 +318,11 @@ alert(&quot;inside CombatDef second block&quot;);
 var myCombat = new Combat();
 myCombat.name = &quot;testCombat&quot;;
 alert(&quot;combat name is &quot;+myCombat.name);
-&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="26" name="CombatReady" tags="dev testing" position="265,834" size="100,100">&lt;&lt;script&gt;&gt;
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="26" name="CombatReady" tags="dev testing" position="637,978" size="100,100">&lt;&lt;script&gt;&gt;
 variables().ehp = 200;
 variables().eatkname = &quot;MOTHERF*CKING FIRE&quot;;
 &lt;&lt;/script&gt;&gt;
-[[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="27" name="DragonFight" tags="" position="265,984" size="100,100">&lt;&lt;script&gt;&gt;
+[[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="27" name="DragonFight" tags="" position="645,1121" size="100,100">&lt;&lt;script&gt;&gt;
 alert(&quot;ehp is &quot;+State.variables.ehp);
 alert(&quot;eatk is &quot;+State.variables.eatkname);
 &lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="28" name="Fuzziolump_Main_Quest_Desc" tags="desc conversation quest" position="2,673" size="100,100">&quot;Ah yes, our great need.  You see, Fuzziolump has long been a place of peace for the most part, but recently there has been an upwelling of violence and turmoil.  The cause is our gods.  
@@ -322,6 +331,6 @@ We didn&#39;t have any at first.  The fully mortal lumpkins are quite complex en
 
 Now, this might be cause for celebration -- a whole new category of sapient life, more deeply sapient than any of us can fathom!  Unfortunately, power and depth of mind do not equate to wisdom.  The young gods of Fuzziolump are all very different, but their common trait is an understandable lack of experience combined with an unprecedented ability to influence the world around them.  Some have even learned to syphon off the creative energy Fuzziolump thrives on, and threaten to collapse this world in on itself.  It isn&#39;t clear what would happen the gods if this world perished, but I and my loved ones and millions more like us would surely be snuffed out like the humble little candle flames we are.  I cannot allow that to happen.
 
-//todo: refresh page on click here
+//todo: refresh page on click here?  I don&#39;t necessarily want a new passage, but I don&#39;t want the text wall to go on forever either
 
 What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  You create every day -- you must know how to turn that power off, or keep it under control?&quot;</tw-passagedata></tw-storydata>
