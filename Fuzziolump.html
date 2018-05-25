@@ -208,7 +208,14 @@ Cons:
 -may leave combat less &#39;storied&#39; if sufficient wrapping narrative is not provided
 
 -Rooms:
---Atrium Glade
+--Frosted Forest[
+	---Atrium Glade{
+		1. Nuvi
+		2. Sprig of Holly
+	}
+	---
+	
+]
 --Badger Maze
 --Arborial Spider Web City
 --Salamander Volcano
@@ -325,7 +332,7 @@ variables().eatkname = &quot;MOTHERF*CKING FIRE&quot;;
 [[&quot;Fight the Mighty Dragon!&quot;-&gt;DragonFight][$ehp to 400, $eatkname = &quot;fire&quot;]]</tw-passagedata><tw-passagedata pid="27" name="DragonFight" tags="" position="645,1121" size="100,100">&lt;&lt;script&gt;&gt;
 alert(&quot;ehp is &quot;+State.variables.ehp);
 alert(&quot;eatk is &quot;+State.variables.eatkname);
-&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="28" name="Fuzziolump_Main_Quest_Desc" tags="desc conversation quest" position="2,673" size="100,100">&quot;Ah yes, our great need.  You see, Fuzziolump has long been a place of peace for the most part, but recently there has been an upwelling of violence and turmoil.  The cause is our gods.  
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="28" name="Fuzziolump_Main_Quest_Desc" tags="desc conversation quest main_quest" position="2,673" size="100,100">&quot;Ah yes, our great need.  You see, Fuzziolump has long been a place of peace for the most part, but recently there has been an upwelling of violence and turmoil.  The cause is our gods.  
 
 We didn&#39;t have any at first.  The fully mortal lumpkins are quite complex enough, and even with the vast sum of Earth&#39;s imaginings it took ages for us to develop.  Several centuries have passed since we grew smart enough to start recording our history, and it seems the more we wrote and thought and felt the experiences of life, the faster Fuzziolump grew.  Its own denizens&#39; imaginings fuel it in addition to Earth&#39;s pool of creative energy, and this exponentiation has led to more potent lifeforms.  Effectively, gods.
 
@@ -333,4 +340,4 @@ Now, this might be cause for celebration -- a whole new category of sapient life
 
 //todo: refresh page on click here?  I don&#39;t necessarily want a new passage, but I don&#39;t want the text wall to go on forever either
 
-What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  You create every day -- you must know how to turn that power off, or keep it under control?&quot;</tw-passagedata></tw-storydata>
+What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  You create every day -- [[you must know-&gt;Wombat_Warren_Reveal]] how to turn that power off, or keep it under control?&quot;</tw-passagedata><tw-passagedata pid="29" name="Wombat_Warren_Reveal" tags="quest main_quest" position="2,823" size="100,100">&quot;Is that not really a thing you humans do?  Well, I&#39;m sure you&#39;ll figure something out!  Anyways, we need to present you to the Animal Council and discuss with them how to proceed.  We&#39;ll find them North of the Frosted Forest (in which you stand currently), in the sandy savannah of the Wombat Warren.&quot;</tw-passagedata></tw-storydata>
