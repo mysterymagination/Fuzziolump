@@ -68,6 +68,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -94,6 +95,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -390,12 +392,20 @@ Each faery&#39;s wings are different colors, like intricate stained glass.  As y
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="250,1251" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
-Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Begin]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Begin" tags="shimmerin party_mod character" position="240,1401" size="100,100">Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
+Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Begin]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Begin" tags="shimmerin party_mod character" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;/if&gt;&gt;
+The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Silent_Corridor]], leaving a sprinkle of powder in her wake. 
+
 
 //todo: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
 
-// The simplest way to do something like the above would probably be to have a prefab maze in mind, and then randomly/conditionally change little bits of the descripter text for each room, and each room could be implemented as a prefab passage in Twine.  So draw that maze first!</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="412,1300.5" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
+// The simplest way to do something like the above would probably be to have a prefab maze in mind, and then randomly/conditionally change little bits of the descripter text for each room, and each room could be implemented as a prefab passage in Twine.  So draw that maze first!
+
+</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="546,1264" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
-it is &lt;&lt;print $party&gt;&gt;</tw-passagedata></tw-storydata>
+it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Silent_Corridor" tags="" position="376,1417" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
