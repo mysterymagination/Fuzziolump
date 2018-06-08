@@ -69,6 +69,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -95,6 +96,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -392,12 +394,12 @@ Each faery&#39;s wings are different colors, like intricate stained glass.  As y
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="250,1251" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
-Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Begin]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Begin" tags="shimmerin party_mod character" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
 Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
-&lt;&lt;else&gt;&gt;
-
 &lt;&lt;/if&gt;&gt;
-The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Silent_Corridor]], leaving a sprinkle of powder in her wake. 
+You stand in the center of what was once a grand antechamber, for certain values of grand: everything, from the fallen grandiose pillars to the rime-encrusted iron skeletons of elaborate furniture is miniature scale relative to you.  It feels a bit like walking into a dollhouse store that a ruination of weather and time have trampled to ghostly memories. 
+
+The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Frozen_Stair]], leaving a sprinkle of powder in her wake. There is an [[old and sturdy rope-&gt;Shimmerin_Chase_Diamond_Throneroom]] hanging over a small cliff to the South.
 
 
 //todo: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
@@ -408,4 +410,5 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
-it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Silent_Corridor" tags="" position="376,1417" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
+it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest" position="376,1417" size="100,100">[[You can climb (carefully) the frozen steps down Southwest into the little vale-&gt;Shimmerin_Chase_Diamond_Throneroom]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest" position="229,1594" size="100,100">[[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
+[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata></tw-storydata>
