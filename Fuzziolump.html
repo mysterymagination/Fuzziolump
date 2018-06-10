@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="35" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="33" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -70,6 +70,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -85,6 +86,21 @@ var playerAffinities = new Affinities();
 // establish Player party
 State.variables.party = ["The Human"];
 
+/// begin Shimmerin ///
+
+// flag indicating that the ice mole is present in the room when the player enters and there needs to be text detailing how he burrows away
+State.variables.ice_mole_burrow_flag = false;
+
+// the path an ice mole can take
+State.variables.ice_mole_path = ["Shimmerin_Chase_Frozen_Stair","Shimmerin_Chase_Diamond_Throneroom","Shimmerin_Chase_Treasure_Of_Stillness","Shimmerin_Chase_Crystal_Gardens"];
+
+// the ice mole's current position
+State.variables.ice_mole_room = State.variables.ice_mole_path[0];
+
+// todo: at the top of every room in the shimmerin maze, the mole will move his position to the room at the next index in his path.  If the mole position matches the current passage title, the mole description will be part of the passage and the mole will burrow to escape the player.  The burrow flag will be raised, indicating that at the top of the next passage we do not need to auto-move the mole again.  Once the burrow flag is read as true, it will be lowered.  If the mole burrows away in the Treasure of Stillness room, the Tiny Tiara will be freed for acq.
+
+/// end Shimmerin ///
+
 /*
 Config.constructor.prototype.combat = function Combat(){
 	this.name = "";
@@ -96,6 +112,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -385,13 +402,13 @@ a dazzling array of colors: the trees here are no less dusted with snow than the
 
 &quot;A small tree effigy fell into this forest long ago, decorated in a similar manner. The trees here were so smitten by the style they demanded to be honored with comparable shinies and lights.  The [[dryads-&gt;Dryad_Desc]] felt abashed that trees elsewhere were so honored, and strove to worship their charges fittingly.  Unluckily for the glass-blowers and enterprising faeries, the trend did not catch on elsewhere in the forest.&quot;
 
-Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;The other trees consider these ones a bit gaudy.&quot;</tw-passagedata><tw-passagedata pid="31" name="Faery_Desc" tags="creature lumpkin description" position="250,1101" size="100,100">Peering closely at the nearest bobbing lights, you note that at the center of each little sphere is a diminutive woman (you guess about 6cm in height) with six dragonfly wings. 
+Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;The other trees consider these ones a bit gaudy.&quot;</tw-passagedata><tw-passagedata pid="31" name="Faery_Desc" tags="creature lumpkin description" position="250,1055" size="100,100">Peering closely at the nearest bobbing lights, you note that at the center of each little sphere is a diminutive woman (you guess about 6cm in height) with six dragonfly wings. 
 
 &quot;Those are faeries,&quot; Nuvi informs you, &quot;whimsical little beauties with insatiable curiosity.  They trade their light for secrets, whispered by the woods; little goes on anywhere nearby that isn&#39;t witnessed by the trees.&quot;
 
-Each faery&#39;s wings are different colors, like intricate stained glass.  As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="250,973" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
+Each faery&#39;s wings are different colors, like intricate stained glass.  As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="250,937" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
 
-&quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="250,1251" size="100,100">/*
+&quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="58,1147" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
 Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
@@ -399,7 +416,7 @@ Crashing through the frosted pines as gracefully as possible for a fully grown h
 &lt;&lt;/if&gt;&gt;
 You stand in the center of what was once a grand antechamber, for certain values of grand: everything, from the fallen grandiose pillars to the rime-encrusted iron skeletons of elaborate furniture is miniature scale relative to you.  It feels a bit like walking into a dollhouse store that a ruination of weather and time have trampled to ghostly memories. 
 
-The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Frozen_Stair]], leaving a sprinkle of powder in her wake. There is an [[old and sturdy rope-&gt;Shimmerin_Chase_Diamond_Throneroom]] hanging over a small cliff to the South.
+The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Frozen_Stair]], leaving a sprinkle of powder in her wake. There is an [[old and sturdy rope-&gt;Shimmerin_Chase_Diamond_Throneroom]] hanging over a small cliff to the South.  Away West, a collapsed archway leads to a subtley sunken glade that may once have been a [[gallery of sorts-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].
 
 
 //todo: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
@@ -410,5 +427,6 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
-it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest" position="376,1417" size="100,100">[[You can climb (carefully) the frozen steps down Southwest into the little vale-&gt;Shimmerin_Chase_Diamond_Throneroom]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest" position="229,1594" size="100,100">[[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
-[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata></tw-storydata>
+it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest" position="376,1417" size="100,100">Carefully hewn marble shows through the blanket of ice and snow, giving the area a feeling of patchy oppulence.
+[[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest" position="229,1594" size="100,100">[[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
+[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod" position="70,1422" size="100,100">Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest" position="240,1236" size="100,100">The ground slopes downward in a gently meandering curve heading [[Southeast to a large clearing that frames a set of grandiose stairs that descend out of sight.-&gt;Shimmerin_Chase_Frozen_Stair]]  Just over the lip of a once ornate gate to the Southwest you can see a shallow hill with bumps of ice (most likely hiding buried steps) leading down into a [[gallery frozen forever in its final moment of splendor-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].</tw-passagedata></tw-storydata>
