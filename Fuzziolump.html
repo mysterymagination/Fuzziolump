@@ -74,6 +74,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -105,15 +106,15 @@ function AnIceMole(){
 	*/
 	this.advance = function(){
 			// advance the path index, accounting for wraparound
-			if(this.path_index == 4){
+		  this.path_index++;
+			if(this.path_index == this.path_room_count){
 				this.path_index = 0;
-			}else{
-				this.path_index++;	
 			}
 			
 			// set the current room to the room along the path
 			// at the new index
 			this.ice_mole_room = this.ice_mole_path[this.path_index];
+		  alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
 	} // end advance function
 	
 	/**
@@ -127,11 +128,16 @@ function AnIceMole(){
 		var currentModsArray = State.variables.field_mods_map.get(passage());
 		
 		// need to check for null return of field mods at given passage and init currentModsArray to an empty new array in that case
-		if (typeof myVar == 'undefined'){
-			currentModsArray = [];	
-		}
-		currentModsArray.push(State.variables.field_mod_anicemole_burrowed);
-		State.variables.field_mods_map.set(passage(),currentModsArray);
+		if (typeof currentModsArray == 'undefined'){
+			currentModsArray = [State.variables.field_mod_anicemole_burrowed];
+			State.variables.field_mods_map.set(passage(),currentModsArray);	
+		}else if(!currentModsArray.includes(State.variables.field_mod_anicemole_burrowed)){
+
+						 // field mods exist for this passage, but they do not yet include anicemole's burrowing.  Add burrowing to it.
+						 currentModsArray.push(State.variables.field_mod_anicemole_burrowed);
+		
+	 }
+		
 		
 		this.advance();
 	}
@@ -163,6 +169,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -493,9 +500,9 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
-it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest" position="376,1417" size="100,100">&lt;&lt;silent&gt;&gt;
+it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest" position="376,1417" size="100,100">&lt;&lt;silently&gt;&gt;
 //anicemole processing
-&lt;&lt;/silent&gt;&gt;
+&lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
@@ -507,9 +514,9 @@ it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name
 &lt;&lt;/if&gt;&gt;
 
 Carefully hewn marble shows through the blanket of ice and snow, giving the area a feeling of patchy oppulence.
-[[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest" position="229,1594" size="100,100">&lt;&lt;silent&gt;&gt;
+[[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest" position="229,1594" size="100,100">&lt;&lt;silently&gt;&gt;
 //anicemole processing
-&lt;&lt;/silent&gt;&gt;
+&lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
@@ -520,12 +527,18 @@ Carefully hewn marble shows through the blanket of ice and snow, giving the area
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and unforgiving slate-gray stone.  The remains of graduated curved stone benches step down in a hemisphere around a clearing below and infrastructure that reminds you of the retractable roofing in fancier outdoor theatres peeks out from snow drifts here and there.  Down at the center of the declining rows of benches is a large marble dais, upon which proudly stands the most enormously overwrought chair you&#39;ve ever seen -- truly a throne.  It is majestic and imperious, with impossibly intricate and delicate gossamer weaves of crystals and gems decorating its broad frame; the morning light shining through their many hues blankets the dais in a constant rainbow corona.  The dais abutts a massive frozen waterfall, one moment in time of its roaring might trapped forever.  A chill wind kisses your cheek and you shiver, feeling profoundly lonely.     
+You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and unforgiving slate-gray stone.  The remains of graduated curved stone benches step down in a hemisphere around a clearing below and infrastructure that reminds you of the retractable roofing in fancier outdoor theatres peeks out from snow drifts here and there.  Down at the center of the declining rows of benches is a large marble dais, upon which proudly stands the most enormously overwrought chair you&#39;ve ever seen -- truly a throne.  It is majestic and imperious, with impossibly intricate and delicate gossamer weaves of crystals and gems decorating its broad frame; the morning light shining through their many hues blankets the dais in a constant rainbow corona.  The dais abutts a massive waterfall, all its roaring might condensed into a single moment frozen forever in time.  And ice.  A chill wind kisses your cheek and you shiver, feeling profoundly alone.    
+
+&lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
+	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
+		At the base of the frozen waterfall is a hole, roughly the size of a large mole.  An ice mole burrowed away from you through it.
+	&lt;&lt;/if&gt;&gt;
+&lt;&lt;/if&gt;&gt;
 
 [[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
-[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod" position="70,1422" size="100,100">&lt;&lt;silent&gt;&gt;
+[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod" position="70,1422" size="100,100">&lt;&lt;silently&gt;&gt;
 //anicemole processing
-&lt;&lt;/silent&gt;&gt;
+&lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
@@ -536,9 +549,19 @@ You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest" position="240,1236" size="100,100">&lt;&lt;silent&gt;&gt;
+//todo: normal desc text
+
+&lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
+	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
+		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a fairy, gentling pulsing with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding.  The main point of interest, however, is the tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.  
+	&lt;&lt;else&gt;&gt;
+		In addition to all the loose treasure, you can see faint glimmering from within the ice; you note that there may be yet more wonders held prisoner in its frosty grip.
+	&lt;&lt;/if&gt;&gt;
+&lt;&lt;/if&gt;&gt;
+
+Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest" position="240,1236" size="100,100">&lt;&lt;silently&gt;&gt;
 //anicemole processing
-&lt;&lt;/silent&gt;&gt;
+&lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
