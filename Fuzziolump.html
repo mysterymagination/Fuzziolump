@@ -75,6 +75,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -169,6 +170,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -570,6 +572,12 @@ Up a gradual incline and over the remains of a once-sturdy gate to the [[Northea
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+&lt;&lt;/if&gt;&gt;
+
+You stand in a large clearing where someone has apparently cultivated a vast garden of crystals.  Instead of the soft greens of pine and holly, eldritch purples, blues, reds, and every color imaginable (and a few that are like no color you&#39;ve imagined previously) filter the subtle sunlight into spectacular rainbows over you.  The dusting of snow only mutes the effect slightly, pleasantly keeping it mysterious rather than gaudy.  Faeries flit amongst the crystalline horticulture, adding their own colors to the filtered sunlight.  
+
+&lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
+The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as you.  When she sees you approaching, she winks flirtatiously and blows you a little kiss.  Simultaneously, blinding beautiful light explodes from every one of the innumerable crystals in the garden, and when you can see again you see that the little fairy has vanished. 
 &lt;&lt;/if&gt;&gt;
 
 The ground slopes downward in a gently meandering curve heading [[Southeast to a large clearing that frames a set of grandiose stairs that descend out of sight.-&gt;Shimmerin_Chase_Frozen_Stair]]  Just over the lip of a once ornate gate to the Southwest you can see a shallow hill with bumps of ice (most likely hiding buried steps) leading down into a [[gallery frozen forever in its final moment of splendor-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].</tw-passagedata></tw-storydata>
