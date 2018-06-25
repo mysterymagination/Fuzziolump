@@ -78,6 +78,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -172,6 +173,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -513,13 +515,25 @@ it is &lt;&lt;print $party&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
 	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	An ice mole is sniffing at the few valiant flowers poking up through the snow.  When he senses your approach, he jumps three feet straight in the air, and then dives into the ground just to the side of the marble tile like a breaching porpoise.
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-Carefully hewn marble shows through the blanket of ice and snow, giving the area a feeling of patchy oppulence.  Much of the remaining stonework seems to be ornamental -- a great deal of work seems to have gone into framing the large and once-grandiose sweeping staircase that leads down into a small valley surrounded by icy cliffs.  Gold leaf on every stair adds a curious flair to the shine of sunlight off the slippery rime that flows like a runner carpet all the way down. 
+Carefully hewn marble shows through the blanket of ice and snow, giving the area a feeling of patchy oppulence.  Much of the remaining stonework seems to be ornamental -- a great deal of work seems to have gone into framing the large and once-grandiose sweeping staircase that leads down into a small valley surrounded by icy cliffs.  Gold leaf on every stair adds a curious flair to the shine of sunlight off the slippery rime that flows like a runner carpet all the way down.
+
+&lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
+You can see your fairy quarry&#39;s lilac glow disappearing down the stairs. 
+&lt;&lt;/if&gt;&gt;
+
+&lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
+	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
+		  A spray of dirt from the mole hole mars the otherwise pristine marble tile.
+	&lt;&lt;/if&gt;&gt;
+&lt;&lt;/if&gt;&gt;
 
 
 [[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest room" position="229,1594" size="100,100">&lt;&lt;silently&gt;&gt;
@@ -529,13 +543,19 @@ Carefully hewn marble shows through the blanket of ice and snow, giving the area
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
 	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	An ice mole licks the frozen waterfall gingerly, as if giving it a friendly kiss.  When he hears you tromping through the crunchy snows, he tunnels away directly into the ice and has been replaced by a mole hole faster than you could blink.
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and unforgiving slate-gray stone.  The remains of graduated curved stone benches step down in a hemisphere around a clearing below and infrastructure that reminds you of the retractable roofing in fancier outdoor theatres peeks out from snow drifts here and there.  Down at the center of the declining rows of benches is a large marble dais, upon which proudly stands the most enormously overwrought chair you&#39;ve ever seen -- truly a throne.  It is majestic and imperious, with impossibly intricate and delicate gossamer weaves of crystals and gems decorating its broad frame; the morning light shining through their many hues blankets the dais in a constant rainbow corona.  The dais abutts a massive waterfall, all its roaring might condensed into a single moment frozen forever in time.  And ice.  A chill wind kisses your cheek and you shiver, feeling profoundly alone.    
+You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and unforgiving slate-gray stone.  The remains of graduated curved stone benches step down in a hemisphere around a clearing below and infrastructure that reminds you of the retractable roofing in fancier outdoor theatres peeks out from snow drifts here and there.  Down at the center of the declining rows of benches is a large marble dais, upon which proudly stands the most enormously overwrought chair you&#39;ve ever seen -- truly a throne.  It is majestic and imperious, with impossibly intricate and delicate gossamer weaves of crystals and gems decorating its broad frame; the morning light shining through their many hues blankets the dais in a constant rainbow corona.  The dais abutts a massive waterfall, all its roaring might condensed into a single moment frozen forever in time.  And ice.  A chill wind kisses your cheek and you shiver, feeling profoundly alone. 
+
+&lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
+A distant lilac glow flickers with a cadence quite like giggling laughter as it dances about the waterfall&#39;s massive tusk and claw-like iceicles.  When you reach the waterfall she is already gone. 
+&lt;&lt;/if&gt;&gt;
 
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
@@ -551,6 +571,9 @@ You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and
 	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
 	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	An ice mole patiently shovels snow with his great digging claws, to no particular purpose you can see.  His earnest little brow is furrowed, however, so you imagine he must have important duties here.  When he catches your scent on the wind, he abandons his shoveling and burrows away in a shower of glittering ice chips.
+	
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
@@ -558,6 +581,10 @@ You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and
 &lt;&lt;/if&gt;&gt;
 
 Heaps of gold coins and gemstones lay scattered about in the snow and ice.  The coins show significant patina and undisturbed drifts blanket much of the hoard, suggesting that it has been here for some time.  As you ogle the goodies, you imagine you can hear it calling out to you, begging to be scooped up and appreciated.  Notably, several humanoid bones are interspersed with the treasures.  The air here is alarmingly still, as if the very world holds its breath. 
+
+&lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
+You see no sign of your fairy friend here; seems she didn&#39;t wish to linger. 
+&lt;&lt;/if&gt;&gt;
 
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
@@ -590,6 +617,8 @@ As a cool wind ruffles the distant foliage, the crystal garden produces a light 
 
 &lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
 The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as you.  When she sees you approaching, she winks flirtatiously and blows you a little kiss.  Simultaneously, blinding beautiful light explodes from every one of the innumerable crystals in the garden, and when you can see again you see that the little fairy has vanished. 
+
+// todo: put a check in here to see if player has the tiara, in which case Shimmerin will notice (since she waited for the player in the garden) and approach instead of running off
 &lt;&lt;/if&gt;&gt;
 
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
