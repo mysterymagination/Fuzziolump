@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="34" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="41" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -81,11 +81,27 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
 var test = 0;
+
+// simulate a d20 roll
+State.variables.rollD20 = function(){
+	return Math.floor(Math.random() * 20) + 1;
+}
+
+// calculate the ability modifier per Pathfinder rules
+State.variables.calcMod = function(characterObject,attributeString){
+	return Math.floor((characterObject.attributes[attributeString]-10)/2);
+}
+
+// perform an ability score check
+State.variables.checkAbility = function(characterObject, attributeString){
+	return State.variables.rollD20() + State.variables.calcMod(characterObject,attributeString);	
+}
 
 // Character object definition
 function Character(name){
@@ -176,9 +192,15 @@ State.variables.inventory = [];
 State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
 
 // inductive biases characters may have toward the Player
+
+// fuzzy biases
 State.variables.inductive_bias_digger_good = "digger_good";
 State.variables.inductive_bias_clever = "clever";
 State.variables.inductive_bias_animal_handler = "animal_handler";
+
+// unfortunate biases
+State.variables.inductive_bias_liar = "liar";
+State.variables.inductive_bias_manipulative = "manipulative";
 
 function AnIceMole(){
 	this.path_index = 0;
@@ -256,6 +278,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -740,5 +763,17 @@ The ground slopes downward in a gently meandering curve heading [[Southeast to a
 
 You shrug and explain the situation as best you can, &quot;An ice mole was digging amongst the treasure, and I think I startled it -- it burrowed away in a hurry, scattering ice and buried treasures.  The tiara was one of the treasures revealed around the mole hole.&quot; 
 
-Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You were able to get the mole to dig treasure out of the ice?  But he&#39;s so stubborn!  He&#39;s usually so focused on his snow shoveling there that he won&#39;t do anything else, even for treats.  We faeries are too small for him to take much notice anyway, so we haven&#39;t been able to effectively enlist his services.&quot;</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="454,1149" size="100,100">// todo: random chance modified by CHA
-&lt;&lt; $characters[&quot;player&quot;].attributes[&quot;charisma&quot;] &gt;&gt;</tw-passagedata></tw-storydata>
+Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You were able to get the mole to dig treasure out of the ice?  But he&#39;s so stubborn!  He&#39;s usually too focused on his snow shoveling to do anything else, even when offered treats.  I&#39;m too small for him to take much notice anyway, so I haven&#39;t been able to effectively enlist his services.&quot;  She places the tiara on her head, carefully arranging her auburn locks so that they optimally frame the gorgeous treasure.</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="454,1149" size="100,100">&lt;&lt;if $checkAbility($characters[&quot;player&quot;],&quot;charisma&quot;) &gt; 15&gt;&gt;
+	The faery&#39;s eyes widen in awe.  &quot;The treasure room only allows the most pure-hearted creatures to shuffle or take from its contents.  You must be a wonderful person!&quot;  She zooms in uncomfortably close to your face and bats her lashes flirtatiously.  &quot;I wanna get to know you -- I&#39;m comin&#39; with!  Name&#39;s Shimmerin, by the by.&quot;  She plunks the tiara down on her head and, blushing, quickly tidies her auburn hair.  Flustered and wearing a sheepish grin, she offers a tiny hand.  You shake as best you can with a waggle of your little finger.
+	
+	&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;] += 20&gt;&gt;
+	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_digger_good)&gt;&gt;
+	
+&lt;&lt;else&gt;&gt;
+	The faery&#39;s brow crinkles skeptically.  &quot;No way.  You&#39;re lying to me!  What kind of person lies to such a cute girl?  Someone trying to manipulate her, that&#39;s what sort of &#39;person&#39;!&quot;  She sticks her tongue out at you, then turns her back and refuses to acknowledge you further.  As you turn to leave, she lands on your shoulder and tweaks your ear painfully. &quot;I&#39;m coming with you.  As an upstanding Lumpkin, I cannot allow a suspsicious individual such as yourself to wander my lovely little world unsupervised.  I don&#39;t know or care how you got the Queen&#39;s tiara, but I&#39;ll be keeping her safe.&quot;  She carefully places the tiara on her auburn locks, mussing them in her indignant fervor, then sticks her tongue out at you again. 
+	
+	&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;] -= 20&gt;&gt;
+	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_liar)&gt;&gt;
+	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_manipulative)&gt;&gt;
+	
+&lt;&lt;/if&gt;&gt;</tw-passagedata></tw-storydata>
