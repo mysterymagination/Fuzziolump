@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="41" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="34" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -39,6 +39,7 @@
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
 }
+
 
 
 
@@ -150,6 +151,10 @@ function Player(){
 	// inherit from Character
 	Character.call(this,"The Human");
 	
+	this.afflication_hypothermia = "hypothermia";
+	
+	// an array of string status ailments the player might have
+	this.afflictions = [];
 	
 	
 }
@@ -278,6 +283,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -593,9 +599,9 @@ This quest is entirely optional, and allows the player to add Shimmerin the faer
 Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
 Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
 &lt;&lt;else&gt;&gt;
-&lt;&lt;silent&gt;&gt;
+&lt;&lt;silently&gt;&gt;
 // We only want the mole to be processed if this is not the first time in the room, since the player starts here and we want to at least potentially show the mole mechanic with the rooms to the E and S
-&lt;&lt;/silent&gt;&gt;
+&lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
 	&lt;&lt;print &quot;mole discovered!  He burrows hastily away from the human in &quot;+passage()+&quot;!&quot;&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
@@ -702,7 +708,7 @@ You see no sign of your fairy friend here; seems she didn&#39;t wish to linger.
 
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
-		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding.  The main point of interest, however, is the tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.  
+		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding, that fits in the palm of your hand.  The main point of interest, however, is the tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.  
 	&lt;&lt;else&gt;&gt;
 		In addition to all the loose treasure, you can see faint glimmering from within the ice; you note that there may be yet more wonders held prisoner in its frosty grip.
 	&lt;&lt;/if&gt;&gt;
@@ -763,7 +769,9 @@ The ground slopes downward in a gently meandering curve heading [[Southeast to a
 
 You shrug and explain the situation as best you can, &quot;An ice mole was digging amongst the treasure, and I think I startled it -- it burrowed away in a hurry, scattering ice and buried treasures.  The tiara was one of the treasures revealed around the mole hole.&quot; 
 
-Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You were able to get the mole to dig treasure out of the ice?  But he&#39;s so stubborn!  He&#39;s usually too focused on his snow shoveling to do anything else, even when offered treats.  I&#39;m too small for him to take much notice anyway, so I haven&#39;t been able to effectively enlist his services.&quot;  She places the tiara on her head, carefully arranging her auburn locks so that they optimally frame the gorgeous treasure.</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="454,1149" size="100,100">&lt;&lt;if $checkAbility($characters[&quot;player&quot;],&quot;charisma&quot;) &gt; 15&gt;&gt;
+Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You were able to get the mole to dig treasure out of the ice?  But he&#39;s so stubborn!  He&#39;s usually too focused on his snow shoveling to do anything else, even when offered treats.  I&#39;m too small for him to take much notice anyway, so I haven&#39;t been able to effectively enlist his services.&quot;  She places the tiara on her head, carefully arranging her auburn locks so that they optimally frame the gorgeous treasure.
+
+&lt;&lt;goto [[Shimmerin_Chase_Transition_Bejeweled_Pines]]&gt;&gt;</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="504,1095" size="100,100">&lt;&lt;if $checkAbility($characters[&quot;player&quot;],&quot;charisma&quot;) &gt; 15&gt;&gt;
 	The faery&#39;s eyes widen in awe.  &quot;The treasure room only allows the most pure-hearted creatures to shuffle or take from its contents.  You must be a wonderful person!&quot;  She zooms in uncomfortably close to your face and bats her lashes flirtatiously.  &quot;I wanna get to know you -- I&#39;m comin&#39; with!  Name&#39;s Shimmerin, by the by.&quot;  She plunks the tiara down on her head and, blushing, quickly tidies her auburn hair.  Flustered and wearing a sheepish grin, she offers a tiny hand.  You shake as best you can with a waggle of your little finger.
 	
 	&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;] += 20&gt;&gt;
@@ -776,4 +784,7 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_liar)&gt;&gt;
 	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_manipulative)&gt;&gt;
 	
-&lt;&lt;/if&gt;&gt;</tw-passagedata></tw-storydata>
+&lt;&lt;/if&gt;&gt;
+
+&lt;&lt;goto [[Shimmerin_Chase_Transition_Bejeweled_Pines]]&gt;&gt;
+</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="675,1239" size="100,100">With a decisive pat of her flank and casual wave of one miniscule ivor arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata></tw-storydata>
