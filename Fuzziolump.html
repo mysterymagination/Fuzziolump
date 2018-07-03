@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="34" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="40" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -151,6 +151,14 @@ function Player(){
 	// inherit from Character
 	Character.call(this,"The Human");
 	
+	// the player can remain in full cold for 25 room moves
+	// before becoming hypothermic
+	this.cold_max_count = 25;
+	
+	// the count of turns a player has been out in the cold
+	this.cold_count = 0;
+	
+	// human dies of hypothermia
 	this.afflication_hypothermia = "hypothermia";
 	
 	// an array of string status ailments the player might have
@@ -209,7 +217,6 @@ State.variables.inductive_bias_manipulative = "manipulative";
 
 function AnIceMole(){
 	this.path_index = 0;
-	this.path_room_count = 4;
 	// the path an ice mole can take
 	this.ice_mole_path = ["Shimmerin_Chase_Frozen_Stair","Shimmerin_Chase_Diamond_Throneroom","Shimmerin_Chase_Treasure_Of_Stillness","Shimmerin_Chase_Crystal_Gardens"];
 	// the ice mole's current position
@@ -221,7 +228,7 @@ function AnIceMole(){
 	this.advance = function(){
 			// advance the path index, accounting for wraparound
 		  this.path_index++;
-			if(this.path_index == this.path_room_count){
+			if(this.path_index == this.ice_mole_path.length){
 				this.path_index = 0;
 			}
 			
@@ -230,6 +237,21 @@ function AnIceMole(){
 			this.ice_mole_room = this.ice_mole_path[this.path_index];
 		  alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
 	} // end advance function
+	/**
+	Retreats anicemole along his path
+	*/
+	this.retreat = function(){
+			// retreat the path index, accounting for wraparound
+		  this.path_index--;
+			if(this.path_index == -1){
+				this.path_index = this.ice_mole_path.length-1;
+			}
+			
+			// set the current room to the room along the path
+			// at the new index
+			this.ice_mole_room = this.ice_mole_path[this.path_index];
+		  alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
+	} // end retreat function
 	
 	/**
 	Anicemole burrows hastily away!  This will modify the current room and also advance the mole.
@@ -596,7 +618,17 @@ Each faery&#39;s wings are different colors, like intricate stained glass.  As y
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="58,1147" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
-Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="240,1401" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="240,1401" size="100,100">&lt;&lt;silently&gt;&gt;
+hypothermia processing
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
+&lt;&lt;if $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count&gt;&gt;
+	An icy fist grips your heart, and exhaustion makes your limbs feel like lead.  You cannot summon the will to continue chasing your faery friend, and instead lie down in the cold, pitiless snow for a [[loooooooooong nap-&gt;player_death]].
+&lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
+	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;if visited() == 1&gt;&gt;
 Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
 &lt;&lt;else&gt;&gt;
 &lt;&lt;silently&gt;&gt;
@@ -616,10 +648,15 @@ You stand in the center of what was once a grand antechamber, for certain values
 The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Frozen_Stair]], leaving a sprinkle of powder in her wake. There is an [[old and sturdy rope-&gt;Shimmerin_Chase_Diamond_Throneroom]] hanging over a small cliff to the South.  Away West, a collapsed archway leads to a subtley sunken glade that may once have been a [[gallery of sorts-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].
 
 
-//todo: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
+//todox: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
 
 // The simplest way to do something like the above would probably be to have a prefab maze in mind, and then randomly/conditionally change little bits of the descripter text for each room, and each room could be implemented as a prefab passage in Twine.  So draw that maze first!
-</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
+
+//todo: make the mole go CC when player is already in the room when it arrives.  Also make sure the mole&#39;s direction of burrowing is clear so that this doesn&#39;t turn into another Rilix Castle situation that can&#39;t be solved without already knowing the map.
+
+//todo: add hypothermia mechanic so that the player has some sense of risk in following Shimmerin further.  Also add escpe route, maybe notice the lights of bejeweled pines in the distance or an otter calling &quot;huuuuuuman!  huuuuuuuuuuuman!&quot; on random times after first in antechamber.
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
@@ -629,6 +666,16 @@ it is &lt;&lt;print $party&gt;&gt;
 variables().party[0].name = &quot;Testy McTestFace&quot;;
 alert(&quot;Player is &quot;+variables().party[0].name+&quot; whose CHA is &quot;+variables().party[0].attributes[&quot;charisma&quot;]);
 &lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest room" position="376,1417" size="100,100">&lt;&lt;silently&gt;&gt;
+hypothermia processing
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
+&lt;&lt;if $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count&gt;&gt;
+	An icy fist grips your heart, and exhaustion makes your limbs feel like lead.  You cannot summon the will to continue chasing your faery friend, and instead lie down in the cold, pitiless snow for a [[loooooooooong nap-&gt;player_death]].
+&lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
+	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
@@ -641,6 +688,20 @@ alert(&quot;Player is &quot;+variables().party[0].name+&quot; whose CHA is &quot
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	
+	&lt;&lt;silently&gt;&gt;
+	Need to check if mole has wandered into the room the human is currently in, and process his retreat
+	&lt;&lt;/silently&gt;&gt;
+	
+	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
+	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run $anicemole.retreat()&gt;&gt;
+	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	
+	An ice mole slides in on his belly like (?) the most elegant figure skater you&#39;ve ever seen from the Northwest.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
+	&lt;&lt;/if&gt;&gt;
+	
 &lt;&lt;/if&gt;&gt;
 
 Carefully hewn marble shows through the blanket of ice and snow, giving the area a feeling of patchy oppulence.  Much of the remaining stonework seems to be ornamental -- a great deal of work seems to have gone into framing the large and once-grandiose sweeping staircase that leads down into a small valley surrounded by icy cliffs.  Gold leaf on every stair adds a curious flair to the shine of sunlight off the slippery rime that flows like a runner carpet all the way down.
@@ -656,7 +717,19 @@ You can see your fairy quarry&#39;s lilac glow disappearing down the stairs.
 &lt;&lt;/if&gt;&gt;
 
 
-[[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest room" position="229,1594" size="100,100">&lt;&lt;silently&gt;&gt;
+[[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest room" position="229,1594" size="100,100">&lt;&lt;silently&gt;&gt;
+hypothermia processing
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
+&lt;&lt;if $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count&gt;&gt;
+	An icy fist grips your heart, and exhaustion makes your limbs feel like lead.  You cannot summon the will to continue chasing your faery friend, and instead lie down in the cold, pitiless snow for a [[loooooooooong nap-&gt;player_death]].
+&lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
+	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
@@ -669,6 +742,20 @@ You can see your fairy quarry&#39;s lilac glow disappearing down the stairs.
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	
+	&lt;&lt;silently&gt;&gt;
+	Need to check if mole has wandered into the room the human is currently in, and process his retreat
+	&lt;&lt;/silently&gt;&gt;
+	
+	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
+	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run $anicemole.retreat()&gt;&gt;
+	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	
+	An ice mole shimmies down from the Northeast over the frozen staircase, managing the steps with more dignity than any quadraped ever managed steps before (you&#39;re certain).  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
+	&lt;&lt;/if&gt;&gt;
+	
 &lt;&lt;/if&gt;&gt;
 
 You stand in a small valley surrounded by sheer cliffs of slick sapphire ice and unforgiving slate-gray stone.  The remains of graduated curved stone benches step down in a hemisphere around a clearing below and infrastructure that reminds you of the retractable roofing in fancier outdoor theatres peeks out from snow drifts here and there.  Down at the center of the declining rows of benches is a large marble dais, upon which proudly stands the most enormously overwrought chair you&#39;ve ever seen -- truly a throne.  It is majestic and imperious, with impossibly intricate and delicate gossamer weaves of crystals and gems decorating its broad frame; the morning light shining through their many hues blankets the dais in a constant rainbow corona.  The dais abutts a massive waterfall, all its roaring might condensed into a single moment frozen forever in time.  And ice.  A chill wind kisses your cheek and you shiver, feeling profoundly alone. 
@@ -684,7 +771,19 @@ A distant lilac glow flickers with a cadence quite like giggling laughter as it 
 &lt;&lt;/if&gt;&gt;
 
 [[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
-[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] </tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod room" position="70,1422" size="100,100">&lt;&lt;silently&gt;&gt;
+[[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] 
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod room" position="70,1422" size="100,100">&lt;&lt;silently&gt;&gt;
+hypothermia processing
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
+&lt;&lt;if $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count&gt;&gt;
+	An icy fist grips your heart, and exhaustion makes your limbs feel like lead.  You cannot summon the will to continue chasing your faery friend, and instead lie down in the cold, pitiless snow for a [[loooooooooong nap-&gt;player_death]].
+&lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
+	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
@@ -698,6 +797,20 @@ A distant lilac glow flickers with a cadence quite like giggling laughter as it 
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	
+	&lt;&lt;silently&gt;&gt;
+	Need to check if mole has wandered into the room the human is currently in, and process his retreat
+	&lt;&lt;/silently&gt;&gt;
+	
+	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
+	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run $anicemole.retreat()&gt;&gt;
+	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	
+	An ice mole snuffles in amongst the treasures from the Southeast, ignoring the sparklies and evidently intent on some secret quest.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
+	&lt;&lt;/if&gt;&gt;
+	
 &lt;&lt;/if&gt;&gt;
 
 Heaps of gold coins and gemstones lay scattered about in the snow and ice.  The coins show significant patina and undisturbed drifts blanket much of the hoard, suggesting that it has been here for some time.  As you ogle the goodies, you imagine you can hear it calling out to you, begging to be scooped up and appreciated.  Notably, several humanoid bones are interspersed with the treasures.  The air here is alarmingly still, as if the very world holds its breath. 
@@ -716,7 +829,19 @@ You see no sign of your fairy friend here; seems she didn&#39;t wish to linger.
 
 // todo: add options for the player to steal surface treasure or enact other mischief and receive a mild rebuke for it (magical shock or similar for mischief, maybe death for stealing... maybe first a shock as warning then death if player doesn&#39;t reverse action) to establish precedent for why faeries couldn&#39;t actively startle the mole and manipulate him into burrowing the tiara out.
 
-Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest room" position="240,1236" size="100,100">&lt;&lt;silently&gt;&gt;
+Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest room" position="240,1236" size="100,100">&lt;&lt;silently&gt;&gt;
+hypothermia processing
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
+&lt;&lt;if $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count&gt;&gt;
+	An icy fist grips your heart, and exhaustion makes your limbs feel like lead.  You cannot summon the will to continue chasing your faery friend, and instead lie down in the cold, pitiless snow for a [[loooooooooong nap-&gt;player_death]].
+&lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
+	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
@@ -730,6 +855,20 @@ Up a gradual incline and over the remains of a once-sturdy gate to the [[Northea
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	
+	&lt;&lt;silently&gt;&gt;
+	Need to check if mole has wandered into the room the human is currently in, and process his retreat
+	&lt;&lt;/silently&gt;&gt;
+	
+	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
+	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run $anicemole.retreat()&gt;&gt;
+	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	
+	
+	An ice mole hops up on a nearby yucca plant carved from solid ruby slightly to the Southwest, assuming the pose of a stalwart caretaker.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
+	&lt;&lt;/if&gt;&gt;
+	
 &lt;&lt;/if&gt;&gt;
 
 You stand in a large clearing where someone has apparently cultivated a vast garden of crystals.  Instead of the soft greens of pine and holly, eldritch purples, blues, reds, and every color imaginable (and a few that are like no color you&#39;ve imagined previously) filter the subtle sunlight into spectacular rainbows over you.  The dusting of snow only mutes the effect slightly, pleasantly keeping it mysterious rather than gaudy.  Faeries flit amongst the crystalline horticulture, adding their own colors to the filtered sunlight.  Brushing by an explosion of amethyst that looks a bit lke the leaves of a pineapple, you shy away as a sharp pain stings your arm and a warm rivulet of blood seeps into your clothing -- the verge here is beautiful and deadly. 
@@ -763,15 +902,17 @@ The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as 
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-The ground slopes downward in a gently meandering curve heading [[Southeast to a large clearing that frames a set of grandiose stairs that descend out of sight.-&gt;Shimmerin_Chase_Frozen_Stair]]  Just over the lip of a once ornate gate to the Southwest you can see a shallow hill with bumps of ice (most likely hiding buried steps) leading down into a [[gallery frozen forever in its final moment of splendor-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].</tw-passagedata><tw-passagedata pid="40" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Mole" tags="conversation shimmerin" position="448,1264" size="100,100">&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;]++ &gt;&gt;
-&lt;&lt;run $character[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_clever) &gt;&gt;
-&lt;&lt;run $character[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_animal_handler) &gt;&gt;
+The ground slopes downward in a gently meandering curve heading [[Southeast to a large clearing that frames a set of grandiose stairs that descend out of sight.-&gt;Shimmerin_Chase_Frozen_Stair]]  Just over the lip of a once ornate gate to the Southwest you can see a shallow hill with bumps of ice (most likely hiding buried steps) leading down into a [[gallery frozen forever in its final moment of splendor-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="40" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Mole" tags="conversation shimmerin" position="448,1264" size="100,100">&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;]++ &gt;&gt;
+&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_clever) &gt;&gt;
+&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_animal_handler) &gt;&gt;
 
 You shrug and explain the situation as best you can, &quot;An ice mole was digging amongst the treasure, and I think I startled it -- it burrowed away in a hurry, scattering ice and buried treasures.  The tiara was one of the treasures revealed around the mole hole.&quot; 
 
 Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You were able to get the mole to dig treasure out of the ice?  But he&#39;s so stubborn!  He&#39;s usually too focused on his snow shoveling to do anything else, even when offered treats.  I&#39;m too small for him to take much notice anyway, so I haven&#39;t been able to effectively enlist his services.&quot;  She places the tiara on her head, carefully arranging her auburn locks so that they optimally frame the gorgeous treasure.
 
-&lt;&lt;goto [[Shimmerin_Chase_Transition_Bejeweled_Pines]]&gt;&gt;</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="504,1095" size="100,100">&lt;&lt;if $checkAbility($characters[&quot;player&quot;],&quot;charisma&quot;) &gt; 15&gt;&gt;
+[[Furs grow and feathers blow...-&gt;Shimmerin_Chase_Transition_Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="41" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Self" tags="conversation shimmerin" position="446,1126" size="100,100">&lt;&lt;if $checkAbility($characters[&quot;player&quot;],&quot;charisma&quot;) &gt; 15&gt;&gt;
 	The faery&#39;s eyes widen in awe.  &quot;The treasure room only allows the most pure-hearted creatures to shuffle or take from its contents.  You must be a wonderful person!&quot;  She zooms in uncomfortably close to your face and bats her lashes flirtatiously.  &quot;I wanna get to know you -- I&#39;m comin&#39; with!  Name&#39;s Shimmerin, by the by.&quot;  She plunks the tiara down on her head and, blushing, quickly tidies her auburn hair.  Flustered and wearing a sheepish grin, she offers a tiny hand.  You shake as best you can with a waggle of your little finger.
 	
 	&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;] += 20&gt;&gt;
@@ -786,5 +927,5 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 	
 &lt;&lt;/if&gt;&gt;
 
-&lt;&lt;goto [[Shimmerin_Chase_Transition_Bejeweled_Pines]]&gt;&gt;
-</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="675,1239" size="100,100">With a decisive pat of her flank and casual wave of one miniscule ivor arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata></tw-storydata>
+[[Furs grow and feathers blow...-&gt;Shimmerin_Chase_Transition_Bejeweled_Pines]]
+</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="675,1239" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="888,1417" size="100,100">It&#39;s a sad thing that your adventures have ended here!</tw-passagedata></tw-storydata>
