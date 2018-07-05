@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="40" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="34" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -83,6 +83,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -92,6 +93,11 @@ var test = 0;
 // simulate a d20 roll
 State.variables.rollD20 = function(){
 	return Math.floor(Math.random() * 20) + 1;
+}
+
+// simulate a d% roll
+State.variables.rollPercentage = function(){
+	return Math.floor(Math.random() * 100) + 1;
 }
 
 // calculate the ability modifier per Pathfinder rules
@@ -305,6 +311,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -618,7 +625,7 @@ Each faery&#39;s wings are different colors, like intricate stained glass.  As y
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as their trees.&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="58,1147" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
-Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="240,1401" size="100,100">&lt;&lt;silently&gt;&gt;
+Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="241,1400" size="100,100">&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -647,6 +654,10 @@ You stand in the center of what was once a grand antechamber, for certain values
 
 The faery giggles and flits off through a [[close copse of pines to the East-&gt;Shimmerin_Chase_Frozen_Stair]], leaving a sprinkle of powder in her wake. There is an [[old and sturdy rope-&gt;Shimmerin_Chase_Diamond_Throneroom]] hanging over a small cliff to the South.  Away West, a collapsed archway leads to a subtley sunken glade that may once have been a [[gallery of sorts-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].
 
+&lt;&lt;if $rollPercentage &gt;= 75&gt;&gt;
+	You can hear a faint whisper on the wind, &quot;Human!  Huuuuuuuman!&quot;.  It sounds vaguely dapper and certainly whiskery, so you deduce it is likely Nuvi looking for you.  You could choose to [[follow the voice if you&#39;re done playing with the faery.-&gt;Bejeweled_Pines]]
+&lt;&lt;/if&gt;&gt;
+
 
 //todox: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
 
@@ -654,7 +665,7 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 
 //todo: make the mole go CC when player is already in the room when it arrives.  Also make sure the mole&#39;s direction of burrowing is clear so that this doesn&#39;t turn into another Rilix Castle situation that can&#39;t be solved without already knowing the map.
 
-//todo: add hypothermia mechanic so that the player has some sense of risk in following Shimmerin further.  Also add escpe route, maybe notice the lights of bejeweled pines in the distance or an otter calling &quot;huuuuuuman!  huuuuuuuuuuuman!&quot; on random times after first in antechamber.
+
 
 &lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
 &lt;&lt;script&gt;&gt;
@@ -879,7 +890,7 @@ As a cool wind ruffles the distant foliage, the crystal garden produces a light 
 &lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
 The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as you.  When she sees you approaching, she winks flirtatiously and blows you a little kiss.  
 
-	&lt;&lt;if $inventory.includes($summer_court_tiara)&gt;&gt;
+	&lt;&lt;if $characters[&quot;player&quot;].inventory.includes($summer_court_tiara)&gt;&gt;
 		Then, her eyes shift to your pack, which has begun to hum and vibrate softly.  Zooming over in a blur of enthusiasm, the little fairy opens your pack, dives in, and emerges holding reverently the tiny tiara you picked up in the treasure room.
 		
 		&quot;This... how did you get this?&quot; she asks, breathlessly, her face a mask of astonishment and all pretense of teasing silliness forgotten.  &quot;She&#39;s the Summer Queen&#39;s own tiara, and has been lost to us since the fall of the courts centuries ago.  Everything hears her call, faeries most of all, so we knew she was under the ice amongst the forsaken treasures but no one could get past the treasure&#39;s curse to reach her!&quot;
