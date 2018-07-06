@@ -832,7 +832,14 @@ You see no sign of your fairy friend here; seems she didn&#39;t wish to linger.
 
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
-		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding, that fits in the palm of your hand.  The main point of interest, however, is the tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.  
+		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding, that fits in the palm of your hand.  
+	&lt;&lt;if not $characters[&quot;player&quot;].inventory.includes(State.variables.summer_court_tiara)&gt;&gt;
+		The main point of interest, however, is the &lt;&lt;click 
+	&quot;tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.&quot;&gt;&gt;
+		&lt;&lt;script&gt;&gt;State.variables.characters[&quot;player&quot;].inventory.push(State.variables.summer_court_tiara); state.display(state.active.title, null, &quot;back&quot;);&lt;&lt;/script&gt;&gt;
+		&lt;&lt;/click&gt;&gt;
+		
+		&lt;&lt;/if&gt;&gt;
 	&lt;&lt;else&gt;&gt;
 		In addition to all the loose treasure, you can see faint glimmering from within the ice; you note that there may be yet more wonders held prisoner in its frosty grip.
 	&lt;&lt;/if&gt;&gt;
@@ -930,7 +937,7 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_digger_good)&gt;&gt;
 	
 &lt;&lt;else&gt;&gt;
-	The faery&#39;s brow crinkles skeptically.  &quot;No way.  You&#39;re lying to me!  What kind of person lies to such a cute girl?  Someone trying to manipulate her, that&#39;s what sort of &#39;person&#39;!&quot;  She sticks her tongue out at you, then turns her back and refuses to acknowledge you further.  As you turn to leave, she lands on your shoulder and tweaks your ear painfully. &quot;I&#39;m coming with you.  As an upstanding Lumpkin, I cannot allow a suspsicious individual such as yourself to wander my lovely little world unsupervised.  I don&#39;t know or care how you got the Queen&#39;s tiara, but I&#39;ll be keeping her safe.&quot;  She carefully places the tiara on her auburn locks, mussing them in her indignant fervor, then sticks her tongue out at you again. 
+	The faery&#39;s brow crinkles skeptically.  &quot;No way.  You&#39;re lying to me!  What kind of person lies to such a cute girl?  Someone trying to manipulate her, that&#39;s what sort of &#39;person&#39;!&quot;  She sticks her tongue out at you, then turns her back and refuses to acknowledge you further.  As you turn to leave, she lands on your shoulder and tweaks your ear painfully. &quot;I&#39;m coming with you.  As an upstanding Lumpkin, I cannot allow a suspicious individual such as yourself to wander my lovely little world unsupervised.  I don&#39;t know or care how you got the Queen&#39;s tiara, but I&#39;ll be keeping her safe.&quot;  She carefully places the tiara on her auburn locks, mussing them in her indignant fervor, then sticks her tongue out at you again. 
 	
 	&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;] -= 20&gt;&gt;
 	&lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_liar)&gt;&gt;
