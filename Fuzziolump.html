@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="34" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="44" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -39,6 +39,7 @@
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
 }
+
 
 
 
@@ -356,6 +357,7 @@ Config.constructor.prototype.combat = function Combat(){
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -511,6 +513,8 @@ Cons:
 
 2. nuvi explains the problem they&#39;re having with pesky gods being born, and says that a consensus was reached by the animal council (insert animal themed council pun here) that a human creative should be brought in to help figure out how to slow and undo some of the creativity flying around.
 
+2.1 a faerie is encountered in the bejeweled pines room of the frosted forest, and the player can optionally chase after her to get her in the party as a side quest.
+
 3. first step on that journey is heading to the council so they can give more information on particularly troubling developments and decide which the human should address first.  The council resides in the Wombat Warren which is located north of the Frosted Forest in which the Atrium Glade resides.  The human must travel North through the Frosted Forest until the trees thin and the snows disappear, and the ecosystem suddenly changes to a warm savannah called the Bush.  There they will start to see holes everyplace, and Nuvi will inform the human that these all lead to the Wombat Warren.  
 
 /*
@@ -528,7 +532,10 @@ d. dig up the root (find out what imagination and emotion specifically fuels Hol
 }
 
 Demo Scope{
- -intro meeting Nuvi and with basic Fuzziolump setting description
+ x-intro meeting Nuvi and with basic Fuzziolump setting description
+ x-optional shimmerin maze
+ -character drawer (persistent link in the sidebar that opens a sliding drawer with character names in the party, so player can talk to them on-demand.  Inductive bias and current location will be taken into account in their responses)
+ -inventory drawer (persistent link in the sidebar that opens a sliding drawer with item names in the inventory, allowing player to apply various actions [use, examine] to each item)
  -travel to Wombat Warrens and entry puzzle
  -discussion about gods and how to prune them with council
  -combat with Puck
@@ -618,7 +625,7 @@ a dazzling array of colors: the trees here are no less dusted with snow than the
 
 &quot;A small tree effigy fell into this forest long ago, decorated in a similar manner. The trees here were so smitten by the style they demanded to be honored with comparable shinies and lights.  The [[dryads-&gt;Dryad_Desc]] felt abashed that trees elsewhere were so honored, and strove to worship their charges fittingly.  Unluckily for the glass-blowers and enterprising faeries, the trend did not catch on elsewhere in the forest.&quot;
 
-Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;The other trees consider these ones a bit gaudy.&quot;  He holds a little paw over his mouth to stifle his giggles.  When his hearty laughter knocks his monocle off, he sobers quickly.  Alighting by your foot to retrieve it, he clears his throat and asks, &quot;Shall we [[continue on to the plains?-&gt;Wombat_Plains]]&quot;</tw-passagedata><tw-passagedata pid="31" name="Faery_Desc" tags="creature lumpkin description" position="170,1045" size="100,100">Peering closely at the nearest bobbing lights, you note that at the center of each little sphere is a diminutive woman (you guess about 6cm in height) with six dragonfly wings. 
+Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;The other trees consider these ones a bit gaudy.&quot;  He holds a little paw over his mouth to stifle his giggles.  When his hearty laughter knocks his monocle off, he sobers quickly.  Alighting by your foot to retrieve it, he clears his throat and asks, &quot;Shall we [[continue North to the plains?-&gt;Bush]]&quot;</tw-passagedata><tw-passagedata pid="31" name="Faery_Desc" tags="creature lumpkin description" position="170,1045" size="100,100">Peering closely at the nearest bobbing lights, you note that at the center of each little sphere is a diminutive woman (you guess about 6cm in height) with six dragonfly wings. 
 
 &quot;Those are faeries,&quot; Nuvi informs you, &quot;whimsical little beauties with insatiable curiosity.  They trade their light for secrets, whispered by the woods; little goes on anywhere nearby that isn&#39;t witnessed by the trees.&quot;
 
@@ -948,4 +955,10 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 &lt;&lt;/if&gt;&gt;
 
 [[Furs grow and feathers blow...-&gt;Shimmerin_Chase_Transition_Bejeweled_Pines]]
-</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!</tw-passagedata><tw-passagedata pid="44" name="Wombat_Plains" tags="" position="0,1139" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
+</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!</tw-passagedata><tw-passagedata pid="44" name="Bush" tags="room" position="0,1139" size="100,100">As you exit the treeline of the snow-frosted forest, a wave of heat slaps you in the face so tangibly that you actually stumble.  Though snow falls visibly, almost mockingly, not 100 yards to the South, the temperature in the savannah feels closer to boiling.
+
+&quot;Ecosystems work pretty differently here,&quot; Nuvi explains, prompted by your stunned expression.  &quot;They depend more on our collective conception of what a place should be like rather than weather patterns and physics and all that fluff humans are always going on about.&quot;  Despite the heat, your thick-furred companion glides along as serenely as ever.  He hums [[a tune you&#39;re unfamiliar with-&gt;Bush_Tune]].
+
+Innumerable holes dot the landscape like spots on a giraffe, which you can see in the distance by the way.  
+
+</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata></tw-storydata>
