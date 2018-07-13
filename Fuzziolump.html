@@ -86,6 +86,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -358,6 +359,7 @@ Config.constructor.prototype.combat = function Combat(){
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -507,7 +509,7 @@ Cons:
 
 -Characters:
 --Nuvi the flying otter guide: player&#39;s guide through their adventure.  Swims through the air via gravity assist of some sort; wings are slightly for precision maneuvers and mostly for show.  He is very dapper and proper, and he worries about the human&#39;s safety.  His opinion re: the godlings is that they&#39;re rampant growth has to be checked for the good of all, but that new lifeforms should be allowed to thrive.
---Shimmerin the faerie princess: she is a trickster among tricksters and wishes to revive the faerie courts so that faeries can act freely in Fuzziolump as they once did.  To do this, she will need the power of the First Summer Queen&#39;s tiara.  The treasure hoard of the faeries is cursed to only allow those with hearts as pure as a mole&#39;s to touch it, and hers is darkened by bitterness.  She tempts the human to follow her in hopes that they can either touch the treasure themselves or manipulate an ice mole into doing it for them.  Since she wants to see the current Fuzziolump regime fall, she is secretly in favor of the godling revolution and will subtley hinder the human on their quest to stop it.  She is good at heart and can be redeemed once her secret is out, so long as the human is amenable to revisiting the status of faeries in Fuzziolump with the council.  Else, she will fight the human when the truth comes out. 
+--Shimmerin the faerie princess: she is a trickster among tricksters and wishes to revive the faerie courts so that faeries can act freely in Fuzziolump as they once did.  To do this, she will need the power of the First Summer Queen&#39;s tiara.  The treasure hoard of the faeries is cursed to only allow those with hearts as pure as a mole&#39;s to touch it, and hers is darkened by bitterness.  She tempts the human to follow her in hopes that they can either touch the treasure themselves or manipulate an ice mole into doing it for them.  Since she wants to see the current Fuzziolump regime fall, she is secretly in favor of the godling revolution and will subtley hinder the human on their quest to stop it.  Despite her somewhat dark agenda, she is friendly by default and enjoys joking with comrades.  The human fascinates her, and she is constantly tryint to learn more about humanity.  She is good at heart and can be redeemed once her secret is out, so long as the human is amenable to revisiting the status of faeries in Fuzziolump with the council.  Else, she will fight the human when the truth comes out. She has a limited ability to grant wishes, in exchange for dreams; if the player allows her to eat some number of their dreams, Shimmerin can work wonders like curative magic which is otherwise very rare.  She presents this exchange as giving her creative inspiration, which it does, which she can use to power the godlings, but it also gives her footholds into the player&#39;s psyche.  The more she has, the more difficult she will be to resist when the truth comes out.
 --Woolliam the tenacious wombat: gentle, kind, and determined, Woolliam insists on accompanying the human to help in quelling the growing godling threat, despite the wombat elder&#39;s refusal.  He wants to protect those in his humble sphere of influence and believes he cannot do so without venturing outside the warren.  He will follow the player as stealthily as a wombat can (not very) and provide random assistance.  Despite his brave attempts to help, he is actually pathologically shy and has great difficulty dealing with anyone.  Shimmerin delights in tormenting him. 
 --Puck the spirit of ivy: clingy spirit obsessed with Holly; she does not comprehend his feelings, and is amused by his attentions.  She encourages/teases him without understanding the cruelty of these actions.  He wants to see her continue to ascend no matter what the cost, and will fight to the death if he feels she is being threatened.
 --Holly the wild goddess (godling): godling of nature and wild things who has gained much perspective from being in many places at once, and has also lost a fair bit from the vantage of lesser beings (e.g. empathy with Puck).  She adores all living things and wants to be sweet and gentle with them; her unpredictable temper makes this difficult, however, and her connection to so many imaginations is making her grow faster than any godling.  Even if she realized the danger she poses to those living things around her by her growth she likely could not stop herself without help. 
@@ -967,4 +969,15 @@ Innumerable holes dot the landscape like spots on a giraffe, which, incidentally
 
 To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the [[holes directly North-&gt;Bush_Wombat_Burrow_1]]. 
 
-</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.</tw-passagedata></tw-storydata>
+</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">/*
+todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.
+
+Wombat Family 1: needs help treating their sick elders.  (can be helped either by med. herb from Frosty Forest, or from Shimmerin healing wish)
+
+Wombat Family 2: needs help rescuing a trapped digger from a collapsed tunnel. (can be helped by player physically at the cost of health, or small amount of mana can be expended for a risky teleportation rescue that can fail)
+
+Wombat Family 3: needs to cross a chasm to explore new tunneling territory. (faerie statue can be used for limited flight, or player can spend mana to do same)
+
+Alternatively/additionally, I&#39;d like some kind of wombat digging dungeon angle, maybe a maze or similar challenge to make the human prove they have a wombat&#39;s good sense and sensibilities by way of being at home underground.
+
+*/</tw-passagedata></tw-storydata>
