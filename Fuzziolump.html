@@ -87,6 +87,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -129,6 +130,13 @@ function Character(name){
 		"strength":10,
 		"dexterity":10,
 		"constitution":10
+	}
+	
+	// basic stats, representing character vitality as resources
+	// TODO: these and other consumeable resources should show in a HUD drawer
+	this.stats = {
+		"hp":100,
+		"mp":100
 	}
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
@@ -314,6 +322,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -967,17 +976,23 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 
 Innumerable holes dot the landscape like spots on a giraffe, which, incidentally, you can see several of in the distance.
 
-To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the [[holes directly North-&gt;Bush_Wombat_Burrow_1]]. 
+To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the nearest [[hole directly North-&gt;Bush_Wombat_Burrow_1]]. 
 
 </tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">/*
-todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.
+todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.  Now the tricky part here is that it doesn&#39;t make any damn sense for the wombats to be cryptic about what they need, but at the same time nobody likes a fetch quest.  Probably a fair compromise is to have the wombats simply present a problem they need help with and finding a solution in the world is up to the player.  However, that sounds like a job for after demo, when the world is more expansive.  Maybe for now simply have each present a situation that requires the player to spend resources?
 
 Wombat Family 1: needs help treating their sick elders.  (can be helped either by med. herb from Frosty Forest, or from Shimmerin healing wish)
 
-Wombat Family 2: needs help rescuing a trapped digger from a collapsed tunnel. (can be helped by player physically at the cost of health, or small amount of mana can be expended for a risky teleportation rescue that can fail)
+Wombat Family 2: needs help rescuing a trapped digger from a collapsed tunnel. (can be helped by player physically at the cost of health, or small amount of mana can be expended for a risky teleportation rescue that can fail).
 
 Wombat Family 3: needs to cross a chasm to explore new tunneling territory. (faerie statue can be used for limited flight, or player can spend mana to do same)
 
 Alternatively/additionally, I&#39;d like some kind of wombat digging dungeon angle, maybe a maze or similar challenge to make the human prove they have a wombat&#39;s good sense and sensibilities by way of being at home underground.
 
-*/</tw-passagedata></tw-storydata>
+*/
+
+&quot;A human!&quot; a small voice squeaks, and the whiskered faces disappear down the hole.  You approach slowly, Nuvi in the lead -- being a more familiar sight to them, he can serve as a sort of literally soft transition for the little wombats. 
+
+&quot;Hello gentle wombats!&quot;  Nuvi calls out ahead.  &quot;I&#39;m an agent of the council, escorting a human consultant to help with our little problem.  We&#39;ll need to pass through into the Warren, please and thank you.&quot;
+
+A broad snout covered in a wiry blanket of tawny fur rises above the lip of the hole, a steady brow arched skeptically over glistening black eyes.  &quot;Human?  To see the council?  The situation must be getting desperate, indeed.&quot;   </tw-passagedata></tw-storydata>
