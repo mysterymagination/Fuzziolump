@@ -88,6 +88,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -322,6 +323,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -991,8 +993,16 @@ Alternatively/additionally, I&#39;d like some kind of wombat digging dungeon ang
 
 */
 
+&lt;&lt;if $visited() == 1&gt;&gt;
 &quot;A human!&quot; a small voice squeaks, and the whiskered faces disappear down the hole.  You approach slowly, Nuvi in the lead -- being a more familiar sight to them, he can serve as a sort of literally soft transition for the little wombats. 
 
 &quot;Hello gentle wombats!&quot;  Nuvi calls out ahead.  &quot;I&#39;m an agent of the council, escorting a human consultant to help with our little problem.  We&#39;ll need to pass through into the Warren, please and thank you.&quot;
 
-A broad snout covered in a wiry blanket of tawny fur rises above the lip of the hole, a steady brow arched skeptically over glistening black eyes.  &quot;Human?  To see the council?  The situation must be getting desperate, indeed.&quot;   </tw-passagedata></tw-storydata>
+A broad snout covered in a wiry blanket of tawny fur rises above the lip of the hole, a steady brow arched skeptically over glistening black eyes.  &quot;Human?  To see the council?  The situation must be getting desperate, indeed.&quot;  The wombat levels a stern but fair gaze at you. &quot;Their presence here will accelerate the godlings&#39; growth -- the council realizes that don&#39;t they?&quot;
+
+Nuvi performs a placating barrel roll and responds, &quot;Peace, noble wombat sister.  The council is well aware of the many consequences associated with bringing a human to Fuzziolump, chief among them the imaginative accelerant effect.  It was decided that the risk of accelerating the godlings&#39; expansion was worth taking if it might mean stopping them altogether.  This human is a creative, an expert on generating and, presumably, suppressing creativity.&quot;
+
+The wombat taps her tough leathery nose several times with a mighty digging claw as she considers the otter&#39;s words.  &quot;So they&#39;ve run out of ideas that aren&#39;t dangerous and foolhardy, then?  Fine enough.  However, the warren is a place of wombats and wombatfriends, and the only way in leads through our home burrows.  This human will need to prove themselves wombatfriend just like anyone else before they can pass through.&quot;
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata></tw-storydata>
