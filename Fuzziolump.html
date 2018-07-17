@@ -182,6 +182,9 @@ function Player(){
 	// an array of string status ailments the player might have
 	this.afflictions = [];
 	
+	// an array of string titles the player may obtain for outstanding deeds
+	this.titles = [];
+	
 	
 }
 
@@ -1002,7 +1005,11 @@ A broad snout covered in a wiry blanket of tawny fur rises above the lip of the 
 
 Nuvi performs a placating barrel roll and responds, &quot;Peace, noble wombat sister.  The council is well aware of the many consequences associated with bringing a human to Fuzziolump, chief among them the imaginative accelerant effect.  It was decided that the risk of accelerating the godlings&#39; expansion was worth taking if it might mean stopping them altogether.  This human is a creative, an expert on generating and, presumably, suppressing creativity.&quot;
 
-The wombat taps her tough leathery nose several times with a mighty digging claw as she considers the otter&#39;s words.  &quot;So they&#39;ve run out of ideas that aren&#39;t dangerous and foolhardy, then?  Fine enough.  However, the warren is a place of wombats and wombatfriends, and the only way in leads through our home burrows.  This human will need to prove themselves wombatfriend just like anyone else before they can pass through.&quot;
+The wombat taps her tough leathery nose several times with a mighty digging claw as she considers the otter&#39;s words.  &quot;So they&#39;ve run out of ideas that aren&#39;t dangerous and foolhardy, then?  Fine enough.  However, the warren is a place of wombats and wombuddies, and the only way in leads through our home burrows.  This human will need to prove themselves a wombuddy just like anyone else before they can pass through.&quot;
 &lt;&lt;else&gt;&gt;
-
+	&lt;&lt;if $characters[&quot;player&quot;].titles.includes(&quot;wombuddy&quot;)&gt;&gt;
+		Sheila the wombat&#39;s broad snout appears from nothing quicker than a flash of lightning over the edge of the tunnel as you approach.  Her expression of stoic vigilance breaks into a smile as warm as being enveloped in wombat fur as she recognizes you.
+	&lt;&lt;else&gt;&gt;
+	
+	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;</tw-passagedata></tw-storydata>
