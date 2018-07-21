@@ -90,6 +90,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -327,6 +328,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1016,4 +1018,32 @@ The wombat taps her tough leathery nose several times with a mighty digging claw
 	&lt;&lt;else&gt;&gt;
 		The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&quot;I will pose three scenarios to you, and I simply require that you answer honestly about what you would do in each case.&quot;</tw-passagedata></tw-storydata>
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">// todo: this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
+
+&quot;I will pose three scenarios to you, and I simply require that you answer honestly about what you would do in each case.&quot;  She crosses her fuzzy arms and taps the giant claws of her right paw appraisingly upon her impressive left bicep.
+
+&quot;The day has been perfect: timbers were erected effeciently as support struts, and every measurement and calculation was correct on the first go.  The soil was all soft and loamy, such that tunneling was more like being a joey again playing in the mud than work.  Your people are all safe and happy and contentedly tired from a day&#39;s honest labor.  As everyone is leaving the tunnel, it all comes crashing down -- literally.  
+Termites, those evil buggers, have weakened a timber toward front of the tunnel and it collapses just before the last of your people make it out!  Two are trapped inside: a grey-furred elder just about ready for retirement and a youngster who regularly exhausts himself to prove his competence.  The greyback was close to the exit when the tunnel collapsed, only two or three body lengths deep.  The ambitious youngling is much further back, but also possibly behind the actual collapse instead of beneath it.  You&#39;re the foreperson, and responsible for their lives.  What is the first thing you do?&quot;
+
+&lt;&lt;silently&gt;&gt;
+	This&#39;d be the humble but potentially cowardly approach 
+	
+	+1 towards wombuddy
+	Inductive bias: humble, lacking_confidence, knows_limitations
+	
+&lt;&lt;/silently&gt;&gt;
+&quot;[[I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s .-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
+&lt;&lt;silently&gt;&gt;
+	Passionate and compassionate response, but potentially foolish
+	
+	+2 towards wombuddy
+	Inductive bias: kind, reckless, heart_over_head
+&lt;&lt;/silently&gt;&gt;
+[[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!-&gt;Bush_Wombuddy_Test_Quest_2&quot;]]
+&lt;&lt;silently&gt;&gt;
+	The reasonable and cool-headed approach, best for wombats
+	
+	+5 towards wombuddy
+	Inductive bias: logical, confident, burrower
+&lt;&lt;/silently&gt;&gt;
+[[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.-&gt;Bush_Wombuddy_Test_Quest_2&quot;]]</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="" position="130,1450" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_2&quot;" tags="" position="238,1450" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
