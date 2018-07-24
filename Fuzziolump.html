@@ -91,6 +91,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -328,6 +329,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1018,12 +1020,20 @@ The wombat taps her tough leathery nose several times with a mighty digging claw
 	&lt;&lt;else&gt;&gt;
 		The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">// todo: this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
+this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;silently&gt;&gt;
+	The player has to achieve a score of 9 wombat points to earn the title of wombuddy.  This equates to at least one &#39;perfect&#39; (+5) answer and two &#39;okay&#39; (+2) answers. 
+&lt;&lt;/silently&gt;&gt;
+&lt;&lt;silently&gt;&gt;
+	disaster handling scenario
+&lt;&lt;/silently&gt;&gt;
 
 &quot;I will pose three scenarios to you, and I simply require that you answer honestly about what you would do in each case.&quot;  She crosses her fuzzy arms and taps the giant claws of her right paw appraisingly upon her impressive left bicep.
 
 &quot;The day has been perfect: timbers were erected effeciently as support struts, and every measurement and calculation was correct on the first go.  The soil was all soft and loamy, such that tunneling was more like being a joey again playing in the mud than work.  Your people are all safe and happy and contentedly tired from a day&#39;s honest labor.  As everyone is leaving the tunnel, it all comes crashing down -- literally.  
-Termites, those evil buggers, have weakened a timber toward front of the tunnel and it collapses just before the last of your people make it out!  Two are trapped inside: a grey-furred elder just about ready for retirement and a youngster who regularly exhausts himself to prove his competence.  The greyback was close to the exit when the tunnel collapsed, only two or three body lengths deep.  The ambitious youngling is much further back, but also possibly behind the actual collapse instead of beneath it.  You&#39;re the foreperson, and responsible for their lives.  What is the first thing you do?&quot;
+Termites, those evil buggers, have weakened a timber toward front of the tunnel and it collapses just before the last of your people make it out!  Two are trapped inside: a grey-furred elder just about ready for retirement and a youngster who regularly exhausts himself to prove his competence.  The greyback was close to the exit when the tunnel collapsed, only two or three body lengths deep.  The ambitious youngling is much further back, but also possibly behind the actual collapse instead of beneath it.  You&#39;re the forebeast, and responsible for their lives.  What is the first thing you do?&quot;
 
 &lt;&lt;silently&gt;&gt;
 	This&#39;d be the humble but potentially cowardly approach 
@@ -1032,18 +1042,76 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 	Inductive bias: humble, lacking_confidence, knows_limitations
 	
 &lt;&lt;/silently&gt;&gt;
-&quot;[[I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s .-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
+&quot;[[I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
 &lt;&lt;silently&gt;&gt;
 	Passionate and compassionate response, but potentially foolish
 	
 	+2 towards wombuddy
 	Inductive bias: kind, reckless, heart_over_head
 &lt;&lt;/silently&gt;&gt;
-[[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!-&gt;Bush_Wombuddy_Test_Quest_2&quot;]]
+[[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
 &lt;&lt;silently&gt;&gt;
 	The reasonable and cool-headed approach, best for wombats
 	
 	+5 towards wombuddy
 	Inductive bias: logical, confident, burrower
 &lt;&lt;/silently&gt;&gt;
-[[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.-&gt;Bush_Wombuddy_Test_Quest_2&quot;]]</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="" position="130,1450" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_2&quot;" tags="" position="238,1450" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
+[[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="conversation" position="231,1454" size="100,100">&lt;&lt;silently&gt;&gt;
+scenario about honesty and humility
+&lt;&lt;/silently&gt;&gt;
+&quot;On to the next scenario, then.  You&#39;ve been tasked by your forebeast to survey a completed tunnel using a trendy new architecture for safety.  The forebeast in question is known to cut corners: case in point, he came to you, a novice surveyor, rather than one of the senior surveyors as per protocol.  Despite this reputation, he is also influential in the community and a good relationship with him could help skyrocket your career.  Similarly, a black mark from him could cripple your ambitions for years.  As for your skill level, you&#39;re good but you don&#39;t feel confident that you can perform such a complex survey adaquately without much more experience.  What do you do?&quot;
+
+//todo: the assessment of all scenarios should take inductive bias into account, and conflicting biases should lead to suspicion.
+
+&lt;&lt;silently&gt;&gt;
+	Honest and humble case where player confesses situation to senior surveyor and risks ire of forebeasty because it&#39;s the safe and responsible thing to do
+	
+	Wombuddy +5
+	Inductive Bias Mods: humble, honest, altruistic, compassionate
+&lt;&lt;/silently&gt;&gt;
+[[No real choice -- I&#39;d have to confess to the forebeast that I felt unready to take on such a major task and request that he choose someone more experienced.  If he insists, I&#39;d take the matter to one of my superior surveyors or the appropriate governing body; safety comes first!-&gt;Bush_Wombuddy_Test_Quest_3]]
+
+&lt;&lt;silently&gt;&gt;
+	Ambitious self-starter but reckless response
+	
+	Wombuddy +2
+	Inductive Bias: ambitious, reckless
+&lt;&lt;/silently&gt;&gt;
+[[I would embrace the challenge!  Working nights and weekends studying the tunnel and its architectural theory prior to surveying it should compensate for my lack of experience.-&gt;Bush_Wombuddy_Test_Quest_3]] 
+
+&lt;&lt;silently&gt;&gt;
+	Honest but selfish/obstructionist
+	
+	Wombuddy +1
+	Inductive Bias: selfish, honest
+&lt;&lt;/silently&gt;&gt;
+[[I&#39;m just a novice, I can&#39;t be responsible for that!  I wouldn&#39;t want my name anywhere near such a slipshod operation; I&#39;d refuse the forebeast&#39;s request and try to wash my hands of the whole situation, going over his head if necessary.-&gt;Bush_Wombuddy_Test_Quest_3]] </tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_3" tags="conversation" position="166,1600" size="100,100">&lt;&lt;silently&gt;&gt;
+scenario about work ethic and community focus
+&lt;&lt;/silently&gt;&gt;
+
+&quot;All right, final scenario.  Your forebeast is thrilled with the progress you and your team have been making, and has given you the day off!  How do you spend it?&quot;
+
+&lt;&lt;silently&gt;&gt;
+	Chill but lazy answer
+	Secret bonus: you&#39;ve picked Sheila&#39;s favorite guilty pleasure and made her blush as she begins to crush on you just a tad
+	
+	Wombuddy +1
+	Inductive Bias: chill, lazy, crush
+&lt;&lt;/silently&gt;&gt;
+[[Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.-&gt;Bush_Wombat_Burrow_1]]
+
+&lt;&lt;silently&gt;&gt;
+	Comradery-y but not abundantly constructive answer.  Also a little pushy for wombat tastes.
+	
+	Wombuddy +2
+	Inductive bias: friendly, pushy, hypersocial
+&lt;&lt;/silently&gt;&gt;
+[[I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.-&gt;Bush_Wombat_Burrow_1]]
+
+&lt;&lt;silently&gt;&gt;
+	Studious and ambitious
+	
+	Wombuddy +5
+	Inductive bias: studious, ambitious
+&lt;&lt;/silently&gt;&gt;
+[[I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.-&gt;Bush_Wombat_Burrow_1]]</tw-passagedata></tw-storydata>
