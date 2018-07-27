@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="44" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="46" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 #enemy {
 	width: 100%;
@@ -93,6 +93,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -117,6 +118,12 @@ State.variables.calcMod = function(characterObject,attributeString){
 // perform an ability score check
 State.variables.checkAbility = function(characterObject, attributeString){
 	return State.variables.rollD20() + State.variables.calcMod(characterObject,attributeString);	
+}
+
+State.variables.addToInductiveBias = function(inductiveBiasArray, args){
+	for(var biasitem of args){
+		inductiveBiasArrat.push(biasitem);
+	}
 }
 
 // Character object definition
@@ -204,7 +211,8 @@ var playerAffinities = new Affinities();
 State.variables.characters = {
 	"player" : new Player(),
 	"nuvi" : new Character("Nuvi"),
-	"shimmerin" : new Character("Shimmerin")
+	"shimmerin" : new Character("Shimmerin"),
+	"sheila" : new Character("Sheila")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -236,6 +244,10 @@ State.variables.inductive_bias_animal_handler = "animal_handler";
 // unfortunate biases
 State.variables.inductive_bias_liar = "liar";
 State.variables.inductive_bias_manipulative = "manipulative";
+State.variables.inductive_bias_lacks_confidence = "lacks_confidence";
+State.variables.inductive_bias_humble = "humble";
+State.variables.inductive_bias_knows_limitations = "knows_limitations";
+
 
 /// begin Shimmerin acq///
 State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
@@ -316,6 +328,7 @@ State.variables.anicemole = new AnIceMole();
 
 // number of times the player has attempted the wombats' wombuddy test 
 State.variables.wombuddy_trials = 0;
+State.variables.wombuddy_score = 0;
 
 /// end wombat test quest ///
 
@@ -339,6 +352,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1013,7 +1027,7 @@ Alternatively/additionally, I&#39;d like some kind of wombat digging dungeon ang
 
 */
 
-&lt;&lt;if $visited() == 1&gt;&gt;
+&lt;&lt;if visited() == 1&gt;&gt;
 &quot;A human!&quot; a small voice squeaks, and the whiskered faces disappear down the hole.  You approach slowly, Nuvi in the lead -- being a more familiar sight to them, he can serve as a sort of literally soft transition for the little wombats. 
 
 &quot;Hello gentle wombats!&quot;  Nuvi calls out ahead.  &quot;I&#39;m an agent of the council, escorting a human consultant to help with our little problem.  We&#39;ll need to pass through into the Warren, please and thank you.&quot;
@@ -1023,6 +1037,8 @@ A broad snout covered in a wiry blanket of tawny fur rises above the lip of the 
 Nuvi performs a placating barrel roll and responds, &quot;Peace, noble wombat sister.  The council is well aware of the many consequences associated with bringing a human to Fuzziolump, chief among them the imaginative accelerant effect.  It was decided that the risk of accelerating the godlings&#39; expansion was worth taking if it might mean stopping them altogether.  This human is a creative, an expert on generating and, presumably, suppressing creativity.&quot;
 
 The wombat taps her tough leathery nose several times with a mighty digging claw as she considers the otter&#39;s words.  &quot;So they&#39;ve run out of ideas that aren&#39;t dangerous and foolhardy, then?  Fine enough.  However, the warren is a place of wombats and wombuddies, and the only way in leads through our home burrows.  This human will need to prove themselves a wombuddy just like anyone else before they can pass through.&quot;
+
+The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;if $characters[&quot;player&quot;].titles.includes(&quot;wombuddy&quot;)&gt;&gt;
 		Sheila the wombat&#39;s broad snout appears from nothing quicker than a flash of lightning over the edge of the tunnel as you approach.  Her expression of stoic vigilance breaks into a smile as warm as being enveloped in wombat fur as she recognizes you.
@@ -1060,21 +1076,30 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 	Inductive bias: humble, lacking_confidence, knows_limitations
 	
 &lt;&lt;/silently&gt;&gt;
-&quot;[[I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
+&quot;&lt;&lt;link [[&quot;I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;	
+	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
+	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_humble,$inductive_bias_lacks_confidence,$inductive_bias_knows_limitations])&gt;&gt;
+&lt;&lt;/link&gt;&gt;&quot;
 &lt;&lt;silently&gt;&gt;
 	Passionate and compassionate response, but potentially foolish
 	
 	+2 towards wombuddy
 	Inductive bias: kind, reckless, heart_over_head
 &lt;&lt;/silently&gt;&gt;
-[[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;
+&lt;&lt;link [[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
+	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_kind,$inductive_bias_reckless,$inductive_bias_heart_over_head])&gt;&gt;
+&lt;&lt;/link&gt;&gt;
 &lt;&lt;silently&gt;&gt;
 	The reasonable and cool-headed approach, best for wombats
 	
 	+5 towards wombuddy
 	Inductive bias: logical, confident, burrower
 &lt;&lt;/silently&gt;&gt;
-[[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.-&gt;Bush_Wombuddy_Test_Quest_2]]&quot;</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="conversation" position="231,1454" size="100,100">&lt;&lt;silently&gt;&gt;
+&lt;&lt;link [[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
+	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_logical,$inductive_bias_confident,$inductive_bias_burrower])&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="conversation" position="231,1454" size="100,100">&lt;&lt;silently&gt;&gt;
 scenario about honesty and humility
 &lt;&lt;/silently&gt;&gt;
 &quot;On to the next scenario, then.  You&#39;ve been tasked by your forebeast to survey a completed tunnel using a trendy new architecture for safety.  The forebeast in question is known to cut corners: case in point, he came to you, a novice surveyor, rather than one of the senior surveyors as per protocol.  Despite this reputation, he is also influential in the community and a good relationship with him could help skyrocket your career.  Similarly, a black mark from him could cripple your ambitions for years.  As for your skill level, you&#39;re good but you don&#39;t feel confident that you can perform such a complex survey adaquately without much more experience.  What do you do?&quot;
@@ -1087,7 +1112,10 @@ scenario about honesty and humility
 	Wombuddy +5
 	Inductive Bias Mods: humble, honest, altruistic, compassionate
 &lt;&lt;/silently&gt;&gt;
-[[No real choice -- I&#39;d have to confess to the forebeast that I felt unready to take on such a major task and request that he choose someone more experienced.  If he insists, I&#39;d take the matter to one of my superior surveyors or the appropriate governing body; safety comes first!-&gt;Bush_Wombuddy_Test_Quest_3]]
+&lt;&lt;link [[&quot;No real choice -- I&#39;d have to confess to the forebeast that I felt unready to take on such a major task and request that he choose someone more experienced.  If he insists, I&#39;d take the matter to one of my superior surveyors or the appropriate governing body; safety comes first!&quot;-&gt;Bush_Wombuddy_Test_Quest_3]]&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
+	&lt;&lt;set $characters[&quot;sheila&quot;].inductive_bias to $characters[&quot;sheila&quot;].inductive_bias.concat($inductive_bias_humble,$inductive_bias_honest,$inductive_bias_altruistic, $inductive_bias_compassionate)&gt;&gt;
+&lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
 	Ambitious self-starter but reckless response
@@ -1116,7 +1144,9 @@ scenario about work ethic and community focus
 	Wombuddy +1
 	Inductive Bias: chill, lazy, crush
 &lt;&lt;/silently&gt;&gt;
-[[Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.-&gt;Bush_Wombat_Burrow_1]]
+&lt;&lt;link [[Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+&lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
 	Comradery-y but not abundantly constructive answer.  Also a little pushy for wombat tastes.
@@ -1124,7 +1154,9 @@ scenario about work ethic and community focus
 	Wombuddy +2
 	Inductive bias: friendly, pushy, hypersocial
 &lt;&lt;/silently&gt;&gt;
-[[I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.-&gt;Bush_Wombat_Burrow_1]]
+&lt;&lt;link [[I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+&lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
 	Studious and ambitious
@@ -1132,4 +1164,6 @@ scenario about work ethic and community focus
 	Wombuddy +5
 	Inductive bias: studious, ambitious
 &lt;&lt;/silently&gt;&gt;
-[[I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.-&gt;Bush_Wombat_Burrow_1]]</tw-passagedata></tw-storydata>
+&lt;&lt;link [[I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata></tw-storydata>
