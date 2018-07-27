@@ -92,6 +92,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -225,9 +226,6 @@ State.variables.party = [State.variables.characters["player"]];
 State.variables.inventory = [];
 */
 
-/// begin Shimmerin ///
-State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
-
 // inductive biases characters may have toward the Player
 
 // fuzzy biases
@@ -238,6 +236,9 @@ State.variables.inductive_bias_animal_handler = "animal_handler";
 // unfortunate biases
 State.variables.inductive_bias_liar = "liar";
 State.variables.inductive_bias_manipulative = "manipulative";
+
+/// begin Shimmerin acq///
+State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
 
 function AnIceMole(){
 	this.path_index = 0;
@@ -309,6 +310,15 @@ function AnIceMole(){
 // grant access to anicemole instance in the story
 State.variables.anicemole = new AnIceMole();
 
+/// end Shimmerin acq ///
+
+/// begin wombat test quest ///
+
+// number of times the player has attempted the wombats' wombuddy test 
+State.variables.wombuddy_trials = 0;
+
+/// end wombat test quest ///
+
 /**
 A map of room names to arrays of modification descriptor strings that can be used to look up rooms that have runtime modification, e.g. anicemole burrowed and changed something in rooms x, y, and z so if room z checks this map's return value array for 'anicemole_burrowed' it will return true and know that burrowing mods need to be handled.  Interested rooms can check at the top of their passage with field_mods_map.get(passage())
 */
@@ -329,6 +339,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1018,7 +1029,14 @@ The wombat taps her tough leathery nose several times with a mighty digging claw
 		
 		&quot;[[Come on in-&gt;Bush_Warren]], human!&quot;
 	&lt;&lt;else&gt;&gt;
-		The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
+		&lt;&lt;if $wombuddy_trials == 0&gt;&gt;
+			The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
+		&lt;&lt;elseif $wombuddy_trials &lt; 3&gt;&gt;
+			Sheila taps her foot impatiently.  &quot;No, that won&#39;t do.  I&#39;ll give you [[another shot-&gt;Bush_Wombuddy_Test_Quest]].&quot;
+		&lt;&lt;else&gt;&gt;
+			&lt;&lt;run $characters[&quot;player&quot;].titles.push(&quot;unwombatty&quot;)&gt;&gt;
+			The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;No!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
+		&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
 this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
