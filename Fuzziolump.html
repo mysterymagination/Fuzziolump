@@ -94,6 +94,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -122,7 +123,9 @@ State.variables.checkAbility = function(characterObject, attributeString){
 
 State.variables.addToInductiveBias = function(inductiveBiasArray, args){
 	for(var biasitem of args){
-		inductiveBiasArrat.push(biasitem);
+		if(!inductiveBiasArray.includes(biasitem)){
+			inductiveBiasArray.push(biasitem);
+		}
 	}
 }
 
@@ -248,6 +251,8 @@ State.variables.inductive_bias_lacks_confidence = "lacks_confidence";
 State.variables.inductive_bias_humble = "humble";
 State.variables.inductive_bias_knows_limitations = "knows_limitations";
 
+// titles the player can have
+State.variables.title_wombuddy = "wombuddy";
 
 /// begin Shimmerin acq///
 State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
@@ -352,6 +357,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1014,7 +1020,8 @@ Innumerable holes dot the landscape like spots on a giraffe, which, incidentally
 
 To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the nearest [[hole directly North-&gt;Bush_Wombat_Burrow_1]]. 
 
-</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">/*
+</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">&lt;&lt;script&gt;&gt;alert(State.variables.wombuddy_score);&lt;&lt;/script&gt;&gt;
+/*
 todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.  Now the tricky part here is that it doesn&#39;t make any damn sense for the wombats to be cryptic about what they need, but at the same time nobody likes a fetch quest.  Probably a fair compromise is to have the wombats simply present a problem they need help with and finding a solution in the world is up to the player.  However, that sounds like a job for after demo, when the world is more expansive.  Maybe for now simply have each present a situation that requires the player to spend resources?
 
 Wombat Family 1: needs help treating their sick elders.  (can be helped either by med. herb from Frosty Forest, or from Shimmerin healing wish)
@@ -1024,6 +1031,8 @@ Wombat Family 2: needs help rescuing a trapped digger from a collapsed tunnel. (
 Wombat Family 3: needs to cross a chasm to explore new tunneling territory. (faerie statue can be used for limited flight, or player can spend mana to do same)
 
 Alternatively/additionally, I&#39;d like some kind of wombat digging dungeon angle, maybe a maze or similar challenge to make the human prove they have a wombat&#39;s good sense and sensibilities by way of being at home underground.  A simple and expediant possibility might be for Sheila to simply give the player a series of what-ifs to answer, centered around wombatian ethics and concerns.  The player&#39;s answers will contribute to Sheila&#39;s inductive bias re: player, and will also have a point value that needs to reach some threshold for the human to be named Wombuddy.  The tricky part with this option is failure: if the human doesn&#39;t meet the threshold, what happens?  New what-if scenarios and associated chances to answer are the most obvious recourse other than simple GAME OVER, which is stupid, but that would require generative narrative.  Maybe we could get away with a single set of scenarios, but have Sheila remember and comment if the player needs to basically exhaust all their options.  Since the player&#39;s choices will be canned responses from them, it wouldn&#39;t look to Sheila like the player had simply tried every choice combo, but at the same time she would know that the player had to make multiple attempts at coming up with satisfactory answers.  This could go into the persistent inductive bias of both Sheila and Nuvi, and effect events later in the game.
+
+todo: transition text for if the player has left and come back after completing the trials -- &quot;Sheila the wombat&#39;s broad snout appears from nothing, quicker than a flash of lightning over the edge of the tunnel as you approach.&quot;
 
 */
 
@@ -1040,21 +1049,43 @@ The wombat taps her tough leathery nose several times with a mighty digging claw
 
 The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;if $characters[&quot;player&quot;].titles.includes(&quot;wombuddy&quot;)&gt;&gt;
-		Sheila the wombat&#39;s broad snout appears from nothing quicker than a flash of lightning over the edge of the tunnel as you approach.  Her expression of stoic vigilance breaks into a smile as warm as being enveloped in wombat fur as she recognizes you.
+	&lt;&lt;if $characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;
+		Sheila the wombat&#39;s expression of stoic vigilance breaks into a smile as warm as being enveloped in wombat fur as she recognizes you as a wombuddy.
 		
-		&quot;[[Come on in-&gt;Bush_Warren]], human!&quot;
-	&lt;&lt;else&gt;&gt;
+		&quot;[[Come on in-&gt;Bush_Warren]], wombuddy!&quot;
+	&lt;&lt;else&gt;&gt;// if player is not a wombuddy
 		&lt;&lt;if $wombuddy_trials == 0&gt;&gt;
 			The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 		&lt;&lt;elseif $wombuddy_trials &lt; 3&gt;&gt;
 			Sheila taps her foot impatiently.  &quot;No, that won&#39;t do.  I&#39;ll give you [[another shot-&gt;Bush_Wombuddy_Test_Quest]].&quot;
-		&lt;&lt;else&gt;&gt;
+		&lt;&lt;else&gt;&gt; // if player has exhausted their trials
 			&lt;&lt;run $characters[&quot;player&quot;].titles.push(&quot;unwombatty&quot;)&gt;&gt;
-			The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;No!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
-		&lt;&lt;/if&gt;&gt;
-	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
+			&lt;&lt;if !$characters[&quot;sheila&quot;].inductive_bias.includes($inductive_bias_crush)&gt;&gt;
+				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
+					The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;Enough!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
+				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
+					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to.&quot;
+				&lt;&lt;else&gt;&gt;
+					Test -- should not be here
+				&lt;&lt;/if&gt;&gt; // end if player&#39;s wombuddy score is one of the segments that should be unwombatty
+			 
+			&lt;&lt;silently&gt;&gt;
+				If Sheila has a crush on the player, her rebukes are a lot softer
+			&lt;&lt;//silently&gt;&gt;
+			&lt;&lt;else&gt;&gt;
+				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
+					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need.&quot;
+				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
+					Sheila smoothes her fur repeatedly and unnecessarily as you grin charmingly at her.  Her eyes are shining, and you think you detect a hint of blush under the thinner spots of fur on her face.  &quot;Those answers were, um, interesting.  Not quite what we were hoping for, but definitely worth considering.&quot;  She squirms under your attention and looks determinedly at her footpaws.  &quot;Please c&#39;mon in, though.&quot;  Summoning what looks like considerable courage, she wrenches her gaze away from the ground and meets your own.  &quot;We&#39;d love to have you!&quot;  
+					As you pass by her, she pulls Nuvi aside and whispers, &quot;Keep an eye on the human, please.  They&#39;re pretty great and all, but you&#39;re their wombuddy escort.&quot;
+				&lt;&lt;else&gt;&gt;
+					Test -- should not be here
+				&lt;&lt;/if&gt;&gt;
+			&lt;&lt;/if&gt;&gt;// end sheila crush processing
+		&lt;&lt;/if&gt;&gt;// end player trial count processing
+	&lt;&lt;/if&gt;&gt;// end player title wombuddy processing
+&lt;&lt;/if&gt;&gt;// end visited() processing
+</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
 this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;silently&gt;&gt;
@@ -1076,9 +1107,9 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 	Inductive bias: humble, lacking_confidence, knows_limitations
 	
 &lt;&lt;/silently&gt;&gt;
-&quot;&lt;&lt;link [[&quot;I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;	
+&lt;&lt;link [[&quot;I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;	
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
-	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_humble,$inductive_bias_lacks_confidence,$inductive_bias_knows_limitations])&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_humble,$inductive_bias_lacks_confidence,$inductive_bias_knows_limitations])&gt;&gt;
 &lt;&lt;/link&gt;&gt;&quot;
 &lt;&lt;silently&gt;&gt;
 	Passionate and compassionate response, but potentially foolish
@@ -1088,7 +1119,7 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;link [[&quot;Dig straight in with my own claws and rescue the elder; that poor old&#39;n needs help pronto!&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
-	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_kind,$inductive_bias_reckless,$inductive_bias_heart_over_head])&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_kind,$inductive_bias_reckless,$inductive_bias_heart_over_head])&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 &lt;&lt;silently&gt;&gt;
 	The reasonable and cool-headed approach, best for wombats
@@ -1098,7 +1129,7 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;link [[&quot;The old one&#39;s known lack of air and position under the collapse is a more pressing danger than the trapped youngster.  I would set three-quarters of the team to digging around the collapse to install new supports and the remainder to cautiously trying to dig out a path, starting towards the top of the collapse and angled downwards, directly to the trapped elder.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
-	&lt;&lt;run $characters[&quot;sheila&quot;].inductive_bias = $characters[&quot;sheila&quot;].inductive_bias.concat([$inductive_bias_logical,$inductive_bias_confident,$inductive_bias_burrower])&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_logical,$inductive_bias_confident,$inductive_bias_burrower])&gt;&gt;
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="49" name="Bush_Wombuddy_Test_Quest_2" tags="conversation" position="231,1454" size="100,100">&lt;&lt;silently&gt;&gt;
 scenario about honesty and humility
 &lt;&lt;/silently&gt;&gt;
@@ -1114,7 +1145,7 @@ scenario about honesty and humility
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;link [[&quot;No real choice -- I&#39;d have to confess to the forebeast that I felt unready to take on such a major task and request that he choose someone more experienced.  If he insists, I&#39;d take the matter to one of my superior surveyors or the appropriate governing body; safety comes first!&quot;-&gt;Bush_Wombuddy_Test_Quest_3]]&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
-	&lt;&lt;set $characters[&quot;sheila&quot;].inductive_bias to $characters[&quot;sheila&quot;].inductive_bias.concat($inductive_bias_humble,$inductive_bias_honest,$inductive_bias_altruistic, $inductive_bias_compassionate)&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_humble,$inductive_bias_honest,$inductive_bias_altruistic, $inductive_bias_compassionate])&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
@@ -1123,7 +1154,10 @@ scenario about honesty and humility
 	Wombuddy +2
 	Inductive Bias: ambitious, reckless
 &lt;&lt;/silently&gt;&gt;
-[[I would embrace the challenge!  Working nights and weekends studying the tunnel and its architectural theory prior to surveying it should compensate for my lack of experience.-&gt;Bush_Wombuddy_Test_Quest_3]] 
+&lt;&lt;link [[&quot;I would embrace the challenge!  Working nights and weekends studying the tunnel and its architectural theory prior to surveying it should compensate for my lack of experience.&quot;-&gt;Bush_Wombuddy_Test_Quest_3]]&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_ambitious,$inductive_bias_reckless])&gt;&gt;
+&lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
 	Honest but selfish/obstructionist
@@ -1131,7 +1165,10 @@ scenario about honesty and humility
 	Wombuddy +1
 	Inductive Bias: selfish, honest
 &lt;&lt;/silently&gt;&gt;
-[[I&#39;m just a novice, I can&#39;t be responsible for that!  I wouldn&#39;t want my name anywhere near such a slipshod operation; I&#39;d refuse the forebeast&#39;s request and try to wash my hands of the whole situation, going over his head if necessary.-&gt;Bush_Wombuddy_Test_Quest_3]] </tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_3" tags="conversation" position="166,1600" size="100,100">&lt;&lt;silently&gt;&gt;
+&lt;&lt;link [[&quot;I&#39;m just a novice, I can&#39;t be responsible for that!  I wouldn&#39;t want my name anywhere near such a slipshod operation; I&#39;d refuse the forebeast&#39;s request and try to wash my hands of the whole situation, going over his head if necessary.&quot;-&gt;Bush_Wombuddy_Test_Quest_3]]&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_selfish,$inductive_bias_honest])&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_3" tags="conversation" position="166,1600" size="100,100">&lt;&lt;silently&gt;&gt;
 scenario about work ethic and community focus
 &lt;&lt;/silently&gt;&gt;
 
@@ -1144,8 +1181,13 @@ scenario about work ethic and community focus
 	Wombuddy +1
 	Inductive Bias: chill, lazy, crush
 &lt;&lt;/silently&gt;&gt;
-&lt;&lt;link [[Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+&lt;&lt;link [[&quot;Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_chill,$inductive_bias_lazy,$inductive_bias_crush])&gt;&gt;
+	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
+	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
@@ -1154,8 +1196,13 @@ scenario about work ethic and community focus
 	Wombuddy +2
 	Inductive bias: friendly, pushy, hypersocial
 &lt;&lt;/silently&gt;&gt;
-&lt;&lt;link [[I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+&lt;&lt;link [[&quot;I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_friendly,$inductive_bias_pushy,$inductive_bias_hypersocial])&gt;&gt;
+	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
+	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
 &lt;&lt;silently&gt;&gt;
@@ -1164,6 +1211,11 @@ scenario about work ethic and community focus
 	Wombuddy +5
 	Inductive bias: studious, ambitious
 &lt;&lt;/silently&gt;&gt;
-&lt;&lt;link [[I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
+&lt;&lt;link [[&quot;I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
+	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
+	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_studious,$inductive_bias_ambitious])&gt;&gt;
+	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
+	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/link&gt;&gt;</tw-passagedata></tw-storydata>
