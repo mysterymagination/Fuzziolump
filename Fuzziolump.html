@@ -95,6 +95,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -357,6 +358,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1016,6 +1018,8 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 
 &quot;Ecosystems work pretty differently here,&quot; Nuvi explains, prompted by your stunned expression.  &quot;They depend more on our collective conception of what a place should be like rather than weather patterns and physics and all that fluff humans are always going on about.&quot;  Despite the heat, your thick-furred companion glides along as serenely as ever.  He hums [[a tune you&#39;re unfamiliar with-&gt;Bush_Tune]].
 
+&quot;We&#39;re coming up on the wombats,&quot; Nuvi intones conspiratorially.  &quot;Now the thing to know about wombats is that they&#39;re diggers through and through.&quot;  He watches you, clearly expecting a nod of understanding or similar sign to indicate that this means something to you.  When none is forthcoming, he elaborates, &quot;Digging creatures have gotta be determined and patient, tough but fair and above all smart and calm, or they won&#39;t make it through their first cave-in.  Keep that in mind when talking with them.&quot;
+
 Innumerable holes dot the landscape like spots on a giraffe, which, incidentally, you can see several of in the distance.
 
 To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the nearest [[hole directly North-&gt;Bush_Wombat_Burrow_1]]. 
@@ -1041,7 +1045,7 @@ todo: transition text for if the player has left and come back after completing 
 
 &quot;Hello gentle wombats!&quot;  Nuvi calls out ahead.  &quot;I&#39;m an agent of the council, escorting a human consultant to help with our little problem.  We&#39;ll need to pass through into the Warren, please and thank you.&quot;
 
-A broad snout covered in a wiry blanket of tawny fur rises above the lip of the hole, a steady brow arched skeptically over glistening black eyes.  &quot;Human?  To see the council?  The situation must be getting desperate, indeed.&quot;  The wombat levels a stern but fair gaze at you. &quot;Their presence here will accelerate the godlings&#39; growth -- the council realizes that don&#39;t they?&quot;
+A broad snout covered in a wiry blanket of tawny fur rises above the lip of the hole, a steady brow arched skeptically over glistening black eyes.  A breath of lilacs whispers past as the wombat emerges, so subtle you&#39;re not certain you trust your sniffer. &quot;Human?  To see the council?  The situation must be getting desperate, indeed.&quot;  The wombat levels a stern but fair gaze at you. &quot;Their presence here will accelerate the godlings&#39; growth -- the council realizes that don&#39;t they?&quot;
 
 Nuvi performs a placating barrel roll and responds, &quot;Peace, noble wombat sister.  The council is well aware of the many consequences associated with bringing a human to Fuzziolump, chief among them the imaginative accelerant effect.  It was decided that the risk of accelerating the godlings&#39; expansion was worth taking if it might mean stopping them altogether.  This human is a creative, an expert on generating and, presumably, suppressing creativity.&quot;
 
@@ -1062,6 +1066,7 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 			&lt;&lt;run $characters[&quot;player&quot;].titles.push(&quot;unwombatty&quot;)&gt;&gt;
 			&lt;&lt;if !$characters[&quot;sheila&quot;].inductive_bias.includes($inductive_bias_crush)&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
+					//todo: hmmm... she&#39;s a little psycho here.  Maybe have the default failure dialogue be a little toned down and more disappointed than, like, crazy?  On the other hand, &#39;rabid wombat&#39; was a great Magic card.
 					The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;Enough!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
 					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to.&quot;
@@ -1085,7 +1090,12 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 		&lt;&lt;/if&gt;&gt;// end player trial count processing
 	&lt;&lt;/if&gt;&gt;// end player title wombuddy processing
 &lt;&lt;/if&gt;&gt;// end visited() processing
-</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
+</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">The bare earth of the tunnel walls is smooth and lovingly sculpted, somehow achieving a state of being both literally dirt and yet also clean.
+&lt;&lt;if $characters[&quot;player&quot;].titles.contains($title_wombuddy)&gt;&gt;
+	Nuvi flaps around care
+&lt;&lt;else&gt;&gt;
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
 this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;silently&gt;&gt;
