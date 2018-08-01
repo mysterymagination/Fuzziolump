@@ -96,6 +96,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -358,6 +359,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1090,12 +1092,17 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 		&lt;&lt;/if&gt;&gt;// end player trial count processing
 	&lt;&lt;/if&gt;&gt;// end player title wombuddy processing
 &lt;&lt;/if&gt;&gt;// end visited() processing
-</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">The bare earth of the tunnel walls is smooth and lovingly sculpted, somehow achieving a state of being both literally dirt and yet also clean.
-&lt;&lt;if $characters[&quot;player&quot;].titles.contains($title_wombuddy)&gt;&gt;
-	Nuvi flaps around care
-&lt;&lt;else&gt;&gt;
+</tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">The bare earth of the tunnel walls is smooth and lovingly sculpted, somehow achieving a state of being both literally dirt and yet also clean.  You&#39;re forced to travel at a hunch due to the usual denizens&#39; small stature, but the curious fuzzy faces peering out at you from myriad offshoot tunnels more than make up for the discomfort.  That said, you could do without bopping your head repeatedly on the irregularly shaped luminous fungi that grow along the tunnel ceiling providing light to traveling tunnelers.  
 
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
+Now you can see why Sheila was so adamant about your wombatitude -- people&#39;s dens are built off of the main tunnel passage with no obvious doors or other separators.  Wombats are evidently a very integrated people and not very shy about their personal space.  That seems prudent for a tunneling culture.
+
+After a few hundred meters of home tunnels, storage tunnels, and windy tunnels whose purpose you cannot fathom, the main tunnel opens up into a vast hub chamber where you can finally stand up.  
+&lt;&lt;if $characters[&quot;player&quot;].titles.contains($title_wombuddy)&gt;&gt;
+	Nuvi flaps around carelessly, flitting between the much larger clumps of luminous fungi brightening the chamber.  There are numerous varieties here in all colors you can imagine and a few that make your brain hurt.   
+&lt;&lt;else&gt;&gt;
+	Nuvi hovers near your shoulder, studiously abiding by Sheila&#39;s mandate that he escort you at all times.  There are interesting colors coming from the arrangement of lamp fungi, but you can&#39;t see them clearly through his worried flapping about your head.  If you try to peer around him or otherwise break stride, he bats at your head with soft feathers to urge you on.
+&lt;&lt;/if&gt;&gt;
+Numerous tunnels branch off from the hub chamber, but your destination is clear: a [[large tunnel ornamented with a gaudy crest stands waiting directly to the North-&gt;Bush_Warren_Council]].  The crest depicts a congregation of all manner of beasts standing at attention with expressions of rapt interest as a purposefully generic group of fuzzy figures speak from a podium.  That tunnel must lead to the auditorium of the council of animals.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
 this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;silently&gt;&gt;
@@ -1228,4 +1235,4 @@ scenario about work ethic and community focus
 	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata></tw-storydata>
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="" position="0,1589" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
