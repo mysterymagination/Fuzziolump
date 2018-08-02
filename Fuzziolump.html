@@ -1102,7 +1102,7 @@ After a few hundred meters of home tunnels, storage tunnels, and windy tunnels w
 &lt;&lt;else&gt;&gt;
 	Nuvi hovers near your shoulder, studiously abiding by Sheila&#39;s mandate that he escort you at all times.  There are interesting colors coming from the arrangement of lamp fungi, but you can&#39;t see them clearly through his worried flapping about your head.  If you try to peer around him or otherwise break stride, he bats at your head with soft feathers to urge you on.
 &lt;&lt;/if&gt;&gt;
-Numerous tunnels branch off from the hub chamber, but your destination is clear: a [[large tunnel ornamented with a gaudy crest stands waiting directly to the North-&gt;Bush_Warren_Council]].  The crest depicts a congregation of all manner of beasts standing at attention with expressions of rapt interest as a purposefully generic group of fuzzy figures speak from a podium.  That tunnel must lead to the auditorium of the council of animals.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
+Numerous tunnels branch off from the hub chamber, but your destination is clear: a [[large tunnel ornamented with a gaudy crest stands waiting directly to the North-&gt;Bush_Warren_Council]].  The crest depicts a congregation of all manner of beasts standing at attention with expressions of rapt interest as one of their number, a purposefully generic critter mostly cloaked in shadow, evidently speaks.  That tunnel must lead to the council chamber of the council of animals.</tw-passagedata><tw-passagedata pid="48" name="Bush_Wombuddy_Test_Quest" tags="conversation" position="163,1300" size="100,100">&lt;&lt;silently&gt;&gt;
 this would be better as played scenarios, like in Dragon Quest 3; the wombat touches your brow gently and you find yourself in the situation...
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;silently&gt;&gt;
@@ -1235,4 +1235,14 @@ scenario about work ethic and community focus
 	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="" position="0,1589" size="100,100">Double-click this passage to edit it.</tw-passagedata></tw-storydata>
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="0,1589" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+The tunnel beneath the gaudy crest quickly metamorphoses from lovingly sculpted earth to carefully hewn stone.  The tough gray rock has been chiseled to almost frictionless smoothness somehow, and only the colder temperature and reduced springiness of the subtrate alerted your feet to any change from the earthen tunnels.
+
+Golden sunlight floods the council chamber from an aperture some three dozen meters above you.  A complex series of pulleys rises along the stone wall on the far side of a massive round table, with thick cord threaded through each.  You wonder briefly what function such a convoluted mechanical system serves.  The walls and floor are completely bare of ornamentation; this room was clearly intended for serious matters.
+
+Thirteen robed bipedal animals shuffle out of a nondescript wooden door you hadn&#39;t even noticed beside the gleamingly polished oak table adorning the center of the dais.  Twelve take seats around the table, and one approaches you and Nuvi.  Nuvi flaps apprehensively as the young vixen approaches, her sleek scarlet fur impeccably groomed despite the tale of many sleepless nights told by her sunken and bloodshot eyes.  Her gold eyes study you intently, no less keen for her apparent fatigue.  Without a word she nods as if reaching some tacit conclusion, and the motions to someone behind you.  
+
+Turning slightly, though taking care not to turn your back on the council member, you watch warily as two large badgers roll an enormous stone into the mouth of the tunnel, sealing it behind you.  No going back now.  These same fellows then jog over the pulley mechanism: as they take turns heaving on the cord, a stone slides into place over the sunny inlet aperture far above, and the chamber is plunged into darkness.
+&lt;&lt;/if&gt;&gt;
+
+The council of animals awaits.</tw-passagedata></tw-storydata>
