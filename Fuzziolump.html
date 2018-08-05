@@ -98,6 +98,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -360,6 +361,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1246,7 +1248,43 @@ Thirteen robed bipedal animals shuffle out of a nondescript wooden door you hadn
 
 Turning slightly, though taking care not to turn your back on the council member, you watch warily as two large badgers roll an enormous stone into the mouth of the tunnel, sealing it behind you.  No going back now.  These same fellows then jog over the pulley mechanism: as they take turns heaving on the cord, a stone slides into place over the sunny inlet aperture far above, and the chamber is &lt;&lt;link &quot;plunged into darkness.&quot;&gt;&gt; 
 &lt;&lt;replace &quot;#council_chamber_desc&quot;&gt;&gt;
-Glimmering lights in a thousand rainbow hues spring to life from the darkness, casting variably inviting and intimidating aesthetics upon the stark room. 
+Glimmering lights in a thousand rainbow hues spring to life from the darkness, casting variably inviting and intimidating aesthetics upon the stark room.  They are faeries, but they seem notably more subdued than those you saw back in the Frosty Forest.  One drifts lazily toward you, alighting upon your shoulder.  Her glittering emerald gemstone eyes are dull and seem unfocused.  She smiles vaguely at you and then flits off dreamily in no particular direction.
+&lt;&lt;if $party.includes($characters[&quot;shimmerin&quot;])&gt;&gt;
+Shimmerin buzzes angrily from your pocket, refusing to look at the other faerie.
+// todo: Shimmerin should be outraged by the &#39;tame&#39; faeries, and should really cause a ruckus here
+&lt;&lt;/if&gt;&gt;
+// todo: EXPOSITION!!! *sigh* need a more show don&#39;t tell approach, like Marrah having the faeries act out the scene of lumpkin inception from creative energy.
+The fox approaches you and proffers her paw.  You extend a hand, unsure what she expects, and she rests her paw on it in an apparent show of solidarity.  &quot;Warm regards, human.  My name is Marrah, Voice of the council of animals.  I have never met one of your kind, one of the progenitors, but sadly there is no time to get to know one another.  Behold!&quot;
+
+She flings her paw commandingly toward the center of the table without taking her shining gaze off you.  The faerie lights floating about the room zoom together into a formless mass above the table for a moment, and then resolve into a glowing map of Fuzziolump.  Most of it is practically and peacefully left unlit, but several points of angry red light stand out as obvious hotspots of trouble.
+
+&quot;Those unfortunate red splotches represent the godlings we are aware of, and their spread.  Before we discuss their threat, however, I should explain in more detail what exactly these creatures are.  All lumpkins and in fact the world of Fuzziolump itself are born of imagination and emotion, with creative energies being especially fertile.  At first this energy came almost exclusively from humans and some of the craftier monkeys of your earth. 
+
+// todo: something about creativity having a life of its own and passing that life onto created works... or radiating it off into places like Fuzziolump.
+
+&quot;Fuzziolump has existed for almost as long as human life on earth, our first life emerging from your ancestors&#39; early experiments with cavernous canvas.  Intelligent life here is fairly new, however -- it takes quite a lot of imagination to wire up a complex brain, and the dribs and drabs of imaginative energy siphoned off of earth&#39;s creative corona probably never would have done it.  About a century ago, however, something changed fundamentally: your Guglielmo Marconi developed the first long distance radio!  As you know, broadcast technology exploded throughout your 20th century. These transmission served as much more efficient conduits of the thoughts and feelings on earth, and the pace and sophistication of lumpkin development increased exponentially. 
+
+&quot;Once life here developed sufficient intelligence to start dreaming on its own, we became fully self-sustaining and self-propagating.  Therein lay the problem.  Our development had been fairly measured, if mildly explosive, up until a year ago.  One year ago today, two lumpkins embarked on an experiment that will either &lt;&lt;link &quot;open a new horizon of existence for us, or kill us all.&quot;&gt;&gt;
+&lt;&lt;replace &quot;#council_chamber_desc&quot;&gt;&gt;
+&quot;Dr. Beakman, please tell us what you&#39;ve learned about the Reckless.&quot; 
+
+A toucan with a massive rainbow beak stands up, and Marrah takes her seat. &quot;Drs. Hashmalum and Holly were among our brightest, back when they still had hold of their sanity.  They were interested in a phenomenon of creativity wherein two lumpkins engaged in a cooperative act of creation can actually form a positive feedback loop that would empower both.  In naturally occurring small doses, this phenomenon simply means that both parties create a little more of whatever they&#39;re working on together than they could have done apart because the loop will normally collapse quickly.  The collapse comes when focus wavers or fatigue sets in, both terminal conditions that are sure to arise swiftly for any lumpkin or similar organism.
+
+&quot;Hashmalum and Holly&#39;s dangerous idea was to bring a third party into the mix, one that was not subject to the same limitations of organic life.  We&#39;ve been monitoring human progress on artificial intelligence and machine learning carefully over the years, since it reminds us of ourselves and our origins.  Holly, the greater artist of the two, designed a program that used recursive transition networks and massive text corpi to generate narrative automatically.  Unlike other such programs, it was particularly capable at adapting novel corpi to its output at runtime.  
+
+&quot;Hashmalum rigged up some impressive hardware to run the program, and also an apparatus that would allow the two scientists to read its output continuously while working together on their own body of writing, which was then fed into the program.  The two were able to rest while the machine continued writing based on their input, thus preventing the positive feedback loop from terminating fully.  Over the course of three days and nights they constructed the greatest such feedback loop the world has ever seen, and achieved some of the best writing we&#39;ve seen as well.
+
+&quot;It also changed them.  The loop never truly terminated, and when the two tried to separate they each pulled a personal miniaturized version of the feedback loop into themselves.  We don&#39;t understand how exactly, but the loops are still running even though the experiment is long done and their automatic writing partner has been shut down.  Neither walked away from the experiment quite the same person they had been, that much was evident just from seeing the new heights of perspective in their eyes.  We didn&#39;t realize that the loops were still running and actually adding to their being.  Overt creative acts spurred the process on, so Holly was the first to Ascend.  
+
+&quot;She finished her novel in a weekend and spent the rest of the week tending to her garden, picking up and inventing new horticultural and arrangement techniques even as she weeded.  By the next weekend, her garden had become a veritable jungle.  The week after, she didn&#39;t show up for work and no one could find her for the longest time.  Finally someone started looking at the plants instead of around them, and realized there was a smiling face looking back!  Holly had become one with her plants, and their roots ran deep.  This network allowed her to fashion her garden and eventually much of the central continent&#39;s plant life into a massive distributed intelligence.  
+
+&quot;Holly defined friendliness as a lumpkin, and thankfully whatever she has become seems to have inherited this trait.  However, she is no longer quite in touch with mortality and has difficulty seeing from our point of view.  Anyone bothering nature almost anywhere on the central continent has to take care to clear their intentions with Holly first or potentially face her wrath.  It&#39;s never clear what will upset her, and she regards all life equally; a simple mistep by an intelligent lumpkin that bends a flower stalk may inspire her to similarly break your spine if she&#39;s in a spiteful mood.
+
+// todo: somebody else explain Hashmalum, who is darker and more dangerous.  The council wants the human to approach Holly first since she is relatively friendly and reasonable.
+
+// todo: The Choice: the human gets to choose an approach for taking on Holly that will shape the story&#39;s progression from this point and massively impact how the council and Nuvi think of the human.
+&lt;&lt;/replace&gt;&gt;
+&lt;&lt;/link&gt;&gt;&quot;   
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 &lt;/span&gt;</tw-passagedata></tw-storydata>
