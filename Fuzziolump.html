@@ -100,6 +100,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -133,6 +134,16 @@ State.variables.addToInductiveBias = function(inductiveBiasArray, args){
 		}
 	}
 }
+
+/// begin main quest vars ///
+// wipe out the godlings and anybody nearby
+State.variables.godling_strat_viral_violence = "viral_violence";
+// disrupt the godlings' godlingness in the hopes this might check them or even restore them to their former selves
+State.variables.godling_strat_surgical_system = "surgical_system";
+// friendship for everyone!  Trying to use Incarnation to get through to each godling
+State.variables.godling_strat_diplomancy = "diplomancy";
+State.variables.godling_strat_chosen = "";
+/// end main quest vars ///
 
 // Character object definition
 function Character(name){
@@ -174,6 +185,15 @@ function Character(name){
 	// other simple lovely creatures that happily burrow and build all their
 	// lives, peaceful, passionate, and productive.
 	this.inductive_bias = [];
+	
+	this.updateAffinity = function(characterObject,modifier){
+		if(this.affinities.has(characterObject)){
+this.affinities.set(characterObject,this.affinities.get(characterObject)+modifier);	
+		}
+		else{
+			this.affinities.set(characterObject,modifier);
+		}
+	}
 }
 
 function Room(){
@@ -220,7 +240,9 @@ State.variables.characters = {
 	"player" : new Player(),
 	"nuvi" : new Character("Nuvi"),
 	"shimmerin" : new Character("Shimmerin"),
-	"sheila" : new Character("Sheila")
+	"sheila" : new Character("Sheila"),
+	"council" : new Character("Council Of Animals"),
+	"marrah" : new Character("Marrah")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -248,6 +270,7 @@ State.variables.inventory = [];
 State.variables.inductive_bias_digger_good = "digger_good";
 State.variables.inductive_bias_clever = "clever";
 State.variables.inductive_bias_animal_handler = "animal_handler";
+State.variables.inductive_bias_crush = "crush";
 
 // unfortunate biases
 State.variables.inductive_bias_liar = "liar";
@@ -362,6 +385,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1076,6 +1100,10 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 		&lt;&lt;if $wombuddy_trials == 0&gt;&gt;
 			The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 		&lt;&lt;elseif $wombuddy_trials &lt; 3&gt;&gt;
+			&lt;&lt;silently&gt;&gt;
+				reset the wombuddy_score since we&#39;re headed into the test quest afresh
+			&lt;&lt;/silently&gt;&gt;
+			&lt;&lt;set $wombuddy_score = 0&gt;&gt;
 			Sheila taps her foot impatiently.  &quot;No, that won&#39;t do.  I&#39;ll give you [[another shot-&gt;Bush_Wombuddy_Test_Quest]].&quot;
 		&lt;&lt;else&gt;&gt; // if player has exhausted their trials
 			&lt;&lt;run $characters[&quot;player&quot;].titles.push(&quot;unwombatty&quot;)&gt;&gt;
@@ -1093,6 +1121,7 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 				If Sheila has a crush on the player, her rebukes are a lot softer
 			&lt;&lt;//silently&gt;&gt;
 			&lt;&lt;else&gt;&gt;
+				&lt;&lt;script&gt;&gt;alert(State.variables.characters[&quot;sheila&quot;].inductive_bias);&lt;&lt;/script&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
 					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need.&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
@@ -1248,7 +1277,7 @@ scenario about work ethic and community focus
 	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="1,1588" size="100,100">&lt;span id=council_chamber_desc&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="9,1756" size="100,100">&lt;span id=council_chamber_desc&gt;
 The tunnel beneath the gaudy crest quickly metamorphoses from lovingly sculpted earth to carefully hewn stone.  The tough gray rock has been chiseled to almost frictionless smoothness somehow, and only the colder temperature and reduced springiness of the subtrate alerted your feet to any change from the earthen tunnels.
 
 Golden sunlight floods the council chamber from an aperture some three dozen meters above you.  A complex series of pulleys rises along the stone wall on the far side of a massive round table, with thick cord threaded through each.  You wonder briefly what function such a convoluted mechanical system serves.  The walls and floor are completely bare of ornamentation; this room was clearly intended for serious matters.
@@ -1297,7 +1326,7 @@ Marrah stands again and pads over to you on soft-furred footpaws.  &quot;Human,&
 
 &quot;Imagination is integral to this land.  In Fuzziolump, physics can be manipulated with a dream or a wish.  It&#39;s often not quite as easy as it sounds though; there&#39;s a precise science to it called Incarnation. Further, one has to be attuned with the Fuzzy Firmament in a manner conducive to what one wishes to accomplish.  Each lumpkin is born with an imaginative talent, called our Entity, and our powers of Incarnation are limited to that Entity.&quot;  Lilac fire springs into her paws as she throws them wide in a showy demonstration.  &quot;My Entity is foxfire, shaping ghostly fire into illusions of my choice.  Beautiful, haunting, but not very useful for fighting or diplomacizing gods.  Therein lies our great need for you, human: humans in Fuzziolump can learn Incarnation for any Entity, or even invent new Entities.  It&#39;s been done before.
 
-&quot;There was a very evil lumpkin once, named Adrammalocke.  His Entity allowed him to unmake lifeforms virally, erasing them from reality one cell at a time and spreading as much or little as he wanted.  We hunted him down, executed him, and hid all his writings about the workings of his Entity.  No single person knows where, and would be allowed past the guardians put in place.  On the bright side, powers like his are practically unheard of before or since.  Unfortunately, we could really use firepower like that to bring to bear against the godlings.  If Adrammalock was still living today, we might be beseeching him, making concessions, appeasing...&quot;
+&quot;There was a very evil lumpkin once, named Adrammalocke.  His Entity allowed him to unmake lifeforms virally, erasing them from reality one cell at a time and spreading as much or little as he wanted.  We hunted him down, executed him, and hid all his writings about the workings of his Entity.  No single person knows where, and would be allowed past the guardians put in place.  On the bright side, powers like his are practically unheard of before or since.  Unfortunately, we could really use firepower like that to bring to bear against the godlings.  If Adrammalocke was still living today, we might be beseeching him, making concessions, appeasing...&quot;
 
 Shaking herself bodily, she brightens and turns eyes the blazing molten gold of a burning crown upon you.  &quot;If you can find and claim the grimoire of Adrammalocke and learn his Entity, you can provide the same weapon with none of the moral compromise!&quot;  
 
@@ -1307,22 +1336,77 @@ Seeing the blinding light in her eyes, Nuvi flaps apprehensively beside you, loo
 
 Waving her hand from the west continent to the eastern border of central, Marrah continues gravely, &quot;Saving these lands and all who live there is your challenge, human, your struggle, your quest.  And you must triumph, or we will surely perish.  Since Holly is relatively diplomatic, we implore you to approach her first.  How you handle her threat is entirely up to you; we already mourn the loss of our friend, so if this new creature must be destroyed, then let it be so.  What is your plan?&quot; 
 
-&lt;&lt;link &quot;I will find Adrammalocke&#39;s grimoire, and I will eradicate these pests!&quot;&gt;&gt;
-	// todo: nuvi opinion of player goes way down
-	// todo: council opinion of player goes down, though they are relieved to have a definite course of action in play.  Marrah is a little excited about it, though she doesn&#39;t want to admit it to herself.
+&lt;&lt;link [[&quot;I will find Adrammalocke&#39;s grimoire, and I will eradicate these pests!&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		nuvi opinion of player goes way down with such a violent approach
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],-100&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		council opinion of player goes down, though they are relieved to have a definite course of action in play.  
+		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		Marrah is a little excited about it, though she doesn&#39;t want to admit it to herself.
+	&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],10&gt;&gt;
+	&lt;&lt;run $characters[&quot;marrah&quot;].addToInductiveBias($inductive_bias_crush) &gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		set the godling strat for total war
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;set $godling_strat to $godling_strat_viral_violence&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
-&lt;&lt;link &quot;The feedback loops of creation are the source of their godhood, and of their threat.  I will invent a way to terminate these loops using Incarnation.  With a little luck, we might get your friends back.&quot;&gt;&gt;
-	// todo: Nuvi opinion up
-	// todo: council opinion way up
+&lt;&lt;link [[&quot;The feedback loops of creation are the source of their godhood, and of their threat.  I will invent a way to terminate these loops using Incarnation.  With a little luck, we might get your friends back.&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		nuvi opinion of player goes up slightly with a creative and potentially nonviolent solution.  He&#39;s not so confident that terminating the loops won&#39;t kill the godlings, however, so he remains apprehensive.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],10&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		council opinion of player goes up to a warm amount since this solution seems somewhat specific (though still not definite) and actionable and also might save their friends  
+		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],50&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		Marrah is a little disappointed that the human has opted for an indefinite strat
+	&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		set the godling strat for circuitous hacking
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;set $godling_strat to $godling_strat_surgical_systems&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
-&lt;&lt;link &quot;These creatures were your friends once, and maybe still are -- I won&#39;t risk harming them until I&#39;ve exhausted every peaceful option.  I&#39;ll find a way to reach them with diplomacy and Incarnation.&quot;&gt;&gt;
+&lt;&lt;link [[&quot;These creatures were your friends once, and maybe still are -- I won&#39;t risk harming them until I&#39;ve exhausted every peaceful option.  I&#39;ll find a way to reach them with diplomacy and Incarnation.&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
 	// todo: nuvi opinion way up
 	// todo: council opinion down
+	&lt;&lt;silently&gt;&gt;
+		nuvi opinion of player goes way up since this is the only strat that ensures a peaceful resolution, even if the specifics are... non-specific.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],100&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		council opinion of player goes down slightly because the plan is too vague  
+		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		Marrah is extremely disappointed that the human has opted for a definitively indefinite strat.  Doesn&#39;t make her hate the player of course, but she feels that she can&#39;t count on them
+	&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-50&gt;&gt;
+	&lt;&lt;silently&gt;&gt;
+		set the godling strat to fluffy bunnies and hugs for the hug inclined
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;set $godling_strat to $godling_strat_diplomancy&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;&quot;   
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;
-&lt;/span&gt;</tw-passagedata></tw-storydata>
+&lt;/span&gt;</tw-passagedata><tw-passagedata pid="52" name="Encounter_Puck_Diplomacy" tags="" position="1,1996" size="100,100">Double-click this passage to edit it.</tw-passagedata><tw-passagedata pid="53" name="Bush_Warren_Council_Postproc" tags="conversation" position="9,1886" size="100,100">// todo: postproc from council based on the godling strat chosen, then forward to Puck encounters, which should be their own passages since it will be weightier than this postproc 
+&lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;
+
+&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;
+
+&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;
+
+&lt;&lt;/if&gt;&gt;</tw-passagedata></tw-storydata>
