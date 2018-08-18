@@ -103,6 +103,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -134,6 +135,22 @@ State.variables.addToInductiveBias = function(inductiveBiasArray, args){
 		if(!inductiveBiasArray.includes(biasitem)){
 			inductiveBiasArray.push(biasitem);
 		}
+	}
+}
+
+State.variables.deleteTitle(title){
+	var playerTitleArray = State.variables.characters["player"].titles;
+	var titleIndex = playerTitleArray.indexOf(title);
+	if(titleIndex > -1){
+			// remove one element from the array, starting at the target index
+			playerTitleArray.splice(titleIndex,1);
+	}
+}
+
+State.variables.addTitle(title){
+	var playerTitleArray = State.variables.characters["player"].titles;
+	if(!playerTitleArray.includes(title)){
+			playerTitleArray.push(title);
 	}
 }
 
@@ -387,6 +404,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1433,19 +1451,29 @@ The mole shakes his broad snout sadly.  &quot;They simply will not listen.  Thos
 The council of animals files out through the small door beyond the table, Mooty offering a cheerful wave before ducking down to follow the others.  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of goldem light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s worried whiskery face, positioned somewhat further away from you than usual, the badgers proceed to roll back the boulder blocking the [[main entry tunnel-&gt;Encounter_Puck_Diplomancy]].
 &lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="53" name="Encounter_Puck_Viral_Violence" tags="encounter" position="9,2126" size="100,100">As you leave the warren complex, Sheila the steady wombat turns her back on you and snorts derisively. &quot;Word of your &#39;plan&#39; has gotten out. \
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
-  I knew your wombatitude was rotten.      
+  I knew your wombatitude was rotten. 
+&lt;&lt;else&gt;&gt;
+	You&#39;re no wombuddy after all, it seems.
+	&lt;&lt;run $deleteTitle($title_wombuddy)&gt;&gt;\
 &lt;&lt;/if&gt;&gt;\
-Fair warning, we lumpkins would rather face danger and death from our own than a human -- if you get out of control, we&#39;ll band together with the godlings against you.
+Fair warning, we lumpkins would rather face danger and death from our own than a human -- if you get out of control, we&#39;ll band together with the godlings against you.  I don&#39;t want any part in what you&#39;re doing, so I&#39;ve got nothing to say about where you should go next.&quot; 
 
-You&#39;ll want to visit our foremost expert on Incarnation theory, magistra Molly, for a crash course before trying to poke around at anybody&#39;s imaginative feedback loops.  She moves around a lot, but her tower is a day&#39;s travel West of the Warren.  You can&#39;t miss it -- literally.  Molly&#39;s own Entity is mind control, and she&#39;s a little histrionic so she tends to draw any passersby in whether they were on their way to see her or not.&quot; 
+You turn to Nuvi, eyebrows raised questioningly.  He sighs and shrugs, and seems to deflate like a fuzzy balloon.  His bowtie is askew, but he doesn&#39;t bother to fix it anymore.  Irritation with this pathetic little creature claws its way from your heart to you tongue, and you ready a scathing rebuke for your &#39;guide&#39;.  
 
-Together with a decidedly distant Nuvi (he keeps eyeing you suspiciously and then ostentatiously fussing with his bowtie when you catch him at it), you trek West through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight the tip of a sparkly electric-purple tower peeking over the horizon, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
+Before you can spew your venom forth, however, Marrah slinks out of the shadows and taps you on the shoulder.  She looks enthusiastic, bubbly even, and she&#39;s wearing only a smile.  Of course, most furry folk you&#39;ve met here don&#39;t bother with clothing.  Still, she is holding herself in a manner that emphasizes her sinuous musculature and puts the light through her fur at an angle that makes her appear to be fire made aggressively female.  Her smile reveals a gleaming array of meticulously cared-for and extremely sharp teeth.  Sheila gives the vixen a withering look and ducks back into the tunnel&#39;s depths.  
 
-&quot;You would dare to threaten the life of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, its features contorted with rage.  &quot;As if a limited creature such as you could harm her.  Even the original experiment that allowed her to assume her true form was too complex for a human to grasp, and she has done wonders to her glorious font of imagination in the time since her awakening.&quot;
+&quot;Adrammalocke&#39;s grimoire is buried deep beneath the former site of his island fortress, off the Sapphire Coast a day&#39;s journey East.  It is in ruins now, and the whole island is cursed!&quot;  Her gold eyes shine with undisguised arousal.  &quot;But I can show you the way, and lead you through the many traps and barriers we put in place.&quot;  She snuggles up way into your personal space, making it clear she will be joining you.
+&lt;&lt;run $party.push($characters[&quot;marrah&quot;])&gt;&gt;\
 
-The body of an emaciated little man materializes in the air with a faintly wet pop to join his head.  He dances in place in the air, his fists raised in what he undoubtedly thinks is a fighting stance.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.  As you watch, his bizarre pre-fight exercises (?) knock said hat off to fall away and disappear into the darkness.
+With Marrah hanging off your arm and practically purring, you trek East through the Bush.  Along the way, she displays her hunting prowess by stalking and tackling-to-death several giraffes.  Is there any other way to travel?  Just as you sight the blasted black rock of a castle&#39;s foundation far out to sea, the entire world goes dark.  You ask Marrah what&#39;s happening, and she hisses in reply.  Before she can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
 
-&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would diminish her, [[en guarde!-&gt;Combat_Time]]&quot;
+&quot;You dare challenge my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, its features coldly calm and warped by abject hatred.  &quot;As if you or anything could kill her.&quot;
+
+The body of an emaciated little man materializes in the air with a thunderclap to join his head.  His whole body trembles with the promise of imminent violence.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.  As you watch, he rips the ridiculous hat off and casts it away; it dissolves into the darkness with startling swiftness.
+
+// todo: Hashmalum minion too?  IDK, I don&#39;t think his folk would work with Holly&#39;s
+
+&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Combat_Time]]&quot;
 
 // todo: set combat params</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
