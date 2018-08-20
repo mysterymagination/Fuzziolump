@@ -1,4 +1,8 @@
-<tw-storydata name="Fuzziolump" startnode="51" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="Fuzziolump" startnode="57" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+.passage {
+	transition-property: none;
+}
+*/
 
 #enemy {
 	width: 100%;
@@ -11,9 +15,10 @@
 	color:#000;
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
+    transition-property: none;
 }
 
-#player {
+#you {
 	width: 100%;
 	position: center;
 	padding: 1em;
@@ -24,9 +29,10 @@
 	color:#000;
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
+    transition-property: none;
 }
 
-#combatlog {
+#log {
 	width: 100%;
 	position: center;
 	padding: 2em;
@@ -38,7 +44,9 @@
 	color:#000;
 	text-align:left; 
 	box-shadow: #000 0.5em 0.5em 0;
+    transition-property: none;
 }
+
 
 
 
@@ -138,7 +146,7 @@ State.variables.addToInductiveBias = function(inductiveBiasArray, args){
 	}
 }
 
-State.variables.deleteTitle(title){
+State.variables.deleteTitle = function(title){
 	var playerTitleArray = State.variables.characters["player"].titles;
 	var titleIndex = playerTitleArray.indexOf(title);
 	if(titleIndex > -1){
@@ -147,7 +155,7 @@ State.variables.deleteTitle(title){
 	}
 }
 
-State.variables.addTitle(title){
+State.variables.addTitle = function(title){
 	var playerTitleArray = State.variables.characters["player"].titles;
 	if(!playerTitleArray.includes(title)){
 			playerTitleArray.push(title);
@@ -404,6 +412,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 
 	
+
 
 
 
@@ -1505,4 +1514,50 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Combat_Time]]&quot;
 
-// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata></tw-storydata>
+// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
+&lt;&lt;set $ehp to 200&gt;&gt;
+&lt;&lt;set $mhp to 200&gt;&gt;
+&lt;&lt;set $ename to &quot;Dragon&quot;&gt;&gt;
+&lt;&lt;set $turn to &quot;you&quot;&gt;&gt;
+&lt;&lt;set $hp to 100&gt;&gt;
+&lt;&lt;set $eatk to 15&gt;&gt;
+&lt;&lt;set $eatkname to &quot;Breath of Fire&quot;&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;Enemy&quot;&gt;&gt;
+&lt;&lt;include &quot;Log&quot;&gt;&gt;
+&lt;&lt;include &quot;You&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="Enemy" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemy&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="Log" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;log&quot;&gt;
+&lt;&lt;if $log is &quot;you&quot;&gt;&gt;\
+It is your turn
+&lt;&lt;elseif $log is &quot;atk&quot;&gt;&gt;\
+You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
+&lt;&lt;elseif $log is &quot;enemy&quot;&gt;&gt;\
+The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
+&lt;&lt;/if&gt;&gt;\
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="You" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;you&quot;&gt;You: $hp/100
+&lt;&lt;if $turn is &quot;you&quot;&gt;&gt;
+  &lt;&lt;link [[&quot;Punch&quot;-&gt;Combat]]&gt;&gt;
+  &lt;&lt;set $ehp -= 10&gt;&gt;
+  &lt;&lt;set $atk to &quot;Punch&quot;&gt;&gt;
+  &lt;&lt;set $atkdmg to 10&gt;&gt;
+  &lt;&lt;set $turn to &quot;enemy&quot;&gt;&gt;
+  &lt;&lt;set $log to &quot;atk&quot;&gt;&gt;
+  &lt;&lt;/link&gt;&gt;
+
+  &lt;&lt;link [[&quot;Sword&quot;-&gt;Combat]]&gt;&gt;
+  &lt;&lt;set $ehp -= 30&gt;&gt;
+  &lt;&lt;set $atk to &quot;Sword&quot;&gt;&gt;
+  &lt;&lt;set $atkdmg to 30&gt;&gt;
+  &lt;&lt;set $turn to &quot;enemy&quot;&gt;&gt;
+  &lt;&lt;set $log to &quot;atk&quot;&gt;&gt;
+  &lt;&lt;/link&gt;&gt;
+
+&lt;&lt;elseif $turn is &quot;enemy&quot;&gt;&gt;
+  &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
+  &lt;&lt;set $log to &quot;enemy&quot;&gt;&gt;
+  &lt;&lt;set $turn to &quot;you&quot;&gt;&gt;
+  &lt;&lt;set $hp -= $eatk&gt;&gt;
+  &lt;&lt;/link&gt;&gt;
+&lt;&lt;/if&gt;&gt;
+
+&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;Lose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;Win&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="Win" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="Lose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata></tw-storydata>
