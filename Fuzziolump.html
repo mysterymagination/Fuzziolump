@@ -4,7 +4,7 @@
 }
 */
 
-#enemy {
+#enemyCombatWindow {
 	width: 100%;
 	position: center;
 	padding: 1em;
@@ -18,7 +18,7 @@
     transition-property: none;
 }
 
-#you {
+#playerCombatWindow {
 	width: 100%;
 	position: center;
 	padding: 1em;
@@ -32,7 +32,7 @@
     transition-property: none;
 }
 
-#log {
+#combatLog {
 	width: 100%;
 	position: center;
 	padding: 2em;
@@ -172,6 +172,30 @@ State.variables.godling_strat_diplomancy = "diplomancy";
 State.variables.godling_strat_chosen = "";
 /// end main quest vars ///
 
+function Ability(name){
+	this.name = name;
+	// todo: what's the best way in JS to basically define a versatile effect, kind of like a lambda function but maybe not entirely arbitrary
+}
+function Incarnation(name){
+	// Incarnation inherits from Ability
+	Ability.call(this,name);
+	
+}
+function Entity(name){
+	this.name = name;
+	
+	/**
+	An array of strings representing domains of thought, emotion, imagination, and creativity associated with this Entity.  e.g. Foxfire entity associated with ["whimsy","illusion","seduction","manipulation","domination"]
+	*/
+	this.associatedDomains = [];
+	
+	/**
+	A multi-dimensional array of Incarnations learned by wielders of this Entity at a level equivalent to the index of the Incarnation array.
+	e.g. [[fire blast, ice blast],[],[rock tomb]] would indicate the wielder leanrs fire blast and ice blast at level 1, and rock tomb at level 3.
+	*/
+	this.associatedIncarnationsByLevel = [];
+}
+
 // Character object definition
 function Character(name){
 	
@@ -188,14 +212,26 @@ function Character(name){
 		"strength":10,
 		"dexterity":10,
 		"constitution":10
-	}
+	};
 	
 	// basic stats, representing character vitality as resources
 	// TODO: these and other consumeable resources should show in a HUD drawer
 	this.stats = {
 		"hp":100,
 		"mp":100
-	}
+	};
+	
+	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
+	// on inherent Entity, or that have been learned by the human
+	this.incarnations = {};
+	
+	// a character's Entity is their inherent set of talents re: Incarnation.  Only the human can learn Incarnations from any Entity.
+	this.entity = new Entity("unset");
+	
+	this.abilities = {
+		"attack" : new Ability("Attack"),
+		"defend" : new Ability("Defend")
+	};
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
 	// that reflects how a given character feels about this character.
@@ -222,6 +258,21 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 		}
 	}
 }
+
+/**
+Combat object takes two arrays of Character objects, the player's
+party and the enemy's party.
+@param playerParty: an array of Characters representing the player's party
+@param enemyParty: an array of Characters representing the enemy's party
+@param passageName: the name of the passage the combat originated in, and to which the player should be returned if they survive
+*/
+function Combat(playerParty,enemyParty,passageName){
+	this.playerParty = playerParty;
+	this.enemyParty = enemyParty;
+	this.passageName = passageName;
+	
+}
+State.variables.combatArena = new Combat([],[]);
 
 function Room(){
 	
@@ -269,7 +320,8 @@ State.variables.characters = {
 	"shimmerin" : new Character("Shimmerin"),
 	"sheila" : new Character("Sheila"),
 	"council" : new Character("Council Of Animals"),
-	"marrah" : new Character("Marrah")
+	"marrah" : new Character("Marrah"),
+	"mooty" : new Character("Mooty Wort")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1484,7 +1536,13 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Combat_Time]]&quot;
 
-// todo: set combat params</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
+// todo: set combat params
+&lt;&lt;script&gt;&gt;\
+var monsterPuck = new Character(&quot;Puck&quot;);
+monsterPuck.stats[]
+var monster_party = [monsterPuck];
+$combatArena = new Combat($player_party,monster_party,$passage())
+&lt;&lt;/script&gt;&gt;\</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
 &quot;I&#39;ve been told the gist of your plan.  I&#39;m no fan of having someone of your dubious wombatitude playing with the lives of two lumpkins, their current crazy godbeast forms notwithstanding.  You be careful!    
 &lt;&lt;else&gt;&gt;\
@@ -1522,9 +1580,9 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;set $hp to 100&gt;&gt;
 &lt;&lt;set $eatk to 15&gt;&gt;
 &lt;&lt;set $eatkname to &quot;Breath of Fire&quot;&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;Enemy&quot;&gt;&gt;
-&lt;&lt;include &quot;Log&quot;&gt;&gt;
-&lt;&lt;include &quot;You&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="Enemy" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemy&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="Log" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;log&quot;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
+&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
+&lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 &lt;&lt;if $log is &quot;you&quot;&gt;&gt;\
 It is your turn
 &lt;&lt;elseif $log is &quot;atk&quot;&gt;&gt;\
@@ -1532,7 +1590,7 @@ You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
 &lt;&lt;elseif $log is &quot;enemy&quot;&gt;&gt;\
 The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
 &lt;&lt;/if&gt;&gt;\
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="You" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;you&quot;&gt;You: $hp/100
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
 &lt;&lt;if $turn is &quot;you&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Punch&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $ehp -= 10&gt;&gt;
@@ -1558,6 +1616,6 @@ The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;Lose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;Win&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="Win" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="Lose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata></tw-storydata>
+&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata></tw-storydata>
