@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="57" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="53" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -197,7 +197,7 @@ function Entity(name){
 }
 
 // Character object definition
-function Character(name){
+State.variables.Character = function Character(name){
 	
 	this.name = name;
 	this.gender = "";
@@ -266,13 +266,12 @@ party and the enemy's party.
 @param enemyParty: an array of Characters representing the enemy's party
 @param passageName: the name of the passage the combat originated in, and to which the player should be returned if they survive
 */
-function Combat(playerParty,enemyParty,passageName){
+State.variables.Combat = function Combat(playerParty,enemyParty,passageName){
 	this.playerParty = playerParty;
 	this.enemyParty = enemyParty;
 	this.passageName = passageName;
-	
 }
-State.variables.combatArena = new Combat([],[]);
+State.variables.combatArena = new State.variables.Combat([],[]);
 
 function Room(){
 	
@@ -284,7 +283,7 @@ function Room(){
 // Player object definition
 function Player(){
 	// inherit from Character
-	Character.call(this,"The Human");
+	State.variables.Character.call(this,"The Human");
 	
 	// the player can remain in full cold for 25 room moves
 	// before becoming hypothermic
@@ -316,12 +315,12 @@ var playerAffinities = new Affinities();
 // create the Player as a Character
 State.variables.characters = {
 	"player" : new Player(),
-	"nuvi" : new Character("Nuvi"),
-	"shimmerin" : new Character("Shimmerin"),
-	"sheila" : new Character("Sheila"),
-	"council" : new Character("Council Of Animals"),
-	"marrah" : new Character("Marrah"),
-	"mooty" : new Character("Mooty Wort")
+	"nuvi" : new State.variables.Character("Nuvi"),
+	"shimmerin" : new State.variables.Character("Shimmerin"),
+	"sheila" : new State.variables.Character("Sheila"),
+	"council" : new State.variables.Character("Council Of Animals"),
+	"marrah" : new State.variables.Character("Marrah"),
+	"mooty" : new State.variables.Character("Mooty Wort")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1510,7 +1509,7 @@ Marrah doesn&#39;t bother to rise.  The mole&#39;s soothing rumble has drained h
 The mole shakes his broad snout sadly.  &quot;They simply will not listen.  Those of us with Entities suitable to coercion and emotional manipulation have also tried to &#39;force&#39; the godlings to be agreeable, but their minds are too strong.  You will have to be subtle and clever in how you employ Incarnation to reach them.  Go now, human, and always keep love foremost in your heart.  You are our hope!&quot;
 
 The council of animals files out through the small door beyond the table, Mooty offering a cheerful wave before ducking down to follow the others.  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of goldem light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s worried whiskery face, positioned somewhat further away from you than usual, the badgers proceed to roll back the boulder blocking the [[main entry tunnel-&gt;Encounter_Puck_Diplomancy]].
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="53" name="Encounter_Puck_Viral_Violence" tags="encounter" position="9,2126" size="100,100">As you leave the warren complex, Sheila the steady wombat turns her back on you and snorts derisively. &quot;Word of your &#39;plan&#39; has gotten out. \
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="53" name="Encounter_Puck_Viral_Violence" tags="encounter" position="7,2125" size="100,100">As you leave the warren complex, Sheila the steady wombat turns her back on you and snorts derisively. &quot;Word of your &#39;plan&#39; has gotten out. \
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
   I knew your wombatitude was rotten. 
 &lt;&lt;else&gt;&gt;
@@ -1537,12 +1536,21 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Combat_Time]]&quot;
 
 // todo: set combat params
-&lt;&lt;script&gt;&gt;\
-var monsterPuck = new Character(&quot;Puck&quot;);
-monsterPuck.stats[]
+&lt;&lt;script&gt;&gt;
+/* apparently this is legal JS
+x1.MyClass = function MyClass(stuff){ this.msg = stuff;};
+var myClass = new x1.MyClass(&quot;hello from myclass&quot;);
+alert(myClass.msg);
+*/
+
+var monsterPuck = new State.variables.Character(&quot;Puck&quot;);
+monsterPuck.stats[&quot;hp&quot;] = 1000;
+monsterPuck.stats[&quot;mp&quot;] = Infinity;
+monsterPuck.stats[&quot;str&quot;] = 75;
+
 var monster_party = [monsterPuck];
-$combatArena = new Combat($player_party,monster_party,$passage())
-&lt;&lt;/script&gt;&gt;\</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
+State.variables.combatArena = new State.variables.Combat(State.variables.party,monster_party,passage())
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
 &quot;I&#39;ve been told the gist of your plan.  I&#39;m no fan of having someone of your dubious wombatitude playing with the lives of two lumpkins, their current crazy godbeast forms notwithstanding.  You be careful!    
 &lt;&lt;else&gt;&gt;\
