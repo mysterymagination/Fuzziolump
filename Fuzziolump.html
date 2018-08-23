@@ -174,7 +174,14 @@ State.variables.godling_strat_chosen = "";
 
 function Ability(name){
 	this.name = name;
-	// todo: what's the best way in JS to basically define a versatile effect, kind of like a lambda function but maybe not entirely arbitrary
+	this.effect;
+	this.dc = function(userLvl, userMod){
+		if(userLvl && userMod){
+			return userLvl/2 + userMod + 10;
+		}else{
+			return 10;	
+		}
+	}
 }
 function Incarnation(name){
 	// Incarnation inherits from Ability
@@ -201,6 +208,7 @@ State.variables.Character = function Character(name){
 	
 	this.name = name;
 	this.gender = "";
+	this.level = 10;
 	
 	// attribute scores reflect the character's capabilities.
 	// we'll use Pathfinder style scores, where 10 is sort of neutral
@@ -214,11 +222,25 @@ State.variables.Character = function Character(name){
 		"constitution":10
 	};
 	
-	// basic stats, representing character vitality as resources
+	// just like Pathfinder saving throws, these represent a character's
+	// defenses against various effects
+	this.saves = {
+		"fortitude" : 5,
+		"reflex" : 5,
+		"will" : 5
+	}
+	
+	this.ac = {
+		"armored" : 10;
+		"touch" : 10;
+	}
+	
+	// basic stats, representing character vitality as resources.
+	// In the absence of clear classes, went with ~ avg d10s for level 10
 	// TODO: these and other consumeable resources should show in a HUD drawer
 	this.stats = {
-		"hp":100,
-		"mp":100
+		"hp":50,
+		"mp":50
 	};
 	
 	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
@@ -461,6 +483,39 @@ Config.constructor.prototype.combat = function Combat(){
 	}
 }
 */
+
+function init(){
+	var marrahChar = State.variables.characters["marrah"];
+	marrahChar.stats["hp"] = 6;
+	marrahChar.stats["mp"] = 20;
+	marrahChar.attributes["strength"] = 12;
+	marrahChar.attributes["dexterity"] = 18;
+	marrahChar.attributes["constitution"] = 10;
+	marrahChar.attributes["intelligence"] = 14;
+	marrahChar.attributes["wisdom"] = 8;
+	marrahChar.attributes["charisma"] = 20;
+	marrahChar.entity = new Entity("Fox Fire");
+	
+	/*
+	Haunted Fey can Terrify opponent, causing them to randomly skip turns
+	*/
+	marrahChar.incarnations["haunted_fey"] = new Incarnation("Haunted Fey");
+	marrahChar.incarnations["haunted_fey"].effect = function(target){
+		// todo: who is 'this' in this context?  Marrah? The Incarnation?
+		var savingThrow = target.saves["will"] + rolld20();
+		if(savingThrow > this.dc()){
+			target.afflictions.push(State.variables.affliction_terrified);	
+		}
+		
+		// todo: where should the all-important (seriously -- this is mostly narrative) flavor text go?  A global combatlog string displayed in CombatLog passage?
+	}
+	
+	
+	
+}
+/// begin init ///
+init();
+/// end init ///
 
 	
 
@@ -1538,9 +1593,16 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 // todo: set combat params
 &lt;&lt;script&gt;&gt;
 /* apparently this is legal JS
-x1.MyClass = function MyClass(stuff){ this.msg = stuff;};
-var myClass = new x1.MyClass(&quot;hello from myclass&quot;);
-alert(myClass.msg);
+var x1 = {};        // object
+
+x1.MyClass = function MyClass(stuff,effectFn){ 
+	this.msg = stuff;
+	this.effect = effectFn;
+}
+
+var myClass = new x1.MyClass(&quot;hello from myclass&quot;, function(){return &quot;testing functional functionality in JS&quot;});
+
+var myClass2 = new x1.MyClass(&quot;hello from myotherclass&quot;, function(){return &quot;for a second time, we are testing functional functionality in JS&quot;});
 */
 
 var monsterPuck = new State.variables.Character(&quot;Puck&quot;);
@@ -1591,12 +1653,14 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
 &lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
-&lt;&lt;if $log is &quot;you&quot;&gt;&gt;\
-It is your turn
-&lt;&lt;elseif $log is &quot;atk&quot;&gt;&gt;\
-You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
-&lt;&lt;elseif $log is &quot;enemy&quot;&gt;&gt;\
-The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
+&lt;&lt;if $combatLog is $combatLog_waitingParty&gt;&gt;\
+What will $combatTurnOwner do?
+&lt;&lt;elseif $combatLog is $combatLog_atk&gt;&gt;\
+//You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
+$atktext
+&lt;&lt;elseif $combatLog is $combatLog_eatk&gt;&gt;\
+//The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
+$eatktext
 &lt;&lt;/if&gt;&gt;\
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
 &lt;&lt;if $turn is &quot;you&quot;&gt;&gt;
