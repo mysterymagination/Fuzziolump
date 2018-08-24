@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="53" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="57" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -46,6 +46,7 @@
 	box-shadow: #000 0.5em 0.5em 0;
     transition-property: none;
 }
+
 
 
 
@@ -518,6 +519,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1642,49 +1644,55 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Combat_Time]]&quot;
 
-// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
+// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;for _i to 0; _i lt 10; _i++&gt;&gt;
+	&lt;&lt;link &quot;test _i&quot;&gt;&gt;&lt;&lt;/link&gt;&gt;
+&lt;&lt;/for&gt;&gt;
+
+&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 &lt;&lt;set $ehp to 200&gt;&gt;
 &lt;&lt;set $mhp to 200&gt;&gt;
 &lt;&lt;set $ename to &quot;Dragon&quot;&gt;&gt;
-&lt;&lt;set $turn to &quot;you&quot;&gt;&gt;
+&lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
 &lt;&lt;set $hp to 100&gt;&gt;
 &lt;&lt;set $eatk to 15&gt;&gt;
 &lt;&lt;set $eatkname to &quot;Breath of Fire&quot;&gt;&gt;
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
 &lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
-&lt;&lt;if $combatLog is $combatLog_waitingParty&gt;&gt;\
+&lt;&lt;if $combatLogState is $combatLogState_waitingParty&gt;&gt;\
 What will $combatTurnOwner do?
-&lt;&lt;elseif $combatLog is $combatLog_atk&gt;&gt;\
+&lt;&lt;elseif $combatLogState is $combatLogState_player&gt;&gt;\
 //You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
 $atktext
-&lt;&lt;elseif $combatLog is $combatLog_eatk&gt;&gt;\
+&lt;&lt;elseif $combatLogState is $combatLogState_enemy&gt;&gt;\
 //The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
 $eatktext
 &lt;&lt;/if&gt;&gt;\
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
-&lt;&lt;if $turn is &quot;you&quot;&gt;&gt;
+&lt;&lt;if $combatTurnState is $combatTurnState_player&gt;&gt;
+	//todo: what&#39;s the best way to loop through the player party and display each ability as a link programmatically?  I guess you could set the links to currentchar.incarnations[0].name, currentchar.incarnations[1].name...
   &lt;&lt;link [[&quot;Punch&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $ehp -= 10&gt;&gt;
   &lt;&lt;set $atk to &quot;Punch&quot;&gt;&gt;
   &lt;&lt;set $atkdmg to 10&gt;&gt;
-  &lt;&lt;set $turn to &quot;enemy&quot;&gt;&gt;
-  &lt;&lt;set $log to &quot;atk&quot;&gt;&gt;
+  &lt;&lt;set $combatTurnState to $combatTurnState_enemy&gt;&gt;
+  &lt;&lt;set $combatLogState to $combatLogState_player&gt;&gt;
   &lt;&lt;/link&gt;&gt;
 
   &lt;&lt;link [[&quot;Sword&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $ehp -= 30&gt;&gt;
   &lt;&lt;set $atk to &quot;Sword&quot;&gt;&gt;
   &lt;&lt;set $atkdmg to 30&gt;&gt;
-  &lt;&lt;set $turn to &quot;enemy&quot;&gt;&gt;
-  &lt;&lt;set $log to &quot;atk&quot;&gt;&gt;
+  &lt;&lt;set $combatTurnState to $combatTurnState_enemy&gt;&gt;
+  &lt;&lt;set $combatLogState to $combatLogState_player&gt;&gt;
   &lt;&lt;/link&gt;&gt;
 
-&lt;&lt;elseif $turn is &quot;enemy&quot;&gt;&gt;
+&lt;&lt;elseif $combatTurnState is $combatTurnState_enemy&gt;&gt;
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
-  &lt;&lt;set $log to &quot;enemy&quot;&gt;&gt;
-  &lt;&lt;set $turn to &quot;you&quot;&gt;&gt;
+  &lt;&lt;set $combatLogState to $combatLogState_enemy&gt;&gt;
+  &lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
   &lt;&lt;set $hp -= $eatk&gt;&gt;
+  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves with slight weights
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
