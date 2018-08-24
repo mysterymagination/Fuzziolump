@@ -113,6 +113,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -175,14 +176,18 @@ State.variables.godling_strat_chosen = "";
 
 function Ability(name){
 	this.name = name;
+	// lambda stub - effect will be defined when Ability instance is defined
 	this.effect;
-	this.dc = function(userLvl, userMod){
-		if(userLvl && userMod){
-			return userLvl/2 + userMod + 10;
+	this.calcDC = function(user,modifyingAttr){
+		if(user.level && modifyingAttr)){
+			return user.level/2 + calcMod(user,modifyingAttr) + 10;
 		}else{
 			return 10;	
 		}
-	}
+	}// end calcDC()
+	// lambda stub - dmg formula will be defined when Ability instance is defined
+	this.calcDmg;
+	this.flavorText = "nonsuch ability";
 }
 function Incarnation(name){
 	// Incarnation inherits from Ability
@@ -287,12 +292,21 @@ Combat object takes two arrays of Character objects, the player's
 party and the enemy's party.
 @param playerParty: an array of Characters representing the player's party
 @param enemyParty: an array of Characters representing the enemy's party
-@param passageName: the name of the passage the combat originated in, and to which the player should be returned if they survive
+@param destPassageName: the name of the passage to which the player should be sent if they survive
 */
-State.variables.Combat = function Combat(playerParty,enemyParty,passageName){
+State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName){
 	this.playerParty = playerParty;
 	this.enemyParty = enemyParty;
-	this.passageName = passageName;
+	this.destPassageName = destPassageName;
+	
+	// tracks the turn as either player or enemy group
+	this.turnGroup = "player";
+	
+	// tracks the actual character id whose turn it is
+	this.turnOwner = "player";
+	
+	// the text feedback to the user re: the state of combat
+	this.combatLogContent = "Kombat Time!";
 }
 State.variables.combatArena = new State.variables.Combat([],[]);
 
@@ -504,21 +518,23 @@ function init(){
 	marrahChar.incarnations["haunted_fey"].effect = function(target){
 		// todo: who is 'this' in this context?  Marrah? The Incarnation?
 		var savingThrow = target.saves["will"] + rolld20();
-		if(savingThrow > this.dc()){
+		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			target.afflictions.push(State.variables.affliction_terrified);	
 		}
 		
-		// todo: where should the all-important (seriously -- this is mostly narrative) flavor text go?  A global combatlog string displayed in CombatLog passage?
-	}
+		// todo: where should the all-important (seriously -- this is mostly narrative) flavor text go?  A global combatlog string displayed in CombatLog passage or onesuch owned by the Combat instance?
+	}// end defining effect of haunted_fey
 	
 	
 	
-}
+}// end defining init()
+
 /// begin init ///
 init();
 /// end init ///
 
 	
+
 
 
 
@@ -1648,6 +1664,14 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;link &quot;test _i&quot;&gt;&gt;&lt;&lt;/link&gt;&gt;
 &lt;&lt;/for&gt;&gt;
 
+&lt;&lt;set $combatArena = new $Combat($party,[],passage())&gt;&gt;
+&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
+		&lt;&lt;link _abilityName&gt;&gt;
+			// todo: oh right, we need to select an enemy and pass him as the target.  We also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
+			_ability.effect();
+		&lt;&lt;/link&gt;&gt;
+	&lt;&lt;/for&gt;&gt;
+
 &lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 &lt;&lt;set $ehp to 200&gt;&gt;
 &lt;&lt;set $mhp to 200&gt;&gt;
@@ -1659,18 +1683,18 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
 &lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
-&lt;&lt;if $combatLogState is $combatLogState_waitingParty&gt;&gt;\
-What will $combatTurnOwner do?
-&lt;&lt;elseif $combatLogState is $combatLogState_player&gt;&gt;\
-//You use &#39;$atk&#39; on the $ename, dealing $atkdmg damage
-$atktext
-&lt;&lt;elseif $combatLogState is $combatLogState_enemy&gt;&gt;\
-//The $ename uses &#39;$eatkname&#39; on you, dealing $eatk damage
-$eatktext
-&lt;&lt;/if&gt;&gt;\
+$combatArena.combatLogContent
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
-&lt;&lt;if $combatTurnState is $combatTurnState_player&gt;&gt;
+&lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
+	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $combatArena.turnOwner do?&quot;&gt;&gt;
 	//todo: what&#39;s the best way to loop through the player party and display each ability as a link programmatically?  I guess you could set the links to currentchar.incarnations[0].name, currentchar.incarnations[1].name...
+	&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
+		&lt;&lt;link _abilityName&gt;&gt;
+			// todo: oh right, we need to select an enemy and pass him as the target.  We&#39;ll need a UI change to support that, something like an intermediary combatlog step where the player is asked to select target after selecting ability.
+			// todo: also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
+			_ability.effect($characters[$combatArena.turnOwner],selectedTarget);
+		&lt;&lt;/link&gt;&gt;
+	&lt;&lt;/for&gt;&gt;
   &lt;&lt;link [[&quot;Punch&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $ehp -= 10&gt;&gt;
   &lt;&lt;set $atk to &quot;Punch&quot;&gt;&gt;
