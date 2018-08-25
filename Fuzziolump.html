@@ -114,6 +114,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -177,16 +178,16 @@ State.variables.godling_strat_chosen = "";
 function Ability(name){
 	this.name = name;
 	// lambda stub - effect will be defined when Ability instance is defined
-	this.effect;
+	this.effect = function(){console.log("no effect from "+this.name)};
 	this.calcDC = function(user,modifyingAttr){
-		if(user.level && modifyingAttr)){
+		if(user.level && modifyingAttr){
 			return user.level/2 + calcMod(user,modifyingAttr) + 10;
 		}else{
 			return 10;	
 		}
 	}// end calcDC()
 	// lambda stub - dmg formula will be defined when Ability instance is defined
-	this.calcDmg;
+	this.calcDmg = function(){console.log("no dmg from "+this.name)};
 	this.flavorText = "nonsuch ability";
 }
 function Incarnation(name){
@@ -226,7 +227,7 @@ State.variables.Character = function Character(name){
 		"strength":10,
 		"dexterity":10,
 		"constitution":10
-	};
+	}
 	
 	// just like Pathfinder saving throws, these represent a character's
 	// defenses against various effects
@@ -237,8 +238,8 @@ State.variables.Character = function Character(name){
 	}
 	
 	this.ac = {
-		"armored" : 10;
-		"touch" : 10;
+		"armored" : 10,
+		"touch" : 10
 	}
 	
 	// basic stats, representing character vitality as resources.
@@ -246,8 +247,10 @@ State.variables.Character = function Character(name){
 	// TODO: these and other consumeable resources should show in a HUD drawer
 	this.stats = {
 		"hp":50,
-		"mp":50
-	};
+		"maxHP":50,
+		"mp":50,
+		"maxMP":50
+	}
 	
 	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
 	// on inherent Entity, or that have been learned by the human
@@ -259,7 +262,7 @@ State.variables.Character = function Character(name){
 	this.abilities = {
 		"attack" : new Ability("Attack"),
 		"defend" : new Ability("Defend")
-	};
+	}
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
 	// that reflects how a given character feels about this character.
@@ -304,6 +307,12 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	
 	// tracks the actual character id whose turn it is
 	this.turnOwner = "player";
+	
+	// tracks the currently selected ability for the current turn owner
+	this.abilityName = "";
+	
+	// tracks the target of the current ability
+	this.currentTargetCharacter = new State.variables.Character("unset");
 	
 	// the text feedback to the user re: the state of combat
 	this.combatLogContent = "Kombat Time!";
@@ -498,7 +507,6 @@ Config.constructor.prototype.combat = function Combat(){
 	}
 }
 */
-
 function init(){
 	var marrahChar = State.variables.characters["marrah"];
 	marrahChar.stats["hp"] = 6;
@@ -511,13 +519,12 @@ function init(){
 	marrahChar.attributes["charisma"] = 20;
 	marrahChar.entity = new Entity("Fox Fire");
 	
-	/*
-	Haunted Fey can Terrify opponent, causing them to randomly skip turns
-	*/
+	
+	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
 	marrahChar.incarnations["haunted_fey"] = new Incarnation("Haunted Fey");
 	marrahChar.incarnations["haunted_fey"].effect = function(target){
 		// todo: who is 'this' in this context?  Marrah? The Incarnation?
-		var savingThrow = target.saves["will"] + rolld20();
+		var savingThrow = target.saves["will"] + rollD20();
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			target.afflictions.push(State.variables.affliction_terrified);	
 		}
@@ -534,6 +541,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1491,7 +1499,7 @@ Seeing the blinding light in her eyes, Nuvi flaps apprehensively beside you, loo
 
 Waving her hand from the west continent to the eastern border of central, Marrah continues gravely, &quot;Saving these lands and all who live there is your challenge, human, your struggle, your quest.  And you must triumph, or we will surely perish.  Since Holly is relatively diplomatic, we implore you to approach her first.  How you handle her threat is entirely up to you; we already mourn the loss of our friend, so if this new creature must be destroyed, then let it be so.  What is your plan?&quot; 
 
-&lt;&lt;link [[&quot;I will find Adrammalocke&#39;s grimoire, and I will eradicate these pests!&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
+&lt;&lt;link [[&quot;I will find Adrammalocke&#39;s grimoire, and I will eradicate the foes of Fuzziolump!&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		nuvi opinion of player goes way down with such a violent approach
 	&lt;&lt;/silently&gt;&gt;
@@ -1664,7 +1672,9 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;link &quot;test _i&quot;&gt;&gt;&lt;&lt;/link&gt;&gt;
 &lt;&lt;/for&gt;&gt;
 
-&lt;&lt;set $combatArena = new $Combat($party,[],passage())&gt;&gt;
+&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
+// be sure to set lookup vars to the usual lookup IDs rather than display names
+&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 &lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
 		&lt;&lt;link _abilityName&gt;&gt;
 			// todo: oh right, we need to select an enemy and pass him as the target.  We also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
@@ -1686,12 +1696,24 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 $combatArena.combatLogContent
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
-	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $combatArena.turnOwner do?&quot;&gt;&gt;
-	//todo: what&#39;s the best way to loop through the player party and display each ability as a link programmatically?  I guess you could set the links to currentchar.incarnations[0].name, currentchar.incarnations[1].name...
+	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $characters[combatArena.turnOwner].name do?&quot;&gt;&gt;
+	&lt;&lt;print $combatArena.playerParty[$characters[$combatArena.turnOwner]].name&gt;&gt;
+	&lt;&lt;print &quot;$combatArena.playerParty[$characters[$combatArena.turnOwner]].hp / $combatArena.playerParty[$characters[$combatArena.turnOwner]].maxHP&quot;&gt;&gt;
 	&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
 		&lt;&lt;link _abilityName&gt;&gt;
 			// todo: oh right, we need to select an enemy and pass him as the target.  We&#39;ll need a UI change to support that, something like an intermediary combatlog step where the player is asked to select target after selecting ability.
 			// todo: also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
+			&lt;&lt;replace #playerCombatWindow&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your target!&quot;&gt;&gt;
+				&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
+					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;link _target.name&gt;&gt;
+						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
+						&lt;&lt;print $combatArena.currentTargetCharacter.name will fry!&gt;&gt;
+					&lt;&lt;/link&gt;&gt;
+				&lt;&lt;/for&gt;&gt;
+				
+			&lt;&lt;/replace&gt;&gt;
 			_ability.effect($characters[$combatArena.turnOwner],selectedTarget);
 		&lt;&lt;/link&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
