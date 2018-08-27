@@ -116,11 +116,34 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
 var test = 0;
+
+/** attempts to parse a given function's signature to determine expected params
+
+ex.
+function myCustomFn(arg1, arg2,arg3) {
+  
+}
+console.log(getParams(myCustomFn)); // returns ["arg1", "arg2", "arg3"]
+*/
+State.variables.getParams = function(func) {
+  // First match everything inside the function argument parens.
+  var args = func.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+ 
+  // Split the arguments string into an array comma delimited.
+  return args.split(',').map(function(arg) {
+    // Ensure no inline comments are parsed and trim the whitespace.
+    return arg.replace(/\/\*.*\*\//, '').trim();
+  }).filter(function(arg) {
+    // Ensure no undefined values are added.
+    return arg;
+  });
+}
 
 // simulate a d20 roll
 State.variables.rollD20 = function(){
@@ -553,6 +576,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1710,13 +1734,14 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 $combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1322,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
+	// todo: this will not display immediately since combatLogContent is hosted in a different passage.  We&#39;ll either need a way to tell that passage to update based on new data, or a routing of passages that sends us back through Combat to update all relevant displays after data updates.  The latter is basically the current model, and the former kind of fights Twine so I would favor the latter.
 	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $characters[$combatArena.turnOwner].name do?&quot;&gt;&gt;
 	&lt;&lt;set $testThing to [{&quot;id&quot;:1,&quot;name&quot;:&quot;unus&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;duo&quot;}]&gt;&gt;
 	&lt;&lt;print $testThing.find(function (obj) { return obj.id === 2; })[&quot;name&quot;]&gt;&gt;
 	&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).name&gt;&gt;
-	&lt;&lt;print &quot;$combatArena.playerParty[$characters[$combatArena.turnOwner]].hp / $combatArena.playerParty[$characters[$combatArena.turnOwner]].maxHP&quot;&gt;&gt;
+	&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.hp + &quot;/&quot; + $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.maxHP&gt;&gt;
 	&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
 		&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 		&lt;&lt;link _abilityName&gt;&gt;
