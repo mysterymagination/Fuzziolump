@@ -115,6 +115,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -175,8 +176,19 @@ State.variables.godling_strat_diplomancy = "diplomancy";
 State.variables.godling_strat_chosen = "";
 /// end main quest vars ///
 
-function Ability(name){
+State.variables.Ability = function Ability(name){
+	this.TargetTypesEnum = Object.freeze (
+		{ 
+			singleEnemy: {}, 
+			allEnemies: {},
+			singleAlly: {},
+			allAllies: {}
+		});
 	this.name = name;
+	
+	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
+	this.targetType = this.TargetTypesEnum.singleEnemy; 
+	
 	// lambda stub - effect will be defined when Ability instance is defined
 	this.effect = function(){console.log("no effect from "+this.name)};
 	this.calcDC = function(user,modifyingAttr){
@@ -192,7 +204,7 @@ function Ability(name){
 }
 function Incarnation(name){
 	// Incarnation inherits from Ability
-	Ability.call(this,name);
+	State.variables.Ability.call(this,name);
 	
 }
 function Entity(name){
@@ -260,8 +272,8 @@ State.variables.Character = function Character(name){
 	this.entity = new Entity("unset");
 	
 	this.abilities = {
-		"attack" : new Ability("Attack"),
-		"defend" : new Ability("Defend")
+		"attack" : new State.variables.Ability("Attack"),
+		"defend" : new State.variables.Ability("Defend") 
 	}
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
@@ -541,6 +553,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1671,6 +1684,9 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 // todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;for _i to 0; _i lt 10; _i++&gt;&gt;
 	&lt;&lt;link &quot;test _i&quot;&gt;&gt;&lt;&lt;/link&gt;&gt;
 &lt;&lt;/for&gt;&gt;
+&lt;&lt;for _partyMemberIndex,_partyMember range $party&gt;&gt;
+	&lt;&lt;print &quot;party consists of _partyMember.name&quot;&gt;&gt;
+&lt;&lt;/for&gt;&gt;
 
 &lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 // be sure to set lookup vars to the usual lookup IDs rather than display names
@@ -1694,12 +1710,15 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 $combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;You: $hp/100
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1323,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
-	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $characters[combatArena.turnOwner].name do?&quot;&gt;&gt;
-	&lt;&lt;print $combatArena.playerParty[$characters[$combatArena.turnOwner]].name&gt;&gt;
+	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $characters[$combatArena.turnOwner].name do?&quot;&gt;&gt;
+	&lt;&lt;set $testThing to [{&quot;id&quot;:1,&quot;name&quot;:&quot;unus&quot;},{&quot;id&quot;:2,&quot;name&quot;:&quot;duo&quot;}]&gt;&gt;
+	&lt;&lt;print $testThing.find(function (obj) { return obj.id === 2; })[&quot;name&quot;]&gt;&gt;
+	&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).name&gt;&gt;
 	&lt;&lt;print &quot;$combatArena.playerParty[$characters[$combatArena.turnOwner]].hp / $combatArena.playerParty[$characters[$combatArena.turnOwner]].maxHP&quot;&gt;&gt;
 	&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
+		&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 		&lt;&lt;link _abilityName&gt;&gt;
 			// todo: oh right, we need to select an enemy and pass him as the target.  We&#39;ll need a UI change to support that, something like an intermediary combatlog step where the player is asked to select target after selecting ability.
 			// todo: also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
@@ -1716,6 +1735,9 @@ $combatArena.combatLogContent
 			&lt;&lt;/replace&gt;&gt;
 			_ability.effect($characters[$combatArena.turnOwner],selectedTarget);
 		&lt;&lt;/link&gt;&gt;
+		&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
+			// todo: handle UI for healing/buffing Incarnations
+		&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
   &lt;&lt;link [[&quot;Punch&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $ehp -= 10&gt;&gt;
