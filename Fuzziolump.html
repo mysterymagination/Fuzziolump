@@ -1723,6 +1723,14 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 // be sure to set lookup vars to the usual lookup IDs rather than display names
 &lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+
+&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+		&lt;&lt;print &quot;select abl state&quot;&gt;&gt;
+&lt;&lt;else&gt;&gt;
+	&lt;&lt;print &quot;state unknown&quot;&gt;&gt;
+&lt;&lt;/if&gt;&gt;
+
 &lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
 		&lt;&lt;link _abilityName&gt;&gt;
 			// todo: oh right, we need to select an enemy and pass him as the target.  We also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
@@ -1744,29 +1752,34 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 $combatArena.combatLogContent
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1322,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
+	&lt;&lt;print &quot;in group player&quot;&gt;&gt;
 	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-	&lt;&lt;set $combatArena.combatLogContent to &quot;What will $characters[$combatArena.turnOwner].name do?&quot;&gt;&gt;
-	&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.hp + &quot;/&quot; + $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.maxHP&gt;&gt;
-	&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
-		&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-		&lt;&lt;link _abilityName-&gt;Combat&gt;&gt;
-			&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
-			&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
+		&lt;&lt;print &quot;select abl state&quot;&gt;&gt;
+		&lt;&lt;replace &quot;#combatLog&quot;&gt;&gt;
+			&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
+		&lt;&lt;/replace&gt;&gt;
+		&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.hp + &quot;/&quot; + $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.maxHP&gt;&gt;
+		&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
+			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
+				&lt;&lt;link _abilityName-&gt;Combat&gt;&gt;
+					&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
 				
 		_ability.effect($characters[$combatArena.turnOwner],selectedTarget);
-		&lt;&lt;/link&gt;&gt;
-		&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
-			&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
-			&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
-		&lt;&lt;else&gt;&gt;
-			&lt;&lt;silently&gt;&gt;\
-				No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in. 
-			&lt;&lt;/silently&gt;&gt;\
-			&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-			&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
-		&lt;&lt;/if&gt;&gt;
+				&lt;&lt;/link&gt;&gt;
+			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
+				&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
+			&lt;&lt;else&gt;&gt;
+				&lt;&lt;silently&gt;&gt;\
+					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in. 
+				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+			&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/for&gt;&gt;//end ability listing loop
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectTarget&gt;&gt;
+	&lt;&lt;print &quot;state is select target&quot;&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
 					&lt;&lt;link _target.name&gt;&gt;
@@ -1774,15 +1787,20 @@ $combatArena.combatLogContent
 						&lt;&lt;print $combatArena.currentTargetCharacter.name will fry!&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
+	&lt;&lt;else&gt;&gt;
+		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
+	&lt;&lt;print &quot;in group enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
   &lt;&lt;set $combatLogState to $combatLogState_enemy&gt;&gt;
   &lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
   &lt;&lt;set $hp -= $eatk&gt;&gt;
   // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves with slight weights
   &lt;&lt;/link&gt;&gt;
+&lt;&lt;else&gt;&gt;
+	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
 &lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
