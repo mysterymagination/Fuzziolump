@@ -200,12 +200,12 @@ State.variables.godling_strat_chosen = "";
 /// end main quest vars ///
 
 State.variables.Ability = function Ability(name){
-	this.TargetTypesEnum = Object.freeze (
+	this.TargetTypesEnum  = Object.freeze (
 		{ 
-			singleEnemy: {}, 
-			allEnemies: {},
-			singleAlly: {},
-			allAllies: {}
+			singleEnemy: 1, 
+			allEnemies: 2,
+			singleAlly: 3,
+			allAllies: 4
 		});
 	this.name = name;
 	
@@ -335,8 +335,8 @@ party and the enemy's party.
 State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName){
 	this.PlayerTurnState = Object.freeze (
 		{ 
-			selectTarget: {}, 
-			selectAbility: {}
+			selectTarget: 1, 
+			selectAbility: 2
 		});
 	
 	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
@@ -1723,6 +1723,7 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 // be sure to set lookup vars to the usual lookup IDs rather than display names
 &lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+&lt;&lt;set $combatArena.combatLogContent = &quot;What will $characters[$combatArena.turnOwner].name do?&quot;&gt;&gt;
 
 &lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 &lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
@@ -1755,13 +1756,23 @@ $combatArena.combatLogContent
 	&lt;&lt;print &quot;in group player&quot;&gt;&gt;
 	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;print &quot;select abl state&quot;&gt;&gt;
-		&lt;&lt;replace &quot;#combatLog&quot;&gt;&gt;
-			&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
-		&lt;&lt;/replace&gt;&gt;
-		&lt;&lt;print $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.hp + &quot;/&quot; + $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; }).stats.maxHP&gt;&gt;
-		&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
+		
+		&lt;&lt;silently&gt;&gt;
+			Establish temp reference to current turn owner Character
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; })&gt;&gt;
+		
+		&lt;&lt;silently&gt;&gt;
+			Printing current/max HP and MP of current turn owner
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
+		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
+		
+		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
+			&lt;&lt;print &quot;showing abl &quot;+_ability+&quot; called &quot;+_abilityName&gt;&gt;
 			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-				&lt;&lt;link _abilityName-&gt;Combat&gt;&gt;
+				&lt;&lt;print _abilityName+&quot; is a single enemy abl&quot;&gt;&gt;
+				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
 					&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
 				
@@ -1805,4 +1816,8 @@ $combatArena.combatLogContent
 
 &lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
 &lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata></tw-storydata>
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14.5" size="100,100">The following:
+&lt;replace &quot;#combatLog&quot;&gt;
+	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
+&lt;/replace&gt;
+does not work in CombatPlayer passage since combatLog DIV id only exists in CombatLog passage.  Evidently CSS selectors aren&#39;t available between passages?</tw-passagedata></tw-storydata>
