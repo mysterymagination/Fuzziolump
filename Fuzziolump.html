@@ -118,6 +118,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -297,7 +298,8 @@ State.variables.Character = function Character(name){
 	
 	this.abilities = {
 		"attack" : new State.variables.Ability("Attack"),
-		"defend" : new State.variables.Ability("Defend") 
+		"defend" : new State.variables.Ability("Defend"),
+		"run" : new State.variables.Ability("Run") 
 	}
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
 		alert(sourceCharacter.name+" attacking "+targetCharacter.name+" mightily!");
@@ -306,6 +308,9 @@ State.variables.Character = function Character(name){
 	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
 		alert(sourceCharacter.name+" defending "+targetCharacter.name+" valiantly!");
 		targetCharacter.attributes["defense"] += sourceCharacter.attributes["strength"];
+	};
+	this.abilities["run"].effect = function(sourceCharacter,targetCharacter){
+		alert(sourceCharacter.name+" bravely turns tail and flees from "+targetCharacter.name);
 	};
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
@@ -333,6 +338,31 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 		}
 	}
 }
+
+// Player object definition
+function Player(){
+	// inherit from Character
+	State.variables.Character.call(this,"The Human");
+	
+	// the player can remain in full cold for 25 room moves
+	// before becoming hypothermic
+	this.cold_max_count = 25;
+	
+	// the count of turns a player has been out in the cold
+	this.cold_count = 0;
+	
+	// human dies of hypothermia
+	this.afflication_hypothermia = "hypothermia";
+	
+	// an array of string status ailments the player might have
+	this.afflictions = [];
+	
+	// an array of string titles the player may obtain for outstanding deeds
+	this.titles = [];
+	
+	
+}
+
 
 /**
 Combat object takes two arrays of Character objects, the player's
@@ -378,30 +408,6 @@ function Room(){
 	
 	// array of field mods that have occurred in this room
 	this.field_mods = [];
-	
-}
-
-// Player object definition
-function Player(){
-	// inherit from Character
-	State.variables.Character.call(this,"The Human");
-	
-	// the player can remain in full cold for 25 room moves
-	// before becoming hypothermic
-	this.cold_max_count = 25;
-	
-	// the count of turns a player has been out in the cold
-	this.cold_count = 0;
-	
-	// human dies of hypothermia
-	this.afflication_hypothermia = "hypothermia";
-	
-	// an array of string status ailments the player might have
-	this.afflictions = [];
-	
-	// an array of string titles the player may obtain for outstanding deeds
-	this.titles = [];
-	
 	
 }
 
@@ -596,6 +602,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1733,6 +1740,22 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;print &quot;party consists of _partyMember.name&quot;&gt;&gt;
 &lt;&lt;/for&gt;&gt;
 
+// Using capture to localize a temporary loop variable for use within a linkappend
+&lt;&lt;set _what to [
+	&quot;a crab rangoon&quot;,
+	&quot;a gaggle of geese&quot;,
+	&quot;an aardvark&quot;,
+	&quot;the world&#39;s smallest violin&quot;
+]&gt;&gt;
+&lt;&lt;for _i to 0; _i lt _what.length; _i++&gt;&gt;
+	&lt;&lt;capture _i&gt;&gt;
+		I spy with my little &lt;&lt;linkappend &quot;eye&quot; t8n&gt;&gt;, _what[_i]&lt;&lt;/linkappend&gt;&gt;.
+	&lt;&lt;/capture&gt;&gt;
+&lt;&lt;/for&gt;&gt;
+
+// Capturing several variables at once
+&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;
+
 &lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 // be sure to set lookup vars to the usual lookup IDs rather than display names
 &lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
@@ -1781,18 +1804,25 @@ $combatArena.combatLogContent
 		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
 		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
 		
-		&lt;&lt;set _testAbl to &quot;&quot;&gt;&gt;
+		&lt;&lt;silently&gt;&gt;
+			Ability listing and init usage proc block
+		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
+			&lt;&lt;capture _abilityName, _ability&gt;&gt;
 			&lt;&lt;print &quot;showing abl &quot;+_ability+&quot; called &quot;+_abilityName&gt;&gt;
 			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 				&lt;&lt;print _abilityName+&quot; is a single enemy abl&quot;&gt;&gt;
-				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
+				&lt;&lt;run console.log(&quot;setting up link for &quot;+_abilityName);&gt;&gt;
+				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt; 
 					// todo: I think we might be running code in here each time through the iteration... both atk and defend abls show defend
+					// UPDATE: ah, problem isn&#39;t that code within links is getting run before the click -- it&#39;s that the temp var value is not evaluated until the link is clicks, and it will hold whatever was last set within the enclosing for loop.  Hence, even though abl and target links render correctly, the code they run always points to the last values set in the loop.
 					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					&lt;&lt;run console.log(&quot;setting current selected abl to the value of  temp var ability, which points to &quot;+_ability.name);&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
+					&lt;&lt;script&gt;&gt;console.log(&quot;just set &quot;+State.variables.combatArena.currentSelectedAbility.name+&quot; as the current selected abl&quot;);&lt;&lt;/script&gt;&gt;
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
-					&lt;&lt;run alert(&quot;running ability &quot;+_abilityName)&gt;&gt;
+					&lt;&lt;run alert(&quot;running ability &quot;+_abilityName);&gt;&gt;
 				&lt;&lt;/link&gt;&gt;
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
@@ -1804,18 +1834,21 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
+			&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;//end ability listing loop
 	&lt;&lt;print &quot;testAbl says: &quot;+_testAbl&gt;&gt;
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 	&lt;&lt;print &quot;state is select enemy target&quot;&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;capture _target&gt;&gt;
+					&lt;&lt;run console.log(&quot;setting up link for &quot;+_target.name);&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
+						&lt;&lt;run console.log(&quot;setting current target char to the value of _target, which points to our friend &quot;+_target.name);&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						// todo: not seeing alert from abl effect()
-						&lt;run alert(_target.name +&quot; will fry from &quot;+$combatArena.currentSelectedAbility.name+&quot; of &quot;+$characters[$combatArena.turnOwner].name);&gt;
-		$combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);
+		&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
+					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
 				
 	&lt;&lt;silently&gt;&gt;
@@ -1825,10 +1858,13 @@ $combatArena.combatLogContent
 	&lt;&lt;print &quot;state is select ally target&quot;&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link _target.name&gt;&gt;
+						
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						&lt;&lt;print _target.name will receive a good touch!&gt;&gt;			$combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);
+						&lt;&lt;print _target.name will receive a good touch!&gt;&gt;			&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
+					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
 	
 	&lt;&lt;else&gt;&gt;
