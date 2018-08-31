@@ -117,6 +117,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -298,6 +299,14 @@ State.variables.Character = function Character(name){
 		"attack" : new State.variables.Ability("Attack"),
 		"defend" : new State.variables.Ability("Defend") 
 	}
+	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
+		alert(sourceCharacter.name+" attacking "+targetCharacter.name+" mightily!");
+		targetCharacter.hp -= sourceCharacter.attributes["strength"];
+	};
+	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
+		alert(sourceCharacter.name+" defending "+targetCharacter.name+" valiantly!");
+		targetCharacter.attributes["defense"] += sourceCharacter.attributes["strength"];
+	};
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
 	// that reflects how a given character feels about this character.
@@ -344,6 +353,9 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.playerParty = playerParty;
 	this.enemyParty = enemyParty;
 	this.destPassageName = destPassageName;
+	
+	// tracks the currently selected player ability
+	this.currentSelectedAbility = new State.variables.Ability("unset");
 	
 	// tracks the turn as either player or enemy group
 	this.turnGroup = "player";
@@ -584,6 +596,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1768,18 +1781,21 @@ $combatArena.combatLogContent
 		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
 		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
 		
+		&lt;&lt;set _testAbl to &quot;&quot;&gt;&gt;
 		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
 			&lt;&lt;print &quot;showing abl &quot;+_ability+&quot; called &quot;+_abilityName&gt;&gt;
 			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 				&lt;&lt;print _abilityName+&quot; is a single enemy abl&quot;&gt;&gt;
 				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
-					&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					// todo: I think we might be running code in here each time through the iteration... both atk and defend abls show defend
+					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
+					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
-				
-		_ability.effect($characters[$combatArena.turnOwner],selectedTarget);
+					&lt;&lt;run alert(&quot;running ability &quot;+_abilityName)&gt;&gt;
 				&lt;&lt;/link&gt;&gt;
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
-				&lt;&lt;set $combatArena.turnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
@@ -1789,15 +1805,32 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/for&gt;&gt;//end ability listing loop
-	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectTarget&gt;&gt;
-	&lt;&lt;print &quot;state is select target&quot;&gt;&gt;
+	&lt;&lt;print &quot;testAbl says: &quot;+_testAbl&gt;&gt;
+	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+	&lt;&lt;print &quot;state is select enemy target&quot;&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
-					&lt;&lt;link _target.name&gt;&gt;
+					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						&lt;&lt;print $combatArena.currentTargetCharacter.name will fry!&gt;&gt;
+						// todo: not seeing alert from abl effect()
+						&lt;run alert(_target.name +&quot; will fry from &quot;+$combatArena.currentSelectedAbility.name+&quot; of &quot;+$characters[$combatArena.turnOwner].name);&gt;
+		$combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);
 					&lt;&lt;/link&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
+				
+	&lt;&lt;silently&gt;&gt;
+		block that handles selecting an ally for heals/buffins
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+	&lt;&lt;print &quot;state is select ally target&quot;&gt;&gt;
+		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
+					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;link _target.name&gt;&gt;
+						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
+						&lt;&lt;print _target.name will receive a good touch!&gt;&gt;			$combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);
+					&lt;&lt;/link&gt;&gt;
+				&lt;&lt;/for&gt;&gt;
+	
 	&lt;&lt;else&gt;&gt;
 		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
@@ -1816,7 +1849,7 @@ $combatArena.combatLogContent
 
 &lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
 &lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14.5" size="100,100">The following:
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
 &lt;replace &quot;#combatLog&quot;&gt;
 	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
 &lt;/replace&gt;
