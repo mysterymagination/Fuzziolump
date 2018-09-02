@@ -119,6 +119,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -602,6 +603,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1733,7 +1735,118 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Combat_Time]]&quot;
 
-// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;for _i to 0; _i lt 10; _i++&gt;&gt;
+// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
+	&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
+	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
+&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
+&lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
+$combatArena.combatLogContent
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1322,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
+&lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
+	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+		&lt;&lt;silently&gt;&gt;
+			Establish temp reference to current turn owner Character
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; })&gt;&gt;
+		
+		&lt;&lt;silently&gt;&gt;
+			Printing current/max HP and MP of current turn owner
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
+		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
+		
+		&lt;&lt;silently&gt;&gt;
+			Ability listing and init usage proc block
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
+			&lt;&lt;capture _abilityName, _ability&gt;&gt;
+			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
+				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt; 
+					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
+					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
+					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
+				&lt;&lt;/link&gt;&gt;
+			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
+			&lt;&lt;else&gt;&gt;
+				&lt;&lt;silently&gt;&gt;\
+					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in. 
+				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+			&lt;&lt;/if&gt;&gt;
+			&lt;&lt;/capture&gt;&gt;
+	&lt;&lt;/for&gt;&gt;
+	
+	&lt;&lt;silently&gt;&gt;
+		Block where the user has already selected an abl and now needs to select its target.
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
+					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;capture _target&gt;&gt;
+					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
+						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
+		&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
+					&lt;&lt;/link&gt;&gt;
+					&lt;&lt;/capture&gt;&gt;
+				&lt;&lt;/for&gt;&gt;
+				
+	&lt;&lt;silently&gt;&gt;
+		block that handles selecting an ally for heals/buffins
+	&lt;&lt;/silently&gt;&gt;
+	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
+					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;capture _target&gt;&gt;
+					&lt;&lt;link _target.name&gt;&gt;
+						
+						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
+						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
+					&lt;&lt;/link&gt;&gt;
+					&lt;&lt;/capture&gt;&gt;
+				&lt;&lt;/for&gt;&gt;
+	
+	&lt;&lt;else&gt;&gt;
+		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
+	&lt;&lt;/if&gt;&gt;
+
+&lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
+  &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
+  &lt;&lt;set $combatLogState to $combatLogState_enemy&gt;&gt;
+  &lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
+  &lt;&lt;set $hp -= $eatk&gt;&gt;
+  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves with slight weights
+  &lt;&lt;/link&gt;&gt;
+&lt;&lt;else&gt;&gt;
+	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
+&lt;&lt;/if&gt;&gt;
+
+&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
+&lt;replace &quot;#combatLog&quot;&gt;
+	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
+&lt;/replace&gt;
+does not work in CombatPlayer passage since combatLog DIV id only exists in CombatLog passage.  Evidently CSS selectors aren&#39;t available between passages?
+
+// Readt portion of turn based combat tutorial
+&lt;&lt;link &quot;Fight the Mighty Dragon!&quot;&gt;&gt;
+&lt;&lt;set $ehp to 200&gt;&gt;
+&lt;&lt;set $mhp to 200&gt;&gt;
+&lt;&lt;set $ename to &quot;Dragon&quot;&gt;&gt;
+&lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
+&lt;&lt;set $hp to 100&gt;&gt;
+&lt;&lt;set $eatk to 15&gt;&gt;
+&lt;&lt;set $eatkname to &quot;Breath of Fire&quot;&gt;&gt;
+&lt;&lt;/link&gt;&gt;
+
+// generating links within a lopo
+&lt;&lt;for _i to 0; _i lt 10; _i++&gt;&gt;
 	&lt;&lt;link &quot;test _i&quot;&gt;&gt;&lt;&lt;/link&gt;&gt;
 &lt;&lt;/for&gt;&gt;
 &lt;&lt;for _partyMemberIndex,_partyMember range $party&gt;&gt;
@@ -1754,139 +1867,4 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;/for&gt;&gt;
 
 // Capturing several variables at once
-&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;
-
-&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
-// be sure to set lookup vars to the usual lookup IDs rather than display names
-&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
-&lt;&lt;set $combatArena.combatLogContent = &quot;What will $characters[$combatArena.turnOwner].name do?&quot;&gt;&gt;
-
-&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-		&lt;&lt;print &quot;select abl state&quot;&gt;&gt;
-&lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;state unknown&quot;&gt;&gt;
-&lt;&lt;/if&gt;&gt;
-
-&lt;&lt;for _abilityName,_ability range $characters[$combatArena.turnOwner].abilities&gt;&gt;
-		&lt;&lt;link _abilityName&gt;&gt;
-			// todo: oh right, we need to select an enemy and pass him as the target.  We also may need a way to stat the expected params of the effect function for the current ability, so that we can pass in the appropriate args... or the effect functions could just have a uniform API, accepting maybe source and dest params (e.g. caster and target)?   
-			_ability.effect();
-		&lt;&lt;/link&gt;&gt;
-	&lt;&lt;/for&gt;&gt;
-
-&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
-&lt;&lt;set $ehp to 200&gt;&gt;
-&lt;&lt;set $mhp to 200&gt;&gt;
-&lt;&lt;set $ename to &quot;Dragon&quot;&gt;&gt;
-&lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
-&lt;&lt;set $hp to 100&gt;&gt;
-&lt;&lt;set $eatk to 15&gt;&gt;
-&lt;&lt;set $eatkname to &quot;Breath of Fire&quot;&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
-&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
-&lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;$ename HP: $ehp/$mhp&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
-$combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1322,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
-&lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
-	&lt;&lt;print &quot;in group player&quot;&gt;&gt;
-	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-		&lt;&lt;print &quot;select abl state&quot;&gt;&gt;
-		
-		&lt;&lt;silently&gt;&gt;
-			Establish temp reference to current turn owner Character
-		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; })&gt;&gt;
-		
-		&lt;&lt;silently&gt;&gt;
-			Printing current/max HP and MP of current turn owner
-		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
-		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
-		
-		&lt;&lt;silently&gt;&gt;
-			Ability listing and init usage proc block
-		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
-			&lt;&lt;capture _abilityName, _ability&gt;&gt;
-			&lt;&lt;print &quot;showing abl &quot;+_ability+&quot; called &quot;+_abilityName&gt;&gt;
-			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-				&lt;&lt;print _abilityName+&quot; is a single enemy abl&quot;&gt;&gt;
-				&lt;&lt;run console.log(&quot;setting up link for &quot;+_abilityName);&gt;&gt;
-				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt; 
-					// todo: I think we might be running code in here each time through the iteration... both atk and defend abls show defend
-					// UPDATE: ah, problem isn&#39;t that code within links is getting run before the click -- it&#39;s that the temp var value is not evaluated until the link is clicks, and it will hold whatever was last set within the enclosing for loop.  Hence, even though abl and target links render correctly, the code they run always points to the last values set in the loop.
-					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
-					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
-					&lt;&lt;run console.log(&quot;setting current selected abl to the value of  temp var ability, which points to &quot;+_ability.name);&gt;&gt;
-					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
-					&lt;&lt;script&gt;&gt;console.log(&quot;just set &quot;+State.variables.combatArena.currentSelectedAbility.name+&quot; as the current selected abl&quot;);&lt;&lt;/script&gt;&gt;
-					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
-					&lt;&lt;run alert(&quot;running ability &quot;+_abilityName);&gt;&gt;
-				&lt;&lt;/link&gt;&gt;
-			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
-				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
-			&lt;&lt;else&gt;&gt;
-				&lt;&lt;silently&gt;&gt;\
-					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in. 
-				&lt;&lt;/silently&gt;&gt;\
-				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
-			&lt;&lt;/if&gt;&gt;
-			&lt;&lt;/capture&gt;&gt;
-	&lt;&lt;/for&gt;&gt;//end ability listing loop
-	&lt;&lt;print &quot;testAbl says: &quot;+_testAbl&gt;&gt;
-	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
-	&lt;&lt;print &quot;state is select enemy target&quot;&gt;&gt;
-		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
-					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
-					&lt;&lt;capture _target&gt;&gt;
-					&lt;&lt;run console.log(&quot;setting up link for &quot;+_target.name);&gt;&gt;
-					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
-						&lt;&lt;run console.log(&quot;setting current target char to the value of _target, which points to our friend &quot;+_target.name);&gt;&gt;
-						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-		&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-					&lt;&lt;/link&gt;&gt;
-					&lt;&lt;/capture&gt;&gt;
-				&lt;&lt;/for&gt;&gt;
-				
-	&lt;&lt;silently&gt;&gt;
-		block that handles selecting an ally for heals/buffins
-	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
-	&lt;&lt;print &quot;state is select ally target&quot;&gt;&gt;
-		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
-					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
-					&lt;&lt;capture _target&gt;&gt;
-					&lt;&lt;link _target.name&gt;&gt;
-						
-						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						&lt;&lt;print _target.name will receive a good touch!&gt;&gt;			&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-					&lt;&lt;/link&gt;&gt;
-					&lt;&lt;/capture&gt;&gt;
-				&lt;&lt;/for&gt;&gt;
-	
-	&lt;&lt;else&gt;&gt;
-		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
-	&lt;&lt;/if&gt;&gt;
-
-&lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
-	&lt;&lt;print &quot;in group enemy&quot;&gt;&gt;
-  &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
-  &lt;&lt;set $combatLogState to $combatLogState_enemy&gt;&gt;
-  &lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
-  &lt;&lt;set $hp -= $eatk&gt;&gt;
-  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves with slight weights
-  &lt;&lt;/link&gt;&gt;
-&lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
-&lt;&lt;/if&gt;&gt;
-
-&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
-&lt;replace &quot;#combatLog&quot;&gt;
-	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
-&lt;/replace&gt;
-does not work in CombatPlayer passage since combatLog DIV id only exists in CombatLog passage.  Evidently CSS selectors aren&#39;t available between passages?</tw-passagedata></tw-storydata>
+&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata></tw-storydata>
