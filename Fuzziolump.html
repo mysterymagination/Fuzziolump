@@ -120,6 +120,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -249,8 +250,8 @@ function Entity(name){
 }
 
 // Character object definition
-State.variables.Character = function Character(name){
-	
+State.variables.Character = function Character(id,name){
+	this.id = id;
 	this.name = name;
 	this.gender = "";
 	this.level = 10;
@@ -343,7 +344,7 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 // Player object definition
 function Player(){
 	// inherit from Character
-	State.variables.Character.call(this,"The Human");
+	State.variables.Character.call(this,"player","The Human");
 	
 	// the player can remain in full cold for 25 room moves
 	// before becoming hypothermic
@@ -423,12 +424,12 @@ var playerAffinities = new Affinities();
 // create the Player as a Character
 State.variables.characters = {
 	"player" : new Player(),
-	"nuvi" : new State.variables.Character("Nuvi"),
-	"shimmerin" : new State.variables.Character("Shimmerin"),
-	"sheila" : new State.variables.Character("Sheila"),
-	"council" : new State.variables.Character("Council Of Animals"),
-	"marrah" : new State.variables.Character("Marrah"),
-	"mooty" : new State.variables.Character("Mooty Wort")
+	"nuvi" : new State.variables.Character("nuvi","Nuvi"),
+	"shimmerin" : new State.variables.Character("shimmerin","Shimmerin"),
+	"sheila" : new State.variables.Character("sheila","Sheila"),
+	"council" : new State.variables.Character("council","Council Of Animals"),
+	"marrah" : new State.variables.Character("marrah","Marrah"),
+	"mooty" : new State.variables.Character("mooty","Mooty Wort")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -603,6 +604,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1736,7 +1738,11 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Combat_Time]]&quot;
 
 // todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
-	&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummy enemy 1&quot;), new $Character(&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
+	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
+	&lt;&lt;set $party[2] to $characters[&quot;shimmerin&quot;]&gt;&gt;
+	&lt;&lt;set $party[3] to $characters[&quot;nuvi&quot;]&gt;&gt;
+	&lt;&lt;set $party[4] to $characters[&quot;mooty&quot;]&gt;&gt;
+	&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummyenemy1&quot;,&quot;dummy enemy 1&quot;), new $Character(&quot;dummyenemy2&quot;,&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
@@ -1792,6 +1798,25 @@ $combatArena.combatLogContent
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 		&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
+						&lt;&lt;silently&gt;&gt;
+							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
+						&lt;&lt;/silently&gt;&gt;
+						&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
+							&lt;&lt;run console.log(&quot;we&#39;ve hit the last player character, &quot;+$characters[$combatArena.turnOwner].name);&gt;&gt;
+							&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+							&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+						&lt;&lt;else&gt;&gt;
+							&lt;&lt;script&gt;&gt;
+							
+								var i = 0;	for(i=0;i&lt;State.variables.combatArena.playerParty.length;i++){
+								console.log(&quot;The &quot;+i+&quot;th character in player party is &quot;+State.variables.combatArena.playerParty[i].name);	
+							}
+							&lt;&lt;/script&gt;&gt;
+							&lt;&lt;run console.log(&quot;we have not yet hit the last player character as of &quot;+$characters[$combatArena.turnOwner].name+&quot;; moving right along to &quot;+$combatArena.playerParty[$combatArena.playerParty.indexOf($characters[$combatArena.turnOwner])+1]);&gt;&gt;
+							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$combatArena.playerParty.indexOf($characters[$combatArena.turnOwner])+1].id&gt;&gt;
+							&lt;&lt;run console.log(&quot;next player char is identified by &quot;+$combatArena.turnOwner);&gt;&gt;
+						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -1804,9 +1829,10 @@ $combatArena.combatLogContent
 					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link _target.name&gt;&gt;
-						
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
+						&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+						&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -1817,10 +1843,11 @@ $combatArena.combatLogContent
 
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
-  &lt;&lt;set $combatLogState to $combatLogState_enemy&gt;&gt;
-  &lt;&lt;set $combatTurnState to $combatTurnState_player&gt;&gt;
-  &lt;&lt;set $hp -= $eatk&gt;&gt;
-  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves with slight weights
+  	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
+	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+  
+  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
