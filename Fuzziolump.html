@@ -121,6 +121,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -147,6 +148,19 @@ State.variables.getParams = function(func) {
     // Ensure no undefined values are added.
     return arg;
   });
+}
+
+// find index of a particular character id in a character array
+State.variables.findCharacterIndex = function(characterArray,characterID){
+	return characterArray.findIndex(function (character){
+		return character.id === characterID;
+	});	
+}
+																	
+State.variables.findCurrentPlayerCharacterIndex = function(){
+	return State.variables.combatArena.playerParty.findIndex(function (character){
+		return character.id === State.variables.combatArena.turnOwner;
+	});	
 }
 
 // simulate a d20 roll
@@ -604,6 +618,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1802,20 +1817,12 @@ $combatArena.combatLogContent
 							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 						&lt;&lt;/silently&gt;&gt;
 						&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
-							&lt;&lt;run console.log(&quot;we&#39;ve hit the last player character, &quot;+$characters[$combatArena.turnOwner].name);&gt;&gt;
 							&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 							&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
 						&lt;&lt;else&gt;&gt;
-							&lt;&lt;script&gt;&gt;
-							
-								var i = 0;	for(i=0;i&lt;State.variables.combatArena.playerParty.length;i++){
-								console.log(&quot;The &quot;+i+&quot;th character in player party is &quot;+State.variables.combatArena.playerParty[i].name);	
-							}
-							&lt;&lt;/script&gt;&gt;
-							&lt;&lt;run console.log(&quot;we have not yet hit the last player character as of &quot;+$characters[$combatArena.turnOwner].name+&quot;; moving right along to &quot;+$combatArena.playerParty[$combatArena.playerParty.indexOf($characters[$combatArena.turnOwner])+1]);&gt;&gt;
 							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$combatArena.playerParty.indexOf($characters[$combatArena.turnOwner])+1].id&gt;&gt;
-							&lt;&lt;run console.log(&quot;next player char is identified by &quot;+$combatArena.turnOwner);&gt;&gt;
+							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
+							&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
@@ -1831,8 +1838,18 @@ $combatArena.combatLogContent
 					&lt;&lt;link _target.name&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-						&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-						&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+						
+						&lt;&lt;silently&gt;&gt;
+							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
+						&lt;&lt;/silently&gt;&gt;
+						&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
+							&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+							&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+						&lt;&lt;else&gt;&gt;
+							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
+							&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -1845,6 +1862,7 @@ $combatArena.combatLogContent
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
   	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+	&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
   
   // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
