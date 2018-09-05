@@ -123,6 +123,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -619,6 +620,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1762,30 +1764,22 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummyenemy1&quot;,&quot;dummy enemy 1&quot;), new $Character(&quot;dummyenemy2&quot;,&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">// todo: need passages for player party HP/MP; the player should be able to see each for each player character during each character&#39;s turn.
-&lt;&lt;include &quot;EnemyCombatDisplay&quot;&gt;&gt;
-&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
-&lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
+&lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;
+&lt;&lt;include &quot;PlayerPartyStats&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;
 &lt;&lt;silently&gt;&gt;
 &lt;&lt;set _enemy to $combatArena.enemyParty[0]&gt;&gt;
 &lt;&lt;print _enemy.name+&quot; HP: &quot;+_enemy.stats.hp+&quot;/&quot;+_enemy.stats.maxHP&gt;&gt;
 &lt;&lt;/silently&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 $combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1322,500" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1288,622" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
 	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Establish temp reference to current turn owner Character
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; })&gt;&gt;
-		
-		&lt;&lt;silently&gt;&gt;
-			Printing current/max HP and MP of current turn owner
-		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;print _currentTurnOwner.stats.hp + &quot;/&quot; + _currentTurnOwner.stats.maxHP&gt;&gt;
-		&lt;&lt;print _currentTurnOwner.stats.mp + &quot;/&quot; + _currentTurnOwner.stats.maxMP&gt;&gt;
-		
 		&lt;&lt;silently&gt;&gt;
 			Ability listing and init usage proc block
 		&lt;&lt;/silently&gt;&gt;
@@ -1810,7 +1804,6 @@ $combatArena.combatLogContent
 			&lt;&lt;/if&gt;&gt;
 			&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
-	
 	&lt;&lt;silently&gt;&gt;
 		Block where the user has already selected an abl and now needs to select its target.
 	&lt;&lt;/silently&gt;&gt;
@@ -1835,7 +1828,6 @@ $combatArena.combatLogContent
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
-				
 	&lt;&lt;silently&gt;&gt;
 		block that handles selecting an ally for heals/buffins
 	&lt;&lt;/silently&gt;&gt;
@@ -1845,8 +1837,7 @@ $combatArena.combatLogContent
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link _target.name&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-						
+						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;	
 						&lt;&lt;silently&gt;&gt;
 							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 						&lt;&lt;/silently&gt;&gt;
@@ -1861,11 +1852,9 @@ $combatArena.combatLogContent
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
-	
 	&lt;&lt;else&gt;&gt;
 		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
   	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
@@ -1920,4 +1909,25 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 &lt;&lt;/for&gt;&gt;
 
 // Capturing several variables at once
-&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata></tw-storydata>
+&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata><tw-passagedata pid="65" name="PlayerPartyStats" tags="combat" position="1324,495" size="100,100">&lt;table style=&quot;width:100%&quot;&gt;
+  &lt;tr&gt;
+  	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
+		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+		&lt;th&gt;&lt;u&gt;_playerChar.name&lt;/u&gt;&lt;/th&gt;
+    &lt;&lt;/for&gt;&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+  	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
+		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+    	&lt;&lt;set _playerCharStatReadout to &quot;HP : &quot;+_playerChar.stats.hp+&quot;/&quot;+_playerChar.stats.maxHP&gt;&gt;
+		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
+    &lt;&lt;/for&gt;&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+  	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
+		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+    	&lt;&lt;set _playerCharStatReadout to &quot;MP : &quot;+_playerChar.stats.mp+&quot;/&quot;+_playerChar.stats.maxMP&gt;&gt;
+		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
+    &lt;&lt;/for&gt;&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</tw-passagedata></tw-storydata>
