@@ -124,6 +124,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -245,7 +246,7 @@ State.variables.Ability = function Ability(name){
 	this.calcDmg = function(){console.log("no dmg from "+this.name)};
 	this.flavorText = "nonsuch ability";
 }
-function Incarnation(name){
+State.variables.Incarnation = function Incarnation(name){
 	// Incarnation inherits from Ability
 	State.variables.Ability.call(this,name);
 	
@@ -355,6 +356,15 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 			this.affinities.set(characterObject,modifier);
 		}
 	}
+	
+	/**
+	Makes the character act autonomously according to its role
+	@param combat: the current combat context
+	@param role: could be as simple as player or enemy, but could be configurable to something like player:assist if a guided auto-battle system gets implemented someday
+	*/
+	this.runAI = function(combat,role){
+			console.log("AI behavior unset");
+	}
 }
 
 // Player object definition
@@ -445,7 +455,8 @@ State.variables.characters = {
 	"sheila" : new State.variables.Character("sheila","Sheila"),
 	"council" : new State.variables.Character("council","Council Of Animals"),
 	"marrah" : new State.variables.Character("marrah","Marrah"),
-	"mooty" : new State.variables.Character("mooty","Mooty Wort")
+	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
+	"puck" : new State.variables.Character("puck","Puck")
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -587,9 +598,57 @@ Config.constructor.prototype.combat = function Combat(){
 }
 */
 function init(){
+	var puckChar = State.variables.characters["puck"];
+	puckChar.stats["hp"] = 500;
+	puckChar.stats["mp"] = Infinity;
+	puckChar.stats["maxHP"] = 500;
+	puckChar.stats["maxMP"] = Infinity;
+	puckChar.attributes["strength"] = 8;
+	puckChar.attributes["dexterity"] = 20;
+	puckChar.attributes["constitution"] = 10;
+	puckChar.attributes["intelligence"] = 22;
+	puckChar.attributes["wisdom"] = 6;
+	puckChar.attributes["charisma"] = 20;
+	puckChar.entity = new Entity("Vicious Mockery");
+	var rapierWit = new State.variables.Incarnation("Rapier Wit");
+	rapierWit.generateFlavorText = function(sourceChar,targetChar){
+		if(targetChar){
+			// todo: randomly selected insults based on descriptor tags
+			if(targetChar.descriptors.body.includes("fur")){
+				var percentage = State.variables.rollPercentage();
+				if(targetChar.descriptors.identity.includes("female")){
+					if(percentage <= 20){
+						return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically corsucating with Incarnation.";
+					}// end 1-20%
+					else if(percentage > 20 && percentage <= 70){
+					
+					}//end 21-70%
+					else if(percentage > 70 && percentage <= 100){
+					
+					}//end 71-100%
+				}else if(targetChar.descriptors.identity.includes("male")){
+				return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically corsucating with Incarnation.";
+				}
+			}
+		}// end if a targetChar is given
+		else{
+			return sourceChar.name+" points and laughs in a literally cutting fashion!"
+		}
+	}
+	rapierWit.targetType = rapierWit.TargetTypesEnum.singleEnemy;
+	puckChar.incarnations["rapier_wit"] = rapierWit;
+	puckChar.runAI = function(combat,role){
+		if(role){
+			if(role === "enemy"){
+				// todo: Puck enemy AI behavior	
+			}
+		}
+	}//end Puck AI def
+	
+	
 	var marrahChar = State.variables.characters["marrah"];
-	marrahChar.stats["hp"] = 6;
-	marrahChar.stats["mp"] = 20;
+	marrahChar.stats["hp"] = 40;
+	marrahChar.stats["mp"] = 70;
 	marrahChar.attributes["strength"] = 12;
 	marrahChar.attributes["dexterity"] = 18;
 	marrahChar.attributes["constitution"] = 10;
@@ -620,6 +679,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -1761,7 +1821,16 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;set $party[2] to $characters[&quot;shimmerin&quot;]&gt;&gt;
 	&lt;&lt;set $party[3] to $characters[&quot;nuvi&quot;]&gt;&gt;
 	&lt;&lt;set $party[4] to $characters[&quot;mooty&quot;]&gt;&gt;
-	&lt;&lt;set $combatArena = new $Combat($party,[new $Character(&quot;dummyenemy1&quot;,&quot;dummy enemy 1&quot;), new $Character(&quot;dummyenemy2&quot;,&quot;dummy enemy 2&quot;)],passage())&gt;&gt;
+	
+	&lt;&lt;set _puck to new $Character(&quot;puck&quot;,&quot;Puck&quot;)&gt;&gt;
+	&lt;&lt;set $characters[&quot;puck&quot;] to _puck&gt;&gt;
+	&lt;&lt;set _rapierWit to new $Incarnation(&quot;Rapier Wit&quot;)&gt;&gt;
+	&lt;&lt;set _puck.abilities[&quot;rapier_wit&quot;] = _rapierWit&gt;&gt;
+	&lt;&lt;set _rapierWit.targetType = _rapierWit.TargetTypesEnum.singleEnemy&gt;&gt;
+	
+	
+	&lt;&lt;set _enemyParty to [$characters[&quot;puck&quot;]]&gt;&gt;
+	&lt;&lt;set $combatArena = new $Combat($party,_enemyParty,passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 &lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
