@@ -171,6 +171,11 @@ State.variables.rollD20 = function(){
 	return Math.floor(Math.random() * 20) + 1;
 }
 
+// simulate a dN roll, where N is given by sides param
+State.variables.rollDie = function(sides){
+	return Math.floor(Math.random() * sides) + 1;
+}
+
 // simulate a d% roll
 State.variables.rollPercentage = function(){
 	return Math.floor(Math.random() * 100) + 1;
@@ -233,8 +238,8 @@ State.variables.Ability = function Ability(name){
 	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
 	this.targetType = this.TargetTypesEnum.singleEnemy; 
 	
-	// lambda stub - effect will be defined when Ability instance is defined
-	this.effect = function(){console.log("no effect from "+this.name)};
+	// effect can be defined when Ability instance is defined, but default behavior will be target character's HP reduced by calcDmg()
+	this.effect = function(sourceChar,targetChar){targetChar.stats.hp - this.calcDmg(sourceChar,targetChar)};
 	this.calcDC = function(user,modifyingAttr){
 		if(user.level && modifyingAttr){
 			return user.level/2 + calcMod(user,modifyingAttr) + 10;
@@ -243,7 +248,7 @@ State.variables.Ability = function Ability(name){
 		}
 	}// end calcDC()
 	// lambda stub - dmg formula will be defined when Ability instance is defined
-	this.calcDmg = function(){console.log("no dmg from "+this.name)};
+	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)};
 	this.flavorText = "nonsuch ability";
 }
 State.variables.Incarnation = function Incarnation(name){
@@ -272,6 +277,12 @@ State.variables.Character = function Character(id,name){
 	this.name = name;
 	this.gender = "";
 	this.level = 10;
+	
+	// simple object map of categorical descriptor arrays,
+	// e.g. descriptors.body = ["fur","curvacious"]
+	this.descriptors = {
+		body : [];	
+	}
 	
 	// attribute scores reflect the character's capabilities.
 	// we'll use Pathfinder style scores, where 10 is sort of neutral
@@ -599,6 +610,7 @@ Config.constructor.prototype.combat = function Combat(){
 */
 function init(){
 	var puckChar = State.variables.characters["puck"];
+	puckChar.gender = "male";
 	puckChar.stats["hp"] = 500;
 	puckChar.stats["mp"] = Infinity;
 	puckChar.stats["maxHP"] = 500;
@@ -616,18 +628,22 @@ function init(){
 			// todo: randomly selected insults based on descriptor tags
 			if(targetChar.descriptors.body.includes("fur")){
 				var percentage = State.variables.rollPercentage();
-				if(targetChar.descriptors.identity.includes("female")){
+				if(targetChar.gender === "female"){
 					if(percentage <= 20){
-						return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically corsucating with Incarnation.";
+						return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically coruscating with Incarnation.";
 					}// end 1-20%
 					else if(percentage > 20 && percentage <= 70){
-					
+						return "Looking down "+(sourceChar.gender==="female"?"her":"his")+" nose at "+targetChar.name+", "+sourceChar.name+" sniffs and conjectures that the once-sinuous curves of her body have become somewhat oblong... and lumpy!  She reels in bizarre anguish as the taunt burrows into her psyche.";
 					}//end 21-70%
 					else if(percentage > 70 && percentage <= 100){
-					
+						return sourceChar.name+" sniffs the air and then wrinkles "+(sourceChar.gender==="female"?"her":"his")+" nose in disgust, accusing "+targetChar.name+" of stinking like a bog.  Incarnate self-consciousness floods her neurons and she can't be sure of herself!" 
 					}//end 71-100%
-				}else if(targetChar.descriptors.identity.includes("male")){
-				return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically corsucating with Incarnation.";
+				}else if(targetChar.gender === "male"){
+					if(percentage <= 50){
+						return sourceChar.name+" sizes up "+targetChar.name+" and smirks, informing "+targetChar.name+" that his musculature is reminiscent of a doddering and decrepit elder.  His eyes burn cherry-red as Incarnate rage strangles his mind.";
+					}else{
+						return sourceChar.name+" takes a long hard look below "+targetChar.name+"'s belt and then scoffs, clearly underwhelmed.  Venemous doubt Incarnate seeps into the cracks of his self-image and harden there, shattering it!";	
+					}
 				}
 			}
 		}// end if a targetChar is given
@@ -636,6 +652,10 @@ function init(){
 		}
 	}
 	rapierWit.targetType = rapierWit.TargetTypesEnum.singleEnemy;
+	rapierWit.calcDmg = function(sourceChar,targetChar){
+		// highly variable damage sourced from source CHA and resisted slightly by target CHA
+		return State.variables.rollDie(6) *State.variables.calcMod(sourceChar.attributes["charisma"]) - State.variables.calcMod(targetChar.attributes["charisma"]);	
+	}
 	puckChar.incarnations["rapier_wit"] = rapierWit;
 	puckChar.runAI = function(combat,role){
 		if(role){
@@ -647,6 +667,7 @@ function init(){
 	
 	
 	var marrahChar = State.variables.characters["marrah"];
+	marrahChar.gender = "female";
 	marrahChar.stats["hp"] = 40;
 	marrahChar.stats["mp"] = 70;
 	marrahChar.attributes["strength"] = 12;
