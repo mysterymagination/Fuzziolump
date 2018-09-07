@@ -126,6 +126,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -154,19 +155,19 @@ State.variables.getParams = function(func) {
   });
 }
 
-State.variables.addUniqueToArray(array,element){
+State.variables.addUniqueToArray = function(array,element){
 	if(!array.includes(element)){
 		array.push(element);	
 	}
 }
 
-State.variables.addUniqueToArray(array,element,filterFn){
+State.variables.addUniqueToArray = function(array,element,filterFn){
 	if(!array.some(filterFn)){
 		array.push(element);	
 	}
 }
 
-State.variables.addUniqueStatusEffect(character,effect){
+State.variables.addUniqueStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
 		array.push(element);	
@@ -260,10 +261,10 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	this.tickDown = function(){
 		this.ticks--;	
 	}
-	this.effect(afflictedChar){
+	this.effect = function(afflictedChar){
 		console.log("status effect unset");	
 	}
-	this.reverseEffect(afflictedChar){
+	this.reverseEffect = function(afflictedChar){
 		console.log("status effect reversal unset");	
 	}
 }
@@ -359,7 +360,7 @@ State.variables.Character = function Character(id,name){
 	// simple object map of categorical descriptor arrays,
 	// e.g. descriptors.body = ["fur","curvacious"]
 	this.descriptors = {
-		body : [];	
+		body : []
 	}
 	
 	// attribute scores reflect the character's capabilities.
@@ -691,6 +692,10 @@ Config.constructor.prototype.combat = function Combat(){
 */
 function init(){
 	// status effects
+	
+	/**
+	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
+	*/
 	var doubtStatusEffect = new State.variables.StatusEffect("Doubt",3);
 	doubtStatusEffect.effect = function(targetChar){
 		targetChar.attributes["strength"] *= 0.5;
@@ -699,6 +704,23 @@ function init(){
 	doubtStatusEffect.reverseEffect = function(targetChar){
 		targetChar.attributes["strength"] *= 2;
 		targetChar.attributes["charisma"] *= 2;
+	}
+	
+	/**
+	Bloodlust quadruples STR in exchange for halving all mental attributes
+	*/
+	var bloodlustStatusEffect = new State.variables.StatusEffect("Bloodlust",3);
+	bloodlustStatusEffect.effect = function(targetChar){
+		targetChar.attributes["strength"] *= 4;
+		targetChar.attributes["charisma"] *= 0.5;
+		targetChar.attributes["intelligence"] *= 0.5;
+		targetChar.attributes["wisdom"] *= 0.5;
+	}
+	bloodlustStatusEffect.reverseEffect = function(targetChar){
+		targetChar.attributes["strength"] *= 0.25;
+		targetChar.attributes["charisma"] *= 2;
+		targetChar.attributes["intelligence"] *= 2;
+		targetChar.attributes["wisdom"] *= 2;
 	}
 	
 	
@@ -718,7 +740,7 @@ function init(){
 	var rapierWit = new State.variables.Incarnation("Rapier Wit");
 	rapierWit.generateFlavorText = function(sourceChar,targetChar){
 		if(targetChar){
-			// todo: randomly selected insults based on descriptor tags
+			// randomly selected insults based on descriptor tags
 			if(targetChar.descriptors.body.includes("fur")){
 				var percentage = State.variables.rollPercentage();
 				if(targetChar.gender === "female"){
@@ -754,6 +776,41 @@ function init(){
 		State.variables.addUniqueStatusEffect(targetChar,rapierWit);
 	}
 	puckChar.incarnations["rapier_wit"] = rapierWit;
+	
+	var rainOfRadiance = new State.variables.Incarnation("Rain of Radiance");
+	rainOfRadiance.generateFlavorText = function(sourceChar,targetChar){
+			return sourceChar.name+" thrusts a hand towards the heavens, muscles quivering with equal parts strain and anticipation.  The first few glittering droplets of liquid blue-white starlight are beautiful, but their virtue is quickly eclipsed by a tide of agony that grips the entire party as their flesh/fur is scorched/singed by celestial fire!";	
+	}
+	rainOfRadiance.targetType = rainOfRadiance.TargeTypesEnum.allEnemies;
+	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
+		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
+		return 5*State.variables.calcMod(sourceChar.attributes["intelligence"])
+	}
+	/**
+	Rain of Radiance expects an array of target chars since it hits all enemies
+	*/
+	rainOfRadiance.effect = function(sourceChar,targetChars){
+		for(let target of targetChars){
+			target.stats.hp -= rainOfRadiance.calcDmg(sourceChar,target);	
+		}
+	}
+	
+	var swordsDance = new State.variables.Incarnation("Swords Dance");
+	swordsDance.generateFlavorText = function(sourceChar,targetChar){
+		var flavorString = "Cruel cold light gleams in "+targetChar+"'s eyes as warrior spirits torn directly from the savagery of the Wild Hunt meld with "+(targetChar.gender === "female"?"her":"his")+" spirit!";
+		if(targetChar.descriptors.body.includes("fun_sized")){
+			flavorString += "  You didn't think such a petite individual could strike terror in your heart with mere physical presence, but it seems you were wrong."	
+		}else if(targetChar.descriptors.body.includes("party_sized")){
+			flavorString += "  You didn't think "+(targetChar.gender === "female"?"her":"his")+" physical presence could loom any larger, but it seems you were wrong."
+		}
+		
+		return flavorString;
+	}
+	swordsDance.targetType = swordsDance.TargeTypesEnum.singleAlly;
+	swordsDance.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
+	}
+	
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
@@ -777,7 +834,7 @@ function init(){
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
-	marrahChar.incarnations["haunted_fey"] = new Incarnation("Haunted Fey");
+	marrahChar.incarnations["haunted_fey"] = new State.variables.Incarnation("Haunted Fey");
 	marrahChar.incarnations["haunted_fey"].effect = function(target){
 		// todo: who is 'this' in this context?  Marrah? The Incarnation?
 		var savingThrow = target.saves["will"] + rollD20();
@@ -797,6 +854,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
