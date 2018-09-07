@@ -125,6 +125,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -151,6 +152,25 @@ State.variables.getParams = function(func) {
     // Ensure no undefined values are added.
     return arg;
   });
+}
+
+State.variables.addUniqueToArray(array,element){
+	if(!array.includes(element)){
+		array.push(element);	
+	}
+}
+
+State.variables.addUniqueToArray(array,element,filterFn){
+	if(!array.some(filterFn)){
+		array.push(element);	
+	}
+}
+
+State.variables.addUniqueStatusEffect(character,effect){
+	var statuses = character.statusEffects;
+	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		array.push(element);	
+	}
 }
 
 // find index of a particular character id in a character array
@@ -224,6 +244,64 @@ State.variables.godling_strat_surgical_system = "surgical_system";
 State.variables.godling_strat_diplomancy = "diplomancy";
 State.variables.godling_strat_chosen = "";
 /// end main quest vars ///
+
+State.variables.removeStatusEffect = function(character,effect){
+		var effectIndex = character.statusEffects.findIndex(function(element){
+			return element.id === effect.id;
+		});
+		character.statusEffects.splice(effectIndex,1);
+}
+
+State.variables.StatusEffect = function StatusEffect(id,name,duration){
+	this.id = id;
+	this.name = name;
+	this.duration = duration;
+	this.ticks = duration;
+	this.tickDown = function(){
+		this.ticks--;	
+	}
+	this.effect(afflictedChar){
+		console.log("status effect unset");	
+	}
+	this.reverseEffect(afflictedChar){
+		console.log("status effect reversal unset");	
+	}
+}
+
+/**
+Handle upkeep related to a new round beginning
+*/
+State.variables.processNewRound = function(combat){
+	// tick down status effects
+	for(let enemyChar of combat.enemyParty){
+			for(let effect of enemyChar.statusEffects){
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(enemyChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(enemyChar,effect);
+				}
+			}
+	}
+	for(let playerChar of combat.playerParty){
+			for(let effect of playerChar.statusEffects){
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(playerChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(playerChar,effect);
+				}
+			}
+	}
+}
 
 State.variables.Ability = function Ability(name){
 	this.TargetTypesEnum  = Object.freeze (
@@ -352,6 +430,9 @@ State.variables.Character = function Character(id,name){
 	// a character's inventory reflects the items in the world that it is
 	// currently carrying and can access.
 	this.inventory = [];
+	
+	// combat status effects; these are temporary and only relevant to combat
+	this.statusEffects = [];
 	
 	// a simple array of keyword/phrases that indicate behavior mod in certain contexts, e.g. targetCharacter.name+"_is_digger_good"
 	// to indicate that targetCharacter is as good as mole, wombats, and
@@ -609,6 +690,18 @@ Config.constructor.prototype.combat = function Combat(){
 }
 */
 function init(){
+	// status effects
+	var doubtStatusEffect = new State.variables.StatusEffect("Doubt",3);
+	doubtStatusEffect.effect = function(targetChar){
+		targetChar.attributes["strength"] *= 0.5;
+		targetChar.attributes["charisma"] *= 0.5;
+	}
+	doubtStatusEffect.reverseEffect = function(targetChar){
+		targetChar.attributes["strength"] *= 2;
+		targetChar.attributes["charisma"] *= 2;
+	}
+	
+	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
 	puckChar.stats["hp"] = 500;
@@ -656,6 +749,10 @@ function init(){
 		// highly variable damage sourced from source CHA and resisted slightly by target CHA
 		return State.variables.rollDie(6) *State.variables.calcMod(sourceChar.attributes["charisma"]) - State.variables.calcMod(targetChar.attributes["charisma"]);	
 	}
+	rapierWit.effect = function(sourceChar,targetChar){
+		targetChar.stats.hp -= rapierWit.calcDmg(sourceChar,targetChar);
+		State.variables.addUniqueStatusEffect(targetChar,rapierWit);
+	}
 	puckChar.incarnations["rapier_wit"] = rapierWit;
 	puckChar.runAI = function(combat,role){
 		if(role){
@@ -700,6 +797,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
