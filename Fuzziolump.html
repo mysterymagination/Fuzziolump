@@ -127,6 +127,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -814,9 +815,37 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
-				// todo: Puck enemy AI behavior	
-			}
-		}
+				/* todo: Puck enemy AI behavior	
+					 1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
+					 2. If Puck's HP is less than 50% and he does not have any mental debuffs (including those imposed by Bloodlust), spam Rain of Radiance.
+					 2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance.
+					 3. [Viral Violence] If a physically frail character is under 50% hp and Puck is Bloodlusted, he Attacks that character.
+					 4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't have Doubt, and with Bloddlusted Attacks otherwise.
+				*/
+				// todo: Since I don't particularly want to toss more abilities onto him to handle the various godling strat paths, it might be best to just modify the AI to be differently aggressive based on the player's chosen path.  That makes more sense with the Entity thing anyhow.
+				var playerParty = combat.playerParty;
+				var enemyParty = combat.enemyParty;
+				
+				// if any of the player party is buffed, apply Rapier Wit!
+				var buffedPlayerFound = false;
+				for(let player of playerParty){
+					if(player.statusEffects.length > 0){
+						var statuses = player.statusEffects;
+						for(let status of statuses){
+							if(status.buffity === "buffins"){
+								// buff discovered on this player!  Get 'im!
+								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
+								buffedPlayerFound = true;
+								break;
+							}
+						}// end for each status on current player char
+					}// end if current player has statuses
+					if(buffedPlayerFound){
+						break;
+					}
+				}// end for each player
+			}// if role is enemy
+		}// if role is defined
 	}//end Puck AI def
 	
 	
@@ -854,6 +883,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
