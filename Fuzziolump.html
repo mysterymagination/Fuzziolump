@@ -795,6 +795,7 @@ function init(){
 			target.stats.hp -= rainOfRadiance.calcDmg(sourceChar,target);	
 		}
 	}
+	puckChar.incarnations["rain_of_radiance"] = rainOfRadiance;
 	
 	var swordsDance = new State.variables.Incarnation("Swords Dance");
 	swordsDance.generateFlavorText = function(sourceChar,targetChar){
@@ -811,6 +812,7 @@ function init(){
 	swordsDance.effect = function(sourceChar,targetChar){
 		State.variables.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
 	}
+	puckChar.incarnations["swords_dance"] = swordsDance;
 	
 	puckChar.runAI = function(combat,role){
 		if(role){
@@ -826,24 +828,54 @@ function init(){
 				var playerParty = combat.playerParty;
 				var enemyParty = combat.enemyParty;
 				
-				// if any of the player party is buffed, apply Rapier Wit!
-				var buffedPlayerFound = false;
+				// outliers
+				var playerLeastDefense = State.variables.characters["player"];
+				var playerLeastHP = State.variables.characters["player"];
+				
+				// gathering data...
 				for(let player of playerParty){
+					
+					// overwrite player with least defense if applicable
+					if(player.attributes["defense"] < playerLeastDefense.attributes["defense"]){
+						playerLeastDefense = player;	
+					}
+					
+					// overwrite player with least HP if applicable
+					if(player.stats.hp < playerLeastHP.stats.hp){
+						playerLeastHP = player;	
+					}
+					
 					if(player.statusEffects.length > 0){
 						var statuses = player.statusEffects;
 						for(let status of statuses){
 							if(status.buffity === "buffins"){
 								// buff discovered on this player!  Get 'im!
 								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
-								buffedPlayerFound = true;
-								break;
+								return;
 							}
 						}// end for each status on current player char
 					}// end if current player has statuses
-					if(buffedPlayerFound){
-						break;
-					}
 				}// end for each player
+				
+				// rando time
+				var percentageRandoAbl = State.variables.rollPercentage();
+				var playerRandoTarget = State.variables.characters["player"];
+				/*
+					var randoAtkTarget = State.variables.rollPercentage();
+					var threshold = 100/combat.playerParty.length;
+					playerRandoTarget = combat.playerParty[randoAtkTarget/threshold];
+				*/
+				if(percentageRandoAbl <= 35){
+					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
+			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
+					puckChar.incarnations["rapier_wit"].effect(puckChar,player);	
+				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
+					puckChar.incarnations["swords_dance"].effect(puckChar,player);	
+				}else{
+					puckChar.incarnations["rain_of_radiance"].effect(puckChar,player);	
+				}
+				
 			}// if role is enemy
 		}// if role is defined
 	}//end Puck AI def
