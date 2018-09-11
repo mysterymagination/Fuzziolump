@@ -171,7 +171,22 @@ State.variables.addUniqueToArray = function(array,element,filterFn){
 State.variables.addUniqueStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
-		array.push(element);	
+		array.push(effectUnderTest);	
+	}
+}
+
+/**
+Checks a given character for a given statyus effect
+@param character the Character under test
+@param effect the StatusEffect we're looking for
+@return true if the status effect is found, false otherwise
+*/
+State.variables.hasStatusEffect = function(character,effect){
+	var statuses = character.statusEffects;
+	if(statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		return true;
+	}else{
+		return false;	
 	}
 }
 
@@ -257,6 +272,10 @@ State.variables.removeStatusEffect = function(character,effect){
 State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	this.id = id;
 	this.name = name;
+	/** 
+	boon or bane would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
+	*/
+	this.buffity = "buffins";
 	this.duration = duration;
 	this.ticks = duration;
 	this.tickDown = function(){
@@ -541,7 +560,7 @@ function Affinities(){
 var playerAffinities = new Affinities();
 */
 
-// create the Player as a Character
+// Global Object mapping of prefab Characters
 State.variables.characters = {
 	"player" : new Player(),
 	"nuvi" : new State.variables.Character("nuvi","Nuvi"),
@@ -551,6 +570,12 @@ State.variables.characters = {
 	"marrah" : new State.variables.Character("marrah","Marrah"),
 	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
 	"puck" : new State.variables.Character("puck","Puck")
+}
+
+// Global Object mapping of prefab StatusEffects
+State.variables.statusEffectsDict = {
+	"bloodlust" : new State.variables.StatusEffect("bloodlust","Bloodlust",3),
+	"doubt" : new State.variables.StatusEffect("doubt","Doubt",3);
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -691,13 +716,17 @@ Config.constructor.prototype.combat = function Combat(){
 	}
 }
 */
+
+/**
+Main program init function.  Configures and fleshes out global objects
+*/
 function init(){
 	// status effects
 	
 	/**
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
 	*/
-	var doubtStatusEffect = new State.variables.StatusEffect("Doubt",3);
+	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
 	doubtStatusEffect.effect = function(targetChar){
 		targetChar.attributes["strength"] *= 0.5;
 		targetChar.attributes["charisma"] *= 0.5;
@@ -710,7 +739,7 @@ function init(){
 	/**
 	Bloodlust quadruples STR in exchange for halving all mental attributes
 	*/
-	var bloodlustStatusEffect = new State.variables.StatusEffect("Bloodlust",3);
+	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
 	bloodlustStatusEffect.effect = function(targetChar){
 		targetChar.attributes["strength"] *= 4;
 		targetChar.attributes["charisma"] *= 0.5;
@@ -723,7 +752,6 @@ function init(){
 		targetChar.attributes["intelligence"] *= 2;
 		targetChar.attributes["wisdom"] *= 2;
 	}
-	
 	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
@@ -818,21 +846,23 @@ function init(){
 		if(role){
 			if(role === "enemy"){
 				/* todo: Puck enemy AI behavior	
-					 1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
-					 2. If Puck's HP is less than 50% and he does not have any mental debuffs (including those imposed by Bloodlust), spam Rain of Radiance.
-					 2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance.
+					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
+					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
+					 x2. If Puck's HP is less than 50% and he does not have any mental debuffs (including those imposed by Bloodlust), spam Rain of Radiance.
+					 2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance. UPDATE: actually, this might be OP.  Also, so far I've avoided building stateful infrastructure with combat history intel, and I'd prefer to continue avoiding that for the demo!
 					 3. [Viral Violence] If a physically frail character is under 50% hp and Puck is Bloodlusted, he Attacks that character.
-					 4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't have Doubt, and with Bloddlusted Attacks otherwise.
+					 4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't have Doubt, and with Bloodlusted Attacks otherwise.
 				*/
 				// todo: Since I don't particularly want to toss more abilities onto him to handle the various godling strat paths, it might be best to just modify the AI to be differently aggressive based on the player's chosen path.  That makes more sense with the Entity thing anyhow.
 				var playerParty = combat.playerParty;
 				var enemyParty = combat.enemyParty;
 				
-				// outliers
+				// outliers and statistical points of interest
 				var playerLeastDefense = State.variables.characters["player"];
 				var playerLeastHP = State.variables.characters["player"];
+				var maxHealth = true; // assume true and let contradiction flip it
 				
-				// gathering data...
+				/// begin gathering data and potentially exiting to Rapier Wit on any buffed player character ///
 				for(let player of playerParty){
 					
 					// overwrite player with least defense if applicable
@@ -850,31 +880,67 @@ function init(){
 						for(let status of statuses){
 							if(status.buffity === "buffins"){
 								// buff discovered on this player!  Get 'im!
+								// todo: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
 								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
 								return;
 							}
 						}// end for each status on current player char
 					}// end if current player has statuses
+					
+					// check for max health scenario flip
+					if(player.stats.hp < player.stats.maxHP){
+						maxHealth = false;	
+					}
+					
 				}// end for each player
+				/// end gathering data + maybe buff balancing ///
 				
-				// rando time
+				/// begin story scenario modifier processing ///
+				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
+					
+				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
+					
+				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
+					// if everyone is at max HP, use Rain of Radiance to fix that little problem
+					if(maxHealth){
+							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+					}
+				}
+				
+				/// end story scenario mod proc ///
+				
+				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
+				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
+					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
-				var playerRandoTarget = State.variables.characters["player"];
-				/*
-					var randoAtkTarget = State.variables.rollPercentage();
-					var threshold = 100/combat.playerParty.length;
-					playerRandoTarget = combat.playerParty[randoAtkTarget/threshold];
-				*/
+				
+				// establish a random percentage which will be used to select a player party member
+				var randoAtkTargetRange = State.variables.rollPercentage();
+				// the mapping between percentage and player party indices, e.g. 4 player chars -> 100/4 = 25 -> every 25% we figure the index needs to increment
+				var playerPartyRangeChunk = 100/combat.playerParty.length;
+				var playerRandoTarget = combat.playerParty[randoAtkTargetRange/playerPartyRangeChunk];
+				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
 			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
 				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
-					puckChar.incarnations["rapier_wit"].effect(puckChar,player);	
+					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);	
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
-					puckChar.incarnations["swords_dance"].effect(puckChar,player);	
+					
+					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					puckChar.incarnations["swords_dance"].effect(puckChar,player);	
+																																								}else{
+
+						// Puck already has Bloodlust, so do the atk strat
+																																									puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);								}
 				}else{
-					puckChar.incarnations["rain_of_radiance"].effect(puckChar,player);	
-				}
+					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+				}// end rando time
+			 }// end Puck HP > 50%
+			 else{
+			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
+				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty)
+			 }
+			/// end defaults block ///
 				
 			}// if role is enemy
 		}// if role is defined
