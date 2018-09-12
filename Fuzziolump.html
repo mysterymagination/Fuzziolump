@@ -128,6 +128,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -849,9 +850,9 @@ function init(){
 					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
 					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
 					 x2. If Puck's HP is less than 50% and he does not have any mental debuffs (including those imposed by Bloodlust), spam Rain of Radiance.
-					 2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance. UPDATE: actually, this might be OP.  Also, so far I've avoided building stateful infrastructure with combat history intel, and I'd prefer to continue avoiding that for the demo!
-					 3. [Viral Violence] If a physically frail character is under 50% hp and Puck is Bloodlusted, he Attacks that character.
-					 4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't have Doubt, and with Bloodlusted Attacks otherwise.
+					 x2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance. UPDATE: actually, this might be OP.  Also, so far I've avoided building stateful infrastructure with combat history intel, and I'd prefer to continue avoiding that for the demo!
+					 x3. [Viral Violence] If a physically frail character is under 50% hp and Puck is Bloodlusted, he Attacks that character.
+					 x4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't already have Doubt.  If all offensively buffed characters already have Doubt, nuke w/ Rain of Radiance.
 				*/
 				// todo: Since I don't particularly want to toss more abilities onto him to handle the various godling strat paths, it might be best to just modify the AI to be differently aggressive based on the player's chosen path.  That makes more sense with the Entity thing anyhow.
 				var playerParty = combat.playerParty;
@@ -860,6 +861,8 @@ function init(){
 				// outliers and statistical points of interest
 				var playerLeastDefense = State.variables.characters["player"];
 				var playerLeastHP = State.variables.characters["player"];
+				var playerWithTargetBuff = "undefined";
+				var anyPlayerOffenseBuffed = false;
 				var maxHealth = true; // assume true and let contradiction flip it
 				
 				/// begin gathering data and potentially exiting to Rapier Wit on any buffed player character ///
@@ -881,8 +884,17 @@ function init(){
 							if(status.buffity === "buffins"){
 								// buff discovered on this player!  Get 'im!
 								// todo: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
+								/*
 								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
 								return;
+								*/
+								
+								if(status.descriptors.includes("offensive"){
+									 anyPlayerOffenseBuffed = true;
+									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
+									playerWithTargetBuff = player;	
+								}
+							 }
 							}
 						}// end for each status on current player char
 					}// end if current player has statuses
@@ -897,13 +909,36 @@ function init(){
 				
 				/// begin story scenario modifier processing ///
 				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
-					
+					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
+						// if the player char with least def is bloodied...
+						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
+							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
+							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+							return;
+						}else{
+							// Puck doesn't have bloodlust yet, so get it!
+								puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);
+							return;
+						}
+					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
-					
+					// hit the latest player with a buff with debuff to balance the ol' scales
+					if(playerWithTargetBuff){
+							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
+							puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
+								return;
+						}// end if player with target buff already has doubt
+						else if(anyPlayerOffenseBuffed){
+							// presumably in this case every character with an offensive buff already has doubt.  With our scale balancing work done, just fry 'em with Rain of Radiance!
+							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+							return;
+						}
+					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+						return;
 					}
 				}
 				
@@ -922,23 +957,30 @@ function init(){
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
-			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+					return;
 				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
-					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);	
+					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
+					return;
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
 					
-					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					puckChar.incarnations["swords_dance"].effect(puckChar,player);	
+					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
+																																																				return;
 																																								}else{
 
 						// Puck already has Bloodlust, so do the atk strat
-																																									puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);								}
+																																									puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+																																								return;
+																																								}
 				}else{
 					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+					return;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
 			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
-				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty)
+				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+				 return;
 			 }
 			/// end defaults block ///
 				
@@ -981,6 +1023,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
