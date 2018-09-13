@@ -129,6 +129,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -169,10 +170,16 @@ State.variables.addUniqueToArray = function(array,element,filterFn){
 	}
 }
 
+/**
+Applies the combat status effect to the given character, adding it to their list of statuses and triggering its effect fn
+@param character the recipient of the effect
+@param effect the status effect to apply
+*/
 State.variables.addUniqueStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
-		array.push(effectUnderTest);	
+		statuses.push(effectUnderTest);
+		effect.effect(character);
 	}
 }
 
@@ -290,48 +297,17 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	}
 }
 
-/**
-Handle upkeep related to a new round beginning
-*/
-State.variables.processNewRound = function(combat){
-	// tick down status effects
-	for(let enemyChar of combat.enemyParty){
-			for(let effect of enemyChar.statusEffects){
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
-					effect.reverseEffect(enemyChar);	
-					// reset the ticks count to duration in case we
-					// want to re-use this statuseffect instance
-					effect.ticks = effect.duration;
-					// remove the status effect from the character
-					State.variables.removeStatusEffect(enemyChar,effect);
-				}
-			}
-	}
-	for(let playerChar of combat.playerParty){
-			for(let effect of playerChar.statusEffects){
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
-					effect.reverseEffect(playerChar);	
-					// reset the ticks count to duration in case we
-					// want to re-use this statuseffect instance
-					effect.ticks = effect.duration;
-					// remove the status effect from the character
-					State.variables.removeStatusEffect(playerChar,effect);
-				}
-			}
-	}
-}
-
 State.variables.Ability = function Ability(name){
-	this.TargetTypesEnum  = Object.freeze (
+	this.TargetTypesEnum = Object.freeze (
 		{ 
 			singleEnemy: 1, 
 			allEnemies: 2,
 			singleAlly: 3,
 			allAllies: 4
+		});
+	this.CombatFlags = Object.freeze (
+		{ 
+			FLAG_SKIP_TURN: 1
 		});
 	this.name = name;
 	
@@ -456,6 +432,9 @@ State.variables.Character = function Character(id,name){
 	// combat status effects; these are temporary and only relevant to combat
 	this.statusEffects = [];
 	
+	// arbitrary PoT bitfield used to raise/lower various combat-related flags for this Character
+	this.combatFlags = 0;
+	
 	// a simple array of keyword/phrases that indicate behavior mod in certain contexts, e.g. targetCharacter.name+"_is_digger_good"
 	// to indicate that targetCharacter is as good as mole, wombats, and
 	// other simple lovely creatures that happily burrow and build all their
@@ -543,6 +522,41 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	
 	// the text feedback to the user re: the state of combat
 	this.combatLogContent = "Kombat Time!";
+	
+	/**
+	Handle upkeep related to a new round beginning
+	*/
+	this.processNewRound = function(){
+	// tick down status effects
+	for(let enemyChar of this.enemyParty){
+			for(let effect of enemyChar.statusEffects){
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(enemyChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(enemyChar,effect);
+				}
+			}
+	}
+	for(let playerChar of this.playerParty){
+			for(let effect of playerChar.statusEffects){
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(playerChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(playerChar,effect);
+				}
+			}
+	}
+ }// end processNewRound fn
 }
 State.variables.combatArena = new State.variables.Combat([],[]);
 
@@ -575,8 +589,18 @@ State.variables.characters = {
 
 // Global Object mapping of prefab StatusEffects
 State.variables.statusEffectsDict = {
+	/**
+	Bloodlust raises STR at the expense of all mental attributes
+	*/
 	"bloodlust" : new State.variables.StatusEffect("bloodlust","Bloodlust",3),
-	"doubt" : new State.variables.StatusEffect("doubt","Doubt",3);
+	/**
+	Doubt halves all confidence based attributes (STR and CHA)
+	*/
+	"doubt" : new State.variables.StatusEffect("doubt","Doubt",3),
+	/**
+	Terror gives a 35% chance to do nothing but shiver in fear
+	*/
+	"terror" : new State.variables.StatusEffect("terror","Terror",5)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -753,6 +777,20 @@ function init(){
 		targetChar.attributes["intelligence"] *= 2;
 		targetChar.attributes["wisdom"] *= 2;
 	}
+	
+	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
+	terrorStatusEffect.effect = function(targetChar){
+		// I can think of two ways for the terror rando turn skip thing to work:
+		// 1. We remove the afflicted character from the relevant party array of the combat instance when terror strikes and then add them back in a round post proc
+		// 2. We add a bitfield to Character that can receive abitrary PoT flags like {FLAG_SKIP_TURN = 1} and when the character's turn comes up (or elsewhere, as needed) we check this bitfield for relevant raised flags.  In the case of FLAG_SKIP_TURN, we'd need to process the randomness and decide whether or not to raise the flag in round pre proc and then lower the flag in each round post proc since the character is not necessarily terrorized each round.
+		
+		// raise flag
+		//targetChar.combatFlags |= targetChar.CombatFlags.FLAG_SKIP_TURN; // flag needs to be raised in round pre proc.  The pre proc block should check for this status effect and then call its effect(), which will return true if some status-effect-specific percentage range is hit.
+		
+		// 35% chance
+		return State.variables.rollPercentage() <= 35;
+	}
+	terrorStatusEffect.reverseEffect = function(targetChar){}
 	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
@@ -1003,12 +1041,13 @@ function init(){
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
-	marrahChar.incarnations["haunted_fey"] = new State.variables.Incarnation("Haunted Fey");
-	marrahChar.incarnations["haunted_fey"].effect = function(target){
+	var hauntedFey = new State.variables.Incarnation("Haunted Fey");
+	marrahChar.incarnations["haunted_fey"] = hauntedFey;
+	hauntedFey.effect = function(sourceChar,targetChar){
 		// todo: who is 'this' in this context?  Marrah? The Incarnation?
-		var savingThrow = target.saves["will"] + rollD20();
+		var savingThrow = targetChar.saves["will"] + rollD20();
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
-			target.afflictions.push(State.variables.affliction_terrified);	
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
 		}
 		
 		// todo: where should the all-important (seriously -- this is mostly narrative) flavor text go?  A global combatlog string displayed in CombatLog passage or onesuch owned by the Combat instance?
@@ -1023,6 +1062,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -2181,7 +2221,7 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;set $combatArena = new $Combat($party,_enemyParty,passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1210,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1208,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerPartyStats&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;
 &lt;&lt;silently&gt;&gt;
@@ -2278,7 +2318,8 @@ $combatArena.combatLogContent
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-  
+	&lt;&lt;run $combatArena.processNewRound()&gt;&gt;
+  // todo: need to have enemoy party AI proc and related text set before we get here, such that the player is seeing the aftermath of the enemy&#39;s turn and hitting Continue to continue on to the next round&#39;s player turn.
   // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;else&gt;&gt;
