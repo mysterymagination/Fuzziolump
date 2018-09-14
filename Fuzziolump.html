@@ -130,6 +130,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -524,12 +525,20 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.combatLogContent = "Kombat Time!";
 	
 	/**
-	Handle upkeep related to a new round beginning
+	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
 	*/
-	this.processNewRound = function(){
+	this.processRoundTop = function(){
 	// tick down status effects
 	for(let enemyChar of this.enemyParty){
 			for(let effect of enemyChar.statusEffects){
+				// process top of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// terror's effect will roll percentage, with 35% to skip this turn
+					if(effect.effect()){
+						enemyChar.combatFlags |= enemyChar.CombatFlags.FLAG_SKIP_TURN;	
+					}
+				}
+				
 				effect.tickDown();
 				if(effect.ticks <= 0){
 					// reverse the effect now that it is over
@@ -544,6 +553,14 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	}
 	for(let playerChar of this.playerParty){
 			for(let effect of playerChar.statusEffects){
+				// process top of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// terror's effect will roll percentage, with 35% to skip this turn
+					if(effect.effect()){
+						playerChar.combatFlags |= playerChar.CombatFlags.FLAG_SKIP_TURN;	
+					}
+				}
+				
 				effect.tickDown();
 				if(effect.ticks <= 0){
 					// reverse the effect now that it is over
@@ -556,8 +573,34 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 				}
 			}
 	}
- }// end processNewRound fn
-}
+ }// end processRoundTop fn
+	
+	/**
+	Process the bottom of a combat round.  
+	*/
+	this.processRoundBottom = function(){
+		for(let enemyChar of this.enemyParty){
+			for(let effect of enemyChar.statusEffects){
+				// process bottom of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// clear the FLAG_SKIP_TURN flag
+		enemyChar.combatFlags &= ~enemyChar.CombatFlags.FLAG_SKIP_TURN;
+				}
+			}
+		}
+		for(let playerChar of this.playerParty){
+			for(let effect of playerChar.statusEffects){
+				// process bottom of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// clear the FLAG_SKIP_TURN flag
+		playerChar.combatFlags &= ~playerChar.CombatFlags.FLAG_SKIP_TURN;
+				}
+			}
+		}
+		 	
+	}// end processRoundBottom()
+}// end Combat
+
 State.variables.combatArena = new State.variables.Combat([],[]);
 
 function Room(){
@@ -1062,6 +1105,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -2314,11 +2358,12 @@ $combatArena.combatLogContent
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
+  	&lt;&lt;run $combatArena.processRoundBottom()&gt;&gt;
   	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-	&lt;&lt;run $combatArena.processNewRound()&gt;&gt;
+	&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;
   // todo: need to have enemoy party AI proc and related text set before we get here, such that the player is seeing the aftermath of the enemy&#39;s turn and hitting Continue to continue on to the next round&#39;s player turn.
   // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
   &lt;&lt;/link&gt;&gt;
