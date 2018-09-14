@@ -131,6 +131,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -497,11 +498,18 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.PlayerTurnState = Object.freeze (
 		{ 
 			selectTarget: 1, 
-			selectAbility: 2
+			selectAbility: 2,
+			displayResults: 3
+		});
+	this.EnemyTurnState = Object.freeze (
+		{ 
+			runAI: 1, 
+			displayResults: 2
 		});
 	
 	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
-	this.playerTurnState = this.PlayerTurnState.selectAbility; 
+	this.playerTurnState = this.PlayerTurnState.selectAbility;
+	this.enemyTurnState = this.EnemyTurnState.runAI;
 	this.playerParty = playerParty;
 	this.enemyParty = enemyParty;
 	this.destPassageName = destPassageName;
@@ -1105,6 +1113,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -2325,6 +2334,7 @@ $combatArena.combatLogContent
 							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
 							&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+							// todo: we&#39;re missing a step here, where the flavor text and possibly inflicted damage/statuses etc. is written to the combat log content.
 						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
@@ -2364,7 +2374,7 @@ $combatArena.combatLogContent
 	&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 	&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;
-  // todo: need to have enemoy party AI proc and related text set before we get here, such that the player is seeing the aftermath of the enemy&#39;s turn and hitting Continue to continue on to the next round&#39;s player turn.
+  // todo: need to have enemoy party AI proc and related text set before we get here, such that the player is seeing the aftermath of the enemy&#39;s turn (for now we only care about the one enemy, so nevermind adding support for UI feedback re: an entire enemy party&#39;s actions) and hitting Continue to continue on to the next round&#39;s player turn.
   // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;else&gt;&gt;
