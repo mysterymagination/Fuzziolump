@@ -132,6 +132,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
 Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
@@ -1003,10 +1004,12 @@ function init(){
 						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
 							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
 							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+							combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 							return;
 						}else{
 							// Puck doesn't have bloodlust yet, so get it!
 								puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);
+							combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
 							return;
 						}
 					}
@@ -1015,11 +1018,13 @@ function init(){
 					if(playerWithTargetBuff){
 							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
 							puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
+								combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
 								return;
 						}// end if player with target buff already has doubt
 						else if(anyPlayerOffenseBuffed){
 							// presumably in this case every character with an offensive buff already has doubt.  With our scale balancing work done, just fry 'em with Rain of Radiance!
 							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+							combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 							return;
 						}
 					}
@@ -1027,6 +1032,7 @@ function init(){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 						return;
 					}
 				}
@@ -1047,28 +1053,34 @@ function init(){
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
 			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+					combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 					return;
 				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
 					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
+					combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
 					return;
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
 					
 					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
+																																																				combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
 																																																				return;
 																																								}else{
 
 						// Puck already has Bloodlust, so do the atk strat
 																																									puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+																																									combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 																																								return;
 																																								}
 				}else{
 					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+					combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 					return;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
 			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
 				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+				 combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 				 return;
 			 }
 			/// end defaults block ///
@@ -1113,6 +1125,7 @@ init();
 /// end init ///
 
 	
+
 
 
 
@@ -2307,10 +2320,14 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
-					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in. 
+					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText()&gt;&gt;
+				/* stuff for rnd bottom TODO: move to continue link in displayResults state block
 				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
+				*/
 			&lt;&lt;/if&gt;&gt;
 			&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
@@ -2323,18 +2340,10 @@ $combatArena.combatLogContent
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-		&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-						&lt;&lt;silently&gt;&gt;
-							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
-						&lt;&lt;/silently&gt;&gt;
-						&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
-							&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-							&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
-						&lt;&lt;else&gt;&gt;
-							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
-							&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-							// todo: we&#39;re missing a step here, where the flavor text and possibly inflicted damage/statuses etc. is written to the combat log content.
+						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
+		
+						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText()&gt;&gt;
 						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
@@ -2349,25 +2358,34 @@ $combatArena.combatLogContent
 					&lt;&lt;link _target.name&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;	
-						&lt;&lt;silently&gt;&gt;
-							If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
-						&lt;&lt;/silently&gt;&gt;
-						&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
-							&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-							&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
-						&lt;&lt;else&gt;&gt;
-							&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-							&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
-							&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-						&lt;&lt;/if&gt;&gt;
+						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText()&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
+	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.displayResults&gt;&gt;
+		&lt;&lt;link [[&quot;Press onward!&quot;-&gt;Combat]]&gt;&gt;
+			&lt;&lt;silently&gt;&gt;
+			If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
+			&lt;&lt;/silently&gt;&gt;
+			&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
+				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
+				&lt;&lt;silently&gt;&gt;
+				TODO: in order to process an enemy party with more than one monster, we&#39;d need something closer to the player party proc in enemy side.  For now this shortcut will work.
+				&lt;&lt;/silently&gt;&gt;
+				&lt;&lt;run $combatArena.enemyParty[0].runAI()&gt;&gt;
+			&lt;&lt;else&gt;&gt;
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+				&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+			&lt;&lt;/if&gt;&gt;
+		&lt;&lt;/link&gt;&gt;
+		
 	&lt;&lt;else&gt;&gt;
 		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
-  &lt;&lt;link [[&quot;Continue&quot;-&gt;Combat]]&gt;&gt;
+  &lt;&lt;link [[&quot;Rally!&quot;-&gt;Combat]]&gt;&gt;
   	&lt;&lt;run $combatArena.processRoundBottom()&gt;&gt;
   	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
