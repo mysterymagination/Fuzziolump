@@ -133,8 +133,9 @@
 
 
 
-</style><script role="script" id="twine-user-script" type="text/twine-javascript">
-Config.history.maxStates = 0;   // no history limit
+
+
+</style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
 var test = 0;
@@ -327,9 +328,11 @@ State.variables.Ability = function Ability(name){
 		}
 	}// end calcDC()
 	// lambda stub - dmg formula will be defined when Ability instance is defined
-	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)};
-	this.flavorText = "nonsuch ability";
-}
+	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
+	this.generateFlavorText = function(sourceChar,targetChar){console.log("flavor text undefined for "+this.name)}
+	
+} // end Ability def
+
 State.variables.Incarnation = function Incarnation(name){
 	// Incarnation inherits from Ability
 	State.variables.Ability.call(this,name);
@@ -411,15 +414,28 @@ State.variables.Character = function Character(id,name){
 		"run" : new State.variables.Ability("Run") 
 	}
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
-		alert(sourceCharacter.name+" attacking "+targetCharacter.name+" mightily!");
 		targetCharacter.hp -= sourceCharacter.attributes["strength"];
 	};
+	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
+			return sourceCharacter+" strikes "+targetCharacter+" a mighty blow!";
+	};
 	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
-		alert(sourceCharacter.name+" defending "+targetCharacter.name+" valiantly!");
+		/*
+		TODO: obviously this is borken af, but since Defend is traditionally useless and this is a demo, I like the irony of making it an OP move.  A better impl would be a status buff like Defended or similar that can only be added once instead of stacking endlessly.
+		*/
 		targetCharacter.attributes["defense"] += sourceCharacter.attributes["strength"];
 	};
-	this.abilities["run"].effect = function(sourceCharacter,targetCharacter){
-		alert(sourceCharacter.name+" bravely turns tail and flees from "+targetCharacter.name);
+	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
+	this.abilities["run"].generateFlavorText = function(playerParty){
+		var flavorText = "";
+		for(let i=0;i<playerParty.length;i++){
+			if(i<playerParty.length-2){
+				flavorText += player.name+", ";
+			}else{
+				flavorText += "and "+player.name;
+			}
+		}
+		return flavorText+" bravely attempt to turn tail and flee, but they cannot escape!";
 	};
 	
 	// affinities will be a simple String character name key -> integer affinity value mapping
@@ -507,6 +523,12 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 			runAI: 1, 
 			displayResults: 2
 		});
+	this.CombatResultEnum = Object.freeze (
+		{ 
+			pending: 0,
+			playerVictory: 1, 
+			enemyVictory: 2
+		});
 	
 	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
 	this.playerTurnState = this.PlayerTurnState.selectAbility;
@@ -514,6 +536,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.playerParty = playerParty;
 	this.enemyParty = enemyParty;
 	this.destPassageName = destPassageName;
+	this.combatResult = this.CombatResultEnum.pending;
 	
 	// tracks the currently selected player ability
 	this.currentSelectedAbility = new State.variables.Ability("unset");
@@ -901,7 +924,7 @@ function init(){
 	rainOfRadiance.generateFlavorText = function(sourceChar,targetChar){
 			return sourceChar.name+" thrusts a hand towards the heavens, muscles quivering with equal parts strain and anticipation.  The first few glittering droplets of liquid blue-white starlight are beautiful, but their virtue is quickly eclipsed by a tide of agony that grips the entire party as their flesh/fur is scorched/singed by celestial fire!";	
 	}
-	rainOfRadiance.targetType = rainOfRadiance.TargeTypesEnum.allEnemies;
+	rainOfRadiance.targetType = rainOfRadiance.TargetTypesEnum.allEnemies;
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
 		return 5*State.variables.calcMod(sourceChar.attributes["intelligence"])
@@ -927,7 +950,7 @@ function init(){
 		
 		return flavorString;
 	}
-	swordsDance.targetType = swordsDance.TargeTypesEnum.singleAlly;
+	swordsDance.targetType = swordsDance.TargetTypesEnum.singleAlly;
 	swordsDance.effect = function(sourceChar,targetChar){
 		State.variables.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
 	}
@@ -979,7 +1002,7 @@ function init(){
 								return;
 								*/
 								
-								if(status.descriptors.includes("offensive"){
+								if(status.descriptors.includes("offensive")){
 									 anyPlayerOffenseBuffed = true;
 									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
 									playerWithTargetBuff = player;	
@@ -1094,6 +1117,8 @@ function init(){
 	marrahChar.gender = "female";
 	marrahChar.stats["hp"] = 40;
 	marrahChar.stats["mp"] = 70;
+	marrahChar.stats["maxHP"] = 40;
+	marrahChar.stats["maxMP"] = 70;
 	marrahChar.attributes["strength"] = 12;
 	marrahChar.attributes["dexterity"] = 18;
 	marrahChar.attributes["constitution"] = 10;
@@ -1108,7 +1133,7 @@ function init(){
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
 	hauntedFey.effect = function(sourceChar,targetChar){
 		// todo: who is 'this' in this context?  Marrah? The Incarnation?
-		var savingThrow = targetChar.saves["will"] + rollD20();
+		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
 		}
@@ -1123,93 +1148,6 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -2296,7 +2234,7 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &lt;&lt;/silently&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 $combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1288,622" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1289,622" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
 	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
@@ -2308,28 +2246,63 @@ $combatArena.combatLogContent
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
 			&lt;&lt;capture _abilityName, _ability&gt;&gt;
-			&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-				&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt; 
+			&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
+				&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
+				 
 					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
-					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer your wrath!&quot;&gt;&gt;  
-				&lt;&lt;/link&gt;&gt;
+					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer the wrath of &quot;+$combatArena.currentSelectedAbility.name+&quot;!&quot;&gt;&gt;  
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
-			&lt;&lt;else&gt;&gt;
+			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.allAllies&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
-					No need for targeting in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
+					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText()&gt;&gt;
-				/* stuff for rnd bottom TODO: move to continue link in displayResults state block
-				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = &quot;The enemy mobilizes!&quot;&gt;&gt;
-				*/
+				&lt;&lt; set _playerPartyArray to $combatArena.playerParty&gt;&gt;
+				&lt;&lt;run _ability.effect(_playerPartyArray)&gt;&gt;
+			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.allEnemies&gt;&gt;
+				&lt;&lt;silently&gt;&gt;\
+					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
+				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText()&gt;&gt;
+				&lt;&lt;run _ability.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
-			&lt;&lt;/capture&gt;&gt;
+		  &lt;&lt;/link&gt;&gt;
+		&lt;&lt;/capture&gt;&gt;
+	&lt;&lt;/for&gt;&gt;
+	&lt;&lt;for _incarnationName,_incarnation range _currentTurnOwner.incarnations&gt;&gt;
+			&lt;&lt;capture _incarnationName, _incarnation&gt;&gt;
+			&lt;&lt;link [[_incarnationName-&gt;Combat]]&gt;&gt; 
+				&lt;&lt;if _incarnation.targetType === _incarnation.TargetTypesEnum.singleEnemy&gt;&gt;
+					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
+					&lt;&lt;set $combatArena.currentSelectedAbility = _incarnation&gt;&gt;
+					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer the wrath of &quot;+$combatArena.currentSelectedAbility.name+&quot;!&quot;&gt;&gt;  
+			&lt;&lt;elseif _incarnation.targetType === _incarnation.TargetTypesEnum.singleAlly&gt;&gt;
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+				&lt;&lt;set $combatArena.currentSelectedAbility = _incarnation&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
+			&lt;&lt;elseif _incarnation.targetType === _incarnation.TargetTypesEnum.allAllies&gt;&gt;
+				&lt;&lt;silently&gt;&gt;\
+					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
+				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText()&gt;&gt;
+				&lt;&lt;run _incarnation.effect($combatArena.playerParty)&gt;&gt;
+			&lt;&lt;elseif _incarnation.targetType === _incarnation.TargetTypesEnum.allEnemies&gt;&gt;
+				&lt;&lt;silently&gt;&gt;\
+					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
+				&lt;&lt;/silently&gt;&gt;\
+				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText()&gt;&gt;
+				&lt;&lt;run _incarnation.effect($combatArena.enemyParty)&gt;&gt;
+			&lt;&lt;/if&gt;&gt;
+		  &lt;&lt;/link&gt;&gt;
+		&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		Block where the user has already selected an abl and now needs to select its target.
@@ -2340,11 +2313,9 @@ $combatArena.combatLogContent
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
-						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;
-		
+						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target)&gt;&gt;
 						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
 						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText()&gt;&gt;
-						&lt;&lt;/if&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -2380,27 +2351,32 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		&lt;&lt;/link&gt;&gt;
-		
 	&lt;&lt;else&gt;&gt;
 		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Rally!&quot;-&gt;Combat]]&gt;&gt;
-  	&lt;&lt;run $combatArena.processRoundBottom()&gt;&gt;
-  	&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
-	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
-	&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-	&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;
-  // todo: need to have enemoy party AI proc and related text set before we get here, such that the player is seeing the aftermath of the enemy&#39;s turn (for now we only care about the one enemy, so nevermind adding support for UI feedback re: an entire enemy party&#39;s actions) and hitting Continue to continue on to the next round&#39;s player turn.
-  // todo: process enemy party and any &#39;AI&#39;, which at this point will likely just be randomly selected moves maybe with slight weights
+  	&lt;&lt;if $combatArena.processRoundBottom()&gt;&gt;
+  		&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
+		&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+		&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+		&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+		&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;
+	&lt;&lt;else&gt;&gt;
+		&lt;&lt;set $combatArena.turnGroup = &quot;system&quot;&gt;&gt;
+		&lt;&lt;silently&gt;&gt;
+		Update the combat log text with end of combat results
+		&lt;&lt;/silently&gt;&gt;
+		&lt;&lt;if $combatArena.combatResult === $combatArena.CombatResultEnum.playerVictory&gt;&gt;
+			&lt;&lt;set $combatArena.combatLogContent = &quot;The party has triumphed over evil once more!&quot;&gt;&gt;
+		&lt;&lt;else&gt;&gt;
+			&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here!&quot;&gt;&gt;
+		&lt;&lt;/if&gt;&gt;
+	&lt;&lt;/if&gt;&gt;
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
 &lt;&lt;/if&gt;&gt;
-
-&lt;&lt;if $hp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatLose&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
-&lt;&lt;if $ehp &lt; 1&gt;&gt;&lt;&lt;goto &quot;CombatWin&quot;&gt;&gt;&lt;&lt;/if&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
 &lt;replace &quot;#combatLog&quot;&gt;
 	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
