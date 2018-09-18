@@ -318,11 +318,14 @@ State.variables.Ability = function Ability(name){
 	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
 	this.targetType = this.TargetTypesEnum.singleEnemy; 
 	
-	// effect can be defined when Ability instance is defined, but default behavior will be target character's HP reduced by calcDmg()
-	this.effect = function(sourceChar,targetChar){targetChar.stats.hp - this.calcDmg(sourceChar,targetChar)};
+	// cached value of last calculated dmg
+	this.dmg = 0;
+	
+	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
+	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
 	this.calcDC = function(user,modifyingAttr){
 		if(user.level && modifyingAttr){
-			return user.level/2 + calcMod(user,modifyingAttr) + 10;
+			return user.level/2 + State.variables.calcMod(user,modifyingAttr) + 10;
 		}else{
 			return 10;	
 		}
@@ -413,11 +416,17 @@ State.variables.Character = function Character(id,name){
 		"defend" : new State.variables.Ability("Defend"),
 		"run" : new State.variables.Ability("Run") 
 	}
+	this.abilities["attack"].calcDmg = function(sourceCharacter,targetCharacter){
+		// favor the STR since the attacker is the leading participant
+		return sourceCharacter.attributes["strength"] - targetCharacter.attributes["defense"]/2;
+	};
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
-		targetCharacter.hp -= sourceCharacter.attributes["strength"];
+		this.dmg = this.calcDmg(sourceCharacter,targetCharacter);
+		targetCharacter.hp -= this.dmg; // what's multithreading, anyway? lol
 	};
 	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
-			return sourceCharacter+" strikes "+targetCharacter+" a mighty blow!";
+		// todo: clearing cached dmg after it is read to flavor text? 
+			return sourceCharacter+" strikes "+targetCharacter+" a mighty blow, dealing "+this.dmg+" damages!";
 	};
 	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
 		/*
@@ -427,12 +436,13 @@ State.variables.Character = function Character(id,name){
 	};
 	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
 	this.abilities["run"].generateFlavorText = function(playerParty){
+		console.log("run::generateFlavorText -- The player party consists of "+playerParty);
 		var flavorText = "";
 		for(let i=0;i<playerParty.length;i++){
-			if(i<playerParty.length-2){
-				flavorText += player.name+", ";
+			if(i<playerParty.length-1){
+				flavorText += playerParty[i].name+", ";
 			}else{
-				flavorText += "and "+player.name;
+				flavorText += "and "+playerParty[i].name;
 			}
 		}
 		return flavorText+" bravely attempt to turn tail and flee, but they cannot escape!";
@@ -611,6 +621,8 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	Process the bottom of a combat round.  
 	*/
 	this.processRoundBottom = function(){
+		var dedEnemies = 0;
+		var dedPlayers = 0;
 		for(let enemyChar of this.enemyParty){
 			for(let effect of enemyChar.statusEffects){
 				// process bottom of stateffects with variable effects per round
@@ -618,6 +630,11 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 					// clear the FLAG_SKIP_TURN flag
 		enemyChar.combatFlags &= ~enemyChar.CombatFlags.FLAG_SKIP_TURN;
 				}
+			}
+			
+			// check for death
+			if(enemyChar.stats.hp <= 0){
+				dedEnemies++;	
 			}
 		}
 		for(let playerChar of this.playerParty){
@@ -628,8 +645,25 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		playerChar.combatFlags &= ~playerChar.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
+			
+			// check for death
+			if(playerChar.stats.hp <= 0){
+				dedPlayers++;	
+			}
 		}
-		 	
+		
+		// check victory conditions -- if one is met, we do not need another turn so return false.  Else, combat continues so we return true.
+		// todo: need a way to clear conditions and/or reset stats as desired at end of combat
+		if(dedEnemies >= this.enemyParty.length){
+			this.combatResult = this.CombatResultEnum.playerVictory;
+			return false;	
+		}else if(dedPlayers >= this.playerParty.length){
+			this.combatResult = this.CombatResultEnum.enemyVictory;
+			return false;	
+		}else{
+			return true;	
+		}
+		
 	}// end processRoundBottom()
 }// end Combat
 
@@ -1125,22 +1159,40 @@ function init(){
 	marrahChar.attributes["intelligence"] = 14;
 	marrahChar.attributes["wisdom"] = 8;
 	marrahChar.attributes["charisma"] = 20;
-	marrahChar.entity = new Entity("Fox Fire");
+	marrahChar.entity = new Entity("Kitsune");
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
 	var hauntedFey = new State.variables.Incarnation("Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
 	hauntedFey.effect = function(sourceChar,targetChar){
-		// todo: who is 'this' in this context?  Marrah? The Incarnation?
 		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		// effect will be called on the Incarnation instance, so this should be bound to same
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
 		}
-		
-		// todo: where should the all-important (seriously -- this is mostly narrative) flavor text go?  A global combatlog string displayed in CombatLog passage or onesuch owned by the Combat instance?
 	}// end defining effect of haunted_fey
+	hauntedFey.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
+	}
 	
+	var foxFire = new State.variables.Incarnation("Fox Fire");
+	marrahChar.incarnations["fox_fire"] = foxFire;
+	foxFire.calcDmg = function(sourceChar,targetChar,aspect){
+			
+	}
+	foxFire.effect = function(sourceChar,targetChar){
+		
+		// apply status effect, doubt
+		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		// effect will be called on the Incarnation instance, so this should be bound to same
+		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
+			
+			// deal dmg
+			targetChar.stats.hp -= this.calcDmg(sourceChar,targetChar,"body");
+			targetChar.stats.mp -= this.calcDmg(sourceChar,targetChar,"mind");
+		}
 	
 	
 }// end defining init()
@@ -2261,15 +2313,14 @@ $combatArena.combatLogContent
 					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText()&gt;&gt;
-				&lt;&lt; set _playerPartyArray to $combatArena.playerParty&gt;&gt;
-				&lt;&lt;run _ability.effect(_playerPartyArray)&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText($combatArena.playerParty)&gt;&gt;
+				&lt;&lt;run _ability.effect($combatArena.playerParty)&gt;&gt;
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.allEnemies&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
 					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText()&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText($combatArena.enemyParty)&gt;&gt;
 				&lt;&lt;run _ability.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
@@ -2291,14 +2342,14 @@ $combatArena.combatLogContent
 					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText()&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText($combatArena.playerParty)&gt;&gt;
 				&lt;&lt;run _incarnation.effect($combatArena.playerParty)&gt;&gt;
 			&lt;&lt;elseif _incarnation.targetType === _incarnation.TargetTypesEnum.allEnemies&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
 					No need for single point targeting phase in either all enemies or all allies cases; effect() function should have the targeting built in.  Here we just need to set the turn state to displayResults and fill the log display with the ability&#39;s flavor text. 
 				&lt;&lt;/silently&gt;&gt;\
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText()&gt;&gt;
+				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText($combatArena.enemyParty)&gt;&gt;
 				&lt;&lt;run _incarnation.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
@@ -2370,7 +2421,7 @@ $combatArena.combatLogContent
 		&lt;&lt;if $combatArena.combatResult === $combatArena.CombatResultEnum.playerVictory&gt;&gt;
 			&lt;&lt;set $combatArena.combatLogContent = &quot;The party has triumphed over evil once more!&quot;&gt;&gt;
 		&lt;&lt;else&gt;&gt;
-			&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here!&quot;&gt;&gt;
+			&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here -- in the next months, with nothing to meaningfully oppose them, the godlings will grow and grow out of control, and soon swallow up (intentionally or not) the gentle land of Fuzziolump.  Your deaths mark the end of all hopes and dreams!&quot;&gt;&gt;
 		&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
   &lt;&lt;/link&gt;&gt;
