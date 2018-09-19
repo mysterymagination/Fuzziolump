@@ -363,6 +363,13 @@ State.variables.Character = function Character(id,name){
 	this.gender = "";
 	this.level = 10;
 	
+	this.getPronoun_gen = function(){
+		return this.gender==="female"?"her":"his";	
+	}
+	this.getPronoun_nom = function(){
+		return this.gender==="female"?"she":"he";	
+	}
+	
 	// simple object map of categorical descriptor arrays,
 	// e.g. descriptors.body = ["fur","curvacious"]
 	this.descriptors = {
@@ -418,10 +425,13 @@ State.variables.Character = function Character(id,name){
 	}
 	this.abilities["attack"].calcDmg = function(sourceCharacter,targetCharacter){
 		// favor the STR since the attacker is the leading participant
-		return sourceCharacter.attributes["strength"] - targetCharacter.attributes["defense"]/2;
+		// todo: yeesh, balance.  I've mixed inspiration from D&D and jRPGs in the stat blocks, and it's starting to shoooow.  Well anyway, CON is a fair stand-in for a DQ style DEF stat.
+		// todo: atk is essentially useless against Puck b/c he has 500 HP and will be taking 5 damage from someone with average STR simply because his CON is average.  Recall that our STR etc. atrributes are based on D&D numbers, and D&D does NOT use same for determining base damage (only modifier).  Base damage D&D-style is a whole other thing I don't wanna get into for this demo.  For demo porpoises, I'd say fudge factors of 2 for STR and 0.25 for CON should be okay.  That way we're looking at 17-ish damage to Puck and 13-ish from him. 
+		return sourceCharacter.attributes["strength"]*2 - targetCharacter.attributes["constitution"]/4;
 	};
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
 		this.dmg = this.calcDmg(sourceCharacter,targetCharacter);
+		// todo: AC? Any other miss chance?
 		targetCharacter.hp -= this.dmg; // what's multithreading, anyway? lol
 	};
 	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
@@ -1173,13 +1183,19 @@ function init(){
 		}
 	}// end defining effect of haunted_fey
 	hauntedFey.generateFlavorText = function(sourceChar,targetChar){
+		// todo: this is a perfect opportunity for "generative text"; nothing too fancy, basically randomized madlibs sort of thing is what I was thinking, but maybe with some slight inductive bias/target and source character descriptor consideration weighing the randomness used in populating the blanks.
 		return sourceChar.name"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
 	}
 	
 	var foxFire = new State.variables.Incarnation("Fox Fire");
 	marrahChar.incarnations["fox_fire"] = foxFire;
-	foxFire.calcDmg = function(sourceChar,targetChar,aspect){
-			
+	foxFire.calcDmg = function(sourceChar,targetChar){
+		// dmg based on source's cur:max MP ratio
+		var magicRat = sourceChar.stats.mp/sourceChar.stats.maxMP;
+		
+		// the max damage possible is based on _ and will be reduced by any magicRat less than 1
+		return magicRat*(sourceChar.stats.maxMP/2); //so Marrah will start at max 35 damage, which is a little over double the normal attack damage.
+		
 	}
 	foxFire.effect = function(sourceChar,targetChar){
 		
@@ -1189,10 +1205,40 @@ function init(){
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
 			
+			// set dmg
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			
 			// deal dmg
-			targetChar.stats.hp -= this.calcDmg(sourceChar,targetChar,"body");
-			targetChar.stats.mp -= this.calcDmg(sourceChar,targetChar,"mind");
+			targetChar.stats.hp -= this.dmg;
+	}
+		
+	var ghostWhip = new State.variables.Incarnation("Ghost Whip");
+	marrahChar.incarnations["ghost_whip"] = ghostWhip;
+	ghostWhip.calcDmg = function(sourceChar,targetChar,aspect){
+		if(aspect === "meat"){
+			// CHA vs. CON to damage HP and give half to source
+			return 10+sourceChar.attributes["charisma"]-targetChar.attributes["constitution"];
+			
+		}else if(aspect === "mind"){
+			// CHA vs. CHA to damage MP and give half to source
+			return 10+sourceChar.attributes["charisma"]-targetChar.attributes["charisma"];
+		
 		}
+	}
+	ghostWhip.effect = function(sourceChar,targetChar){
+		this.hpDmg = this.calcDmg(sourceChar,targetChar,"meat");
+		this.mpDmg = this.calcDmg(sourceChar,targetChar,"mind");
+		targetChar.stats.hp -= this.hpDmg;
+		targetChar.stats.mp -= this.mpDmg;
+		sourceChar.stats.hp += this.hpDmg/2;
+		sourceChar.stats.mp += this.mpDmg/2;
+	}
+	ghostWhip.generateFlavorText = function(sourceChar,targetChar){
+		// todo: reference hpDmg and mpDmg instead of dmg!
+	}
+	//var fireClaw
+		
+	
 	
 	
 }// end defining init()
