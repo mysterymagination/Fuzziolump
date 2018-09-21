@@ -135,6 +135,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1246,6 +1247,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -2078,7 +2080,7 @@ scenario about work ethic and community focus
 	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="9,1756" size="100,100">&lt;span id=council_chamber_desc&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="7,1666" size="100,100">&lt;span id=council_chamber_desc&gt;
 The tunnel beneath the gaudy crest quickly metamorphoses from lovingly sculpted earth to carefully hewn stone.  The tough gray rock has been chiseled to almost frictionless smoothness somehow, and only the colder temperature and reduced springiness of the subtrate alerted your feet to any change from the earthen tunnels.
 
 Golden sunlight floods the council chamber from an aperture some three dozen meters above you.  A complex series of pulleys rises along the stone wall on the far side of a massive round table, with thick cord threaded through each.  You wonder briefly what function such a convoluted mechanical system serves.  The walls and floor are completely bare of ornamentation; this room was clearly intended for serious matters.
@@ -2203,23 +2205,19 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 &lt;&lt;/link&gt;&gt;&quot;   
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;
-&lt;/span&gt;</tw-passagedata><tw-passagedata pid="52" name="Bush_Warren_Council_Postproc" tags="conversation" position="8,1885" size="100,100">// todo: allow player to choose a council member or Nuvi to get Incarnation &#39;scrolls&#39; from for the purpose of &#39;immediate defense&#39; (i.e. the Puck fight at the end of the demo).  Also have them say something about highly statically charged items coming through portals on their own, mostly socks but occasionally other items including a large dagger meant for human hands.
+&lt;/span&gt;</tw-passagedata><tw-passagedata pid="52" name="Bush_Warren_Council_Postproc" tags="conversation" position="8,1797" size="100,100">// todo: allow player to choose a council member or Nuvi to get Incarnation &#39;scrolls&#39; from for the purpose of &#39;immediate defense&#39; (i.e. the Puck fight at the end of the demo).  Also have them say something about highly statically charged items coming through portals on their own, mostly socks but occasionally other items including a large dagger meant for human hands.
 
 &lt;div id=&quot;council_postproc&quot;&gt;
 &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;
 Marrah&#39;s eyes gleam with unabashed excitement. &quot;Now that sounds like a plan of action!&quot;  She places a paw on your chest, over your heart, and a hungry sparkle joins the excitement in her intense gaze.  
 
 The rest of the council rises, all that needs be said having apparently been said.  An orangutan looming in the shadows behind Marrah clears her throat meaningfully, and Marrah backs away from you, her blush making her scarlet aesthetic practically blaze.  &quot;Go now, human, for all the hope of Fuzziolump goes with you!&quot;  
-
-The council of animals files out through the small door beyond the table, Marrah turning briefly for one last longing gaze.  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of goldem light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s worried whiskery face, positioned somewhat further away from you than usual, the badgers proceed to roll back the boulder blocking the [[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]. 
 &lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;
 Dr. Beakman the toucan nods sagely even as Marrah narrows her eyes skeptically.  &quot;How can you be certain that will work?  What if they only stop growing but keep the power they hold currently?  That would be unacceptable!&quot;  Her scarlet fur bristles in agitation as her voice rises to almost the volume of impropriety.
 
 Before you can formulate an answer, Dr. Beakman flaps over to stand beside Marrah.  He wraps a wing about her consolingly and says, &quot;The human speaks wisdom, Marrah.  Only the imaginative feedback loops grant the godlings their immense power, and support it.  Disrupting the loops should bring all that being crashing down, reverting our old friends to their former selves... or killing them.  Most importantly, a surgical approach should minimize collateral damage and casualties.  It&#39;s the best chance for all of us.&quot;
 
 The scarlet fox nods her head slowly, and then ducks out from the toucan&#39;s wing to approach you.  Her golden eyes flashing, she growls, &quot;All right human, we&#39;ll do it your way.  Just remember that millions of lives depend on you -- there&#39;s no room to indulge your curiosity!&quot;  She back away from you, blinking rapidly, and then turns without another word.
-
-The council of animals files out through the small door beyond the table.  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of goldem light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s worried whiskery face, positioned somewhat further away from you than usual, the badgers proceed to roll back the boulder blocking the [[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]].  
 &lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;
 Marrah blinks slowly, her molten gold eyes fairly boiling.  &quot;Diplomacy?  Don&#39;t you think we&#39;ve tried that?!  These were our friends!&quot;  She flies at you, raking beautiful lacquered claws across your face and spraying the council table with blood. 
 
@@ -2231,9 +2229,21 @@ The mole shakes his broad snout sadly.  &quot;They simply will not listen.  Thos
 &lt;&lt;/if&gt;&gt;
 &lt;&lt;link &quot;There is a susurrus of ruffles and rustles as variously furred and feathered creatures start gathering themselves to go...&quot;&gt;&gt;
 	&lt;&lt;replace #council_postproc&gt;&gt;
-	Before anyone can leave, Nuvi pipes up, &quot;Wait wait! The Human has no way to defend themselves against danger.  Companions are great, but we shouldn&#39;t leave The Human unequipped.&quot;
-	
-The council of animals files out through the small door beyond the table, Mooty offering a cheerful wave before ducking down to follow the others.  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of goldem light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s worried whiskery face, positioned somewhat further away from you than usual, the badgers proceed to roll back the boulder blocking the [[main entry tunnel-&gt;Encounter_Puck_Diplomancy]].
+	Before anyone can leave, Nuvi pipes up, &quot;Wait wait! The Human has no way to defend themselves against danger.  Sure, they have mighty me, but we shouldn&#39;t leave The Human themselves unequipped.&quot;
+	The council pauses and looks are cast about as responsibility bounces tacitly around.  Finally, a dusty old raccoon lady steps toward you, away from the others.  &quot;I am Ingrid, Archivist and Keeper of Artifacts.  Sometimes odd things come through our conduits without any of our conductors like young Nuvi here opening the way for them.  For some reason they always seem to be highly charged with static electricity... and they&#39;re mostly socks.  However, we have saved them all for study and a few look like formidable weapons.&quot;  Shoving one of her colleagues aside, she waves a paw reverently over the ornate table and several items appear there.
+	&lt;&lt;link &quot;Wickedly Curved Axe&quot;&gt;&gt;
+	&lt;&lt;/link&gt;&gt;
+	&lt;&lt;link &quot;Inexplicably Cold Mace&quot;&gt;&gt;
+	&lt;&lt;/link&gt;&gt;
+	&lt;&lt;link &quot;Saw-tooth Dagger Glittering with Starlight from Within&quot;&gt;&gt;
+	&lt;&lt;/link&gt;&gt;
+	Ingrid nods her acceptance of your choice.  She begins stepping back into the fold, then pauses and returns to the table, sighing resignedly.  &quot;We also have a few Splinters of Entity that you could learn Incarnation from in a snap.&quot;  Her whiskers droop and her eyes go misty as she explains, &quot;Splinters grow over the place a Lumpkin died.  The phenomenon only occurs rarely, and only when said Lumpkin died while channeling Incarnation.  Even then, it takes about a century to grow large enough to be useful and its power only lasts a decade or so after that.  Lumpkins with a similar Entity can use them for a boost of power in a pinch, or Humans can learn them permanently.  I will allow you to devour all that remains of one of our well-liked but not really beloved ancestors, and no more.  Choose carefully!&quot;
+	&lt;&lt;link [[&quot;Take the Splinter of Serpentarius&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a vile cobra whose venom cut short a thousand thousand warriors&#39; lives before they managed to end his bid for absolute conquest of Fuzziolump.
+	&lt;&lt;/link&gt;&gt;
+	&lt;&lt;link [[&quot;Take the Splinter of Violet&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a lovely young mink who only truly lived in her final hours when she discovered true solitude, bathed in shadow and cold beneath the cave-in that slowly smothered her.
+	&lt;&lt;/link&gt;&gt;
+	&lt;&lt;link [[&quot;Take the Splinter of Snugg-lor&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a guinea pig priest of pleasure and passion who, during a particularly rowdy drinking game, literally burst with joy.
+	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;/replace&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="53" name="Encounter_Puck_Viral_Violence" tags="encounter" position="7,2125" size="100,100">As you leave the warren complex, Sheila the steady wombat turns her back on you and snorts derisively. &quot;Word of your &#39;plan&#39; has gotten out. \
@@ -2542,4 +2552,4 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
-&lt;/table&gt;</tw-passagedata></tw-storydata>
+&lt;/table&gt;</tw-passagedata><tw-passagedata pid="66" name="Bush_Warren_Council_Exit" tags="conversation" position="12,1924.5" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks,&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata></tw-storydata>
