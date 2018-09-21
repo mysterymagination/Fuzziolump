@@ -136,6 +136,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -365,10 +366,20 @@ State.variables.Character = function Character(id,name){
 	this.level = 10;
 	
 	this.getPronoun_gen = function(){
-		return this.gender==="female"?"her":"his";	
+		if(this.gender==="female")
+			return "her";
+		else if(this.gender==="male")
+			return "his";
+		else
+			return "their";
 	}
 	this.getPronoun_nom = function(){
-		return this.gender==="female"?"she":"he";	
+		if(this.gender==="female")
+			return "she";
+		else if(this.gender==="male")
+			return "he";
+		else
+			return "they";	
 	}
 	
 	// simple object map of categorical descriptor arrays,
@@ -468,6 +479,9 @@ State.variables.Character = function Character(id,name){
 	// a character's inventory reflects the items in the world that it is
 	// currently carrying and can access.
 	this.inventory = [];
+	
+	// a character's equipment represents weapons, armor, etc. that they are actively wearing
+	this.equipment = [];
 	
 	// combat status effects; these are temporary and only relevant to combat
 	this.statusEffects = [];
@@ -1247,6 +1261,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
@@ -2232,17 +2247,29 @@ The mole shakes his broad snout sadly.  &quot;They simply will not listen.  Thos
 	Before anyone can leave, Nuvi pipes up, &quot;Wait wait! The Human has no way to defend themselves against danger.  Sure, they have mighty me, but we shouldn&#39;t leave The Human themselves unequipped.&quot;
 	The council pauses and looks are cast about as responsibility bounces tacitly around.  Finally, a dusty old raccoon lady steps toward you, away from the others.  &quot;I am Ingrid, Archivist and Keeper of Artifacts.  Sometimes odd things come through our conduits without any of our conductors like young Nuvi here opening the way for them.  For some reason they always seem to be highly charged with static electricity... and they&#39;re mostly socks.  However, we have saved them all for study and a few look like formidable weapons.&quot;  Shoving one of her colleagues aside, she waves a paw reverently over the ornate table and several items appear there.
 	&lt;&lt;link &quot;Wickedly Curved Axe&quot;&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;wicked_axe&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link &quot;Inexplicably Cold Mace&quot;&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;cold_mace&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link &quot;Saw-tooth Dagger Glittering with Starlight from Within&quot;&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;sawtooth_star_dagger&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	Ingrid nods her acceptance of your choice.  She begins stepping back into the fold, then pauses and returns to the table, sighing resignedly.  &quot;We also have a few Splinters of Entity that you could learn Incarnation from in a snap.&quot;  Her whiskers droop and her eyes go misty as she explains, &quot;Splinters grow over the place a Lumpkin died.  The phenomenon only occurs rarely, and only when said Lumpkin died while channeling Incarnation.  Even then, it takes about a century to grow large enough to be useful and its power only lasts a decade or so after that.  Lumpkins with a similar Entity can use them for a boost of power in a pinch, or Humans can learn them permanently.  I will allow you to devour all that remains of one of our well-liked but not really beloved ancestors, and no more.  Choose carefully!&quot;
 	&lt;&lt;link [[&quot;Take the Splinter of Serpentarius&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a vile cobra whose venom cut short a thousand thousand warriors&#39; lives before they managed to end his bid for absolute conquest of Fuzziolump.
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;debilitate&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;pierce&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;toxin&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link [[&quot;Take the Splinter of Violet&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a lovely young mink who only truly lived in her final hours when she discovered true solitude, bathed in shadow and cold beneath the cave-in that slowly smothered her.
+	&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;shadowform&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;perfect_stillness&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;savage_sympathy&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link [[&quot;Take the Splinter of Snugg-lor&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a guinea pig priest of pleasure and passion who, during a particularly rowdy drinking game, literally burst with joy.
+	&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;warmest_hug&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;woolly_shield&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;maenad_frenzy&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;/replace&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
@@ -2364,7 +2391,6 @@ $combatArena.combatLogContent
 			&lt;&lt;capture _abilityName, _ability&gt;&gt;
 			&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
 				&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-				 
 					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
@@ -2552,4 +2578,4 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
-&lt;/table&gt;</tw-passagedata><tw-passagedata pid="66" name="Bush_Warren_Council_Exit" tags="conversation" position="12,1924.5" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks,&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata></tw-storydata>
+&lt;/table&gt;</tw-passagedata><tw-passagedata pid="66" name="Bush_Warren_Council_Exit" tags="conversation" position="12,1924" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata></tw-storydata>
