@@ -137,6 +137,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -709,6 +710,20 @@ function Affinities(){
 var playerAffinities = new Affinities();
 */
 
+/**
+An Item is an object that the player can use and/or equip
+*/
+State.variables.Item = function Item(id,name){
+	this.id = id;
+	this.name = name;
+	this.useEffect = function(){console.log("Using the "+this.name+" accomplishes little, but you do look silly.");}
+	this.equipEffect = function(){console.log("You equip the "+this.name+" and now boast an eccentric stylish look.");}
+	this.description = this.name+" is uncannily nondescript -- you've already forgotten its details and you're still looking at it!";
+	// todo: some sort of on-hit effect for weapons?
+}
+
+/// begin global story state dicts ///
+
 // Global Object mapping of prefab Characters
 State.variables.characters = {
 	"player" : new Player(),
@@ -717,6 +732,7 @@ State.variables.characters = {
 	"sheila" : new State.variables.Character("sheila","Sheila"),
 	"council" : new State.variables.Character("council","Council Of Animals"),
 	"marrah" : new State.variables.Character("marrah","Marrah"),
+	"drbeakmen" : new State.variables.Character("drbeakman","Dr. Beakman"),
 	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
 	"puck" : new State.variables.Character("puck","Puck")
 }
@@ -747,6 +763,33 @@ State.variables.rooms = {
 var characters = State.variables.characters;
 alert("player is "+characters["player"].name+", nuvi is "+characters["nuvi"].name+", and shimmerin is "+characters["shimmerin"].name);
 */
+
+/**
+Global dictionary object of public incarnations.  Since The Human can learn any Incarnation, all the Incarnations should be indexed here
+TODO: move the inline definitions of Incarnations from within Character configs to here, and then reference this dict in said configs.
+*/
+State.variables.incarnationsDict = {
+	// from Splinter of Serpentarius
+	"debilitate" : new State.variables.Incarnation("debilitate","Debilitate"),
+	"pierce" : new State.variables.Incarnation("pierce","Pierce"),
+	"toxin" : new State.variables.Incarnation("toxin","Toxin"),
+	// from Splinter of Violet
+	"shadowform" : new State.variables.Incarnation("shadowform","Shadowform"),
+	"perfect_stillness" : new State.variables.Incarnation("perfect_stillness","Perfect Stillness"),
+	"savage_sympathy" : new State.variables.Incarnation("savage_sympathy","Savage Sympathy"),
+	// from Splinter of Snugg-lor
+	"warmest_hug" : new State.variables.Incarnation("warmest_hug","Warmest Hug"),
+	"woolly_shield" : new State.variables.Incarnation("woolly_shield","Woolly Shield"),
+	"maenad_frenzy" : new State.variables.Incarnation("maenad_frenzy","Maenad Frenzy"),
+}
+
+State.variables.itemsDict = {
+	"wicked_axe" : new State.variables.Item("wicked_axe","Wickedly Curved Axe"),
+	"cold_mace" : new State.variables.Item("cold_mace","Inexplicably Cold Mace"),
+	"sawtooth_star_dagger" : new State.variables.Item("sawtooth_star_dagger","Starlight Sawtooth Dagger")
+}
+
+/// end global story state dicts ///
 	
 // establish Player party
 State.variables.party = [State.variables.characters["player"]];
@@ -880,6 +923,32 @@ Config.constructor.prototype.combat = function Combat(){
 Main program init function.  Configures and fleshes out global objects
 */
 function init(){
+	//items
+	
+	var wickedlyCurvedAxe = State.variables.itemsDict["wicked_axe"];
+	wickedlyCurvedAxe.equipEffect = function(targetChar){
+		targetChar.attributes["strength"] += 20;
+	}	
+	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that 'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them'... it's probably nothing.";
+	// todo: bleed status effect on-hit?
+	var coldMace = State.variables.itemsDict["cold_mace"];
+	coldMace.equipEffect = function(targetChar){
+		targetChar.attributes["strength"] += 5;
+		targetChar.attributes["charisma"] -= 10;
+		targetChar.attributes["intelligence"] += 10;
+		targetChar.stats.mp += 10;
+	}
+	coldMace.description = "The very chill that grips the heart of a snowstorm flashes through you as you gingerly touch the haft of this hefty mace.  You feel your concern for other living things dull notably, as an insidiously gentle numbness flows through your soul; in a moment, everything is a simple equation as clear and coldly beautiful as the corpse of a flower entombed within ice.  Your breath mists despite the temperate weather.";
+	var sawtoothDagger = State.variables.itemsDict["sawtooth_star_dagger"];
+	sawtoothDagger.equipEffect = function(targetChar){
+		targetChar.attributes["strength"] = 0;
+		targetChar.attributes["charisma"] += 10;
+		targetChar.attributes["intelligence"] += 10;
+		targetChar.attributes["wisdom"] += 10;
+		targetChar.stats.mp += 20;
+	}
+	sawtoothDagger.description = "Starlight glitters from within this jagged dagger, as if it is a little fragment of a fallen star.  Darkness practically flees from its surface, and in the instant before light fills the void you think you catch a glimpse of something staring back at you from the other side of an unfathomable gulf... and winking.";
+	
 	// status effects
 	
 	/**
@@ -1261,6 +1330,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
