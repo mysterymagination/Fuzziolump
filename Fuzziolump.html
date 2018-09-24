@@ -138,6 +138,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -949,7 +950,46 @@ function init(){
 	}
 	sawtoothDagger.description = "Starlight glitters from within this jagged dagger, as if it is a little fragment of a fallen star.  Darkness practically flees from its surface, and in the instant before light fills the void you think you catch a glimpse of something staring back at you from the other side of an unfathomable gulf... and winking.";
 	
+	// public incarnations
+	
+	// from Splinter of Serpentarius
+	/**
+	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
+	*/
+	var debilitate = State.variables.incarnationsDict["debilitate"];
+	debilitate.calcDmg = function(sourceChar,targetChar){
+		return targetChar.stats.hp*0.1;	
+	}
+	debilitate.effect = function(sourceChar,targetChar){
+		// todo: stub	
+	}
+	"pierce" 
+	"toxin" 
+	
+	// from Splinter of Violet
+	"shadowform" 
+	"perfect_stillness" 
+	"savage_sympathy" 
+	
+	// from Splinter of Snugg-lor
+	"warmest_hug" 
+	"woolly_shield" 
+	"maenad_frenzy" 
+	
 	// status effects
+	/**
+	Defenseless halves a character's defensive attributes 
+	*/
+	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
+	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
+	defenselessStatusEffect.effect = function(targetChar){
+		targetChar.attributes["constitution"] *= 0.5;
+		targetChar.attributes["charisma"] *= 0.5;
+	}
+	doubtStatusEffect.reverseEffect = function(targetChar){
+		targetChar.attributes["strength"] *= 2;
+		targetChar.attributes["charisma"] *= 2;
+	}
 	
 	/**
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
@@ -1330,6 +1370,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
