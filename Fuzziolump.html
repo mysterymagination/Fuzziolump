@@ -417,12 +417,17 @@ State.variables.Character = function Character(id,name){
 	
 	// basic stats, representing character vitality as resources.
 	// In the absence of clear classes, went with ~ avg d10s for level 10
-	// TODO: these and other consumeable resources should show in a HUD drawer
+	// TODO: at least some of these and other consumeable resources should show in a HUD drawer
 	this.stats = {
 		"hp":50,
 		"maxHP":50,
 		"mp":50,
-		"maxMP":50
+		"maxMP":50,
+		// standard jRPG stuff; I'm thinking these will be used as modifiers in dmg formulae, and will be modified by equipment
+		"atk":0,
+		"def":0,
+		"pwr":0,
+		"res":0
 	}
 	
 	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
