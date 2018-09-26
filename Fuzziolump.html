@@ -423,11 +423,19 @@ State.variables.Character = function Character(id,name){
 		"maxHP":50,
 		"mp":50,
 		"maxMP":50,
-		// standard jRPG stuff; I'm thinking these will be used as modifiers in dmg formulae, and will be modified by equipment
-		"atk":0,
-		"def":0,
-		"pwr":0,
-		"res":0
+		// standard jRPG stuff; I'm thinking these will be used as modifiers in dmg formulae, and will be modified by inherent attributes plus equipment
+		"atk":this.attributes["strength"],
+		"def":this.attributes["constitution"],
+		"pwr":this.getMagicAttributeScore(),
+		"res":this.getMagicAttributeScore()
+	}
+	
+	this.getMagicAttributeScore = function(){
+		if(this.attributes["charisma"] >= this.attributes["intelligence"]){
+			return this.attributes["charisma"];	
+		}else{
+			return this.attributes["intelligence"];	
+		}
 	}
 	
 	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
@@ -446,7 +454,10 @@ State.variables.Character = function Character(id,name){
 		// favor the STR since the attacker is the leading participant
 		// todo: yeesh, balance.  I've mixed inspiration from D&D and jRPGs in the stat blocks, and it's starting to shoooow.  Well anyway, CON is a fair stand-in for a DQ style DEF stat.
 		// todo: atk is essentially useless against Puck b/c he has 500 HP and will be taking 5 damage from someone with average STR simply because his CON is average.  Recall that our STR etc. atrributes are based on D&D numbers, and D&D does NOT use same for determining base damage (only modifier).  Base damage D&D-style is a whole other thing I don't wanna get into for this demo.  For demo porpoises, I'd say fudge factors of 2 for STR and 0.25 for CON should be okay.  That way we're looking at 17-ish damage to Puck and 13-ish from him. 
+		/*
 		return sourceCharacter.attributes["strength"]*2 - targetCharacter.attributes["constitution"]/4;
+		*/
+		return sourceCharacter.stats["atk"]*2 - targetCharacter.stats["def"]/4;
 	};
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
 		this.dmg = this.calcDmg(sourceCharacter,targetCharacter);
@@ -461,7 +472,7 @@ State.variables.Character = function Character(id,name){
 		/*
 		TODO: obviously this is borken af, but since Defend is traditionally useless and this is a demo, I like the irony of making it an OP move.  A better impl would be a status buff like Defended or similar that can only be added once instead of stacking endlessly.
 		*/
-		targetCharacter.attributes["defense"] += sourceCharacter.attributes["strength"];
+		targetCharacter.stats["def"] += sourceCharacter.stats["def"];
 	};
 	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
 	this.abilities["run"].generateFlavorText = function(playerParty){
@@ -723,6 +734,7 @@ State.variables.Item = function Item(id,name){
 	this.id = id;
 	this.name = name;
 	this.useEffect = function(){console.log("Using the "+this.name+" accomplishes little, but you do look silly.");}
+	// todo: instead of having a simple one-way equip effect, we need something more structured that can be queried later, e.g. in stat recompute fn (where we want to recompute atk as STR + weapon modifier).  Something that has properties tracking the modifications to attrs or stats.
 	this.equipEffect = function(){console.log("You equip the "+this.name+" and now boast an eccentric stylish look.");}
 	this.description = this.name+" is uncannily nondescript -- you've already forgotten its details and you're still looking at it!";
 	// todo: some sort of on-hit effect for weapons?
@@ -933,53 +945,29 @@ function init(){
 	
 	var wickedlyCurvedAxe = State.variables.itemsDict["wicked_axe"];
 	wickedlyCurvedAxe.equipEffect = function(targetChar){
-		targetChar.attributes["strength"] += 20;
+		targetChar.stats["atk"] += 20;
 	}	
 	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that 'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them'... it's probably nothing.";
 	// todo: bleed status effect on-hit?
 	var coldMace = State.variables.itemsDict["cold_mace"];
 	coldMace.equipEffect = function(targetChar){
-		targetChar.attributes["strength"] += 5;
+		targetChar.stats["atk"] += 5;
 		targetChar.attributes["charisma"] -= 10;
 		targetChar.attributes["intelligence"] += 10;
+		// todo: recompute the pwr/res based on new mental stats
 		targetChar.stats.mp += 10;
 	}
 	coldMace.description = "The very chill that grips the heart of a snowstorm flashes through you as you gingerly touch the haft of this hefty mace.  You feel your concern for other living things dull notably, as an insidiously gentle numbness flows through your soul; in a moment, everything is a simple equation as clear and coldly beautiful as the corpse of a flower entombed within ice.  Your breath mists despite the temperate weather.";
 	var sawtoothDagger = State.variables.itemsDict["sawtooth_star_dagger"];
 	sawtoothDagger.equipEffect = function(targetChar){
-		targetChar.attributes["strength"] = 0;
+		targetChar.stats["atk"] = 0;
 		targetChar.attributes["charisma"] += 10;
 		targetChar.attributes["intelligence"] += 10;
 		targetChar.attributes["wisdom"] += 10;
+		// todo: recompute the pwr/res based on new mental stats
 		targetChar.stats.mp += 20;
 	}
 	sawtoothDagger.description = "Starlight glitters from within this jagged dagger, as if it is a little fragment of a fallen star.  Darkness practically flees from its surface, and in the instant before light fills the void you think you catch a glimpse of something staring back at you from the other side of an unfathomable gulf... and winking.";
-	
-	// public incarnations
-	
-	// from Splinter of Serpentarius
-	/**
-	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
-	*/
-	var debilitate = State.variables.incarnationsDict["debilitate"];
-	debilitate.calcDmg = function(sourceChar,targetChar){
-		return targetChar.stats.hp*0.1;	
-	}
-	debilitate.effect = function(sourceChar,targetChar){
-		// todo: stub	
-	}
-	"pierce" 
-	"toxin" 
-	
-	// from Splinter of Violet
-	"shadowform" 
-	"perfect_stillness" 
-	"savage_sympathy" 
-	
-	// from Splinter of Snugg-lor
-	"warmest_hug" 
-	"woolly_shield" 
-	"maenad_frenzy" 
 	
 	// status effects
 	/**
@@ -988,12 +976,13 @@ function init(){
 	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
 	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
 	defenselessStatusEffect.effect = function(targetChar){
-		targetChar.attributes["constitution"] *= 0.5;
-		targetChar.attributes["charisma"] *= 0.5;
+		targetChar.stats["def"] *= 0.5;
+		targetChar.stats["res"] *= 0.5;
 	}
-	doubtStatusEffect.reverseEffect = function(targetChar){
-		targetChar.attributes["strength"] *= 2;
-		targetChar.attributes["charisma"] *= 2;
+	defenselessStatusEffect.reverseEffect = function(targetChar){
+		// todo: this should get a recompute call that sources attrs and equipment rather than doing a direct reversal like this; otherwise defenseless + any defense buff + ~defenseless -> gt intended buff increase to defenses
+		targetChar.stats["def"] *= 2;
+		targetChar.stats["res"] *= 2;
 	}
 	
 	/**
@@ -1001,12 +990,20 @@ function init(){
 	*/
 	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
 	doubtStatusEffect.effect = function(targetChar){
+		/*
 		targetChar.attributes["strength"] *= 0.5;
 		targetChar.attributes["charisma"] *= 0.5;
+		*/
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["pwr"] *= 0.5;
 	}
 	doubtStatusEffect.reverseEffect = function(targetChar){
+		/*
 		targetChar.attributes["strength"] *= 2;
 		targetChar.attributes["charisma"] *= 2;
+		*/
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["pwr"] *= 2;
 	}
 	
 	/**
@@ -1014,16 +1011,28 @@ function init(){
 	*/
 	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
 	bloodlustStatusEffect.effect = function(targetChar){
+		/*
 		targetChar.attributes["strength"] *= 4;
 		targetChar.attributes["charisma"] *= 0.5;
 		targetChar.attributes["intelligence"] *= 0.5;
 		targetChar.attributes["wisdom"] *= 0.5;
+		*/
+		targetChar.stats["atk"] *= 4;
+		targetChar.stats["pwr"] *= 0.5;
+		targetChar.stats["res"] *= 0.5;
 	}
 	bloodlustStatusEffect.reverseEffect = function(targetChar){
+		/*
 		targetChar.attributes["strength"] *= 0.25;
 		targetChar.attributes["charisma"] *= 2;
 		targetChar.attributes["intelligence"] *= 2;
 		targetChar.attributes["wisdom"] *= 2;
+		*/
+		targetChar.stats["atk"] *= 0.25;
+		targetChar.stats["pwr"] *= 2;
+		targetChar.stats["res"] *= 2;
+		
+		
 	}
 	
 	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
@@ -1040,18 +1049,50 @@ function init(){
 	}
 	terrorStatusEffect.reverseEffect = function(targetChar){}
 	
+	// public incarnations
+	
+	// from Splinter of Serpentarius
+	/**
+	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
+	*/
+	var debilitate = State.variables.incarnationsDict["debilitate"];
+	debilitate.calcDmg = function(sourceChar,targetChar){
+		return targetChar.stats.hp*0.1;	
+	}
+	debilitate.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
+	}
+	"pierce" 
+	"toxin" 
+	
+	// from Splinter of Violet
+	"shadowform" 
+	"perfect_stillness" 
+	"savage_sympathy" 
+	
+	// from Splinter of Snugg-lor
+	"warmest_hug" 
+	"woolly_shield" 
+	"maenad_frenzy" 
+	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
-	puckChar.stats["hp"] = 500;
-	puckChar.stats["mp"] = Infinity;
-	puckChar.stats["maxHP"] = 500;
-	puckChar.stats["maxMP"] = Infinity;
 	puckChar.attributes["strength"] = 8;
 	puckChar.attributes["dexterity"] = 20;
 	puckChar.attributes["constitution"] = 10;
 	puckChar.attributes["intelligence"] = 22;
 	puckChar.attributes["wisdom"] = 6;
 	puckChar.attributes["charisma"] = 20;
+	puckChar.stats["hp"] = 500;
+	puckChar.stats["mp"] = Infinity;
+	puckChar.stats["maxHP"] = 500;
+	puckChar.stats["maxMP"] = Infinity;
+	// todo: these assignments could be replaced with a recompute fn
+	puckChar.stats["atk"] = puckChar.attributes["strength"];
+	puckChar.stats["def"] = puckChar.attributes["constitution"];
+	puckChar.stats["pwr"] = puckChar.getMagicAttributeScore();
+	puckChar.stats["res"] = puckChar.getMagicAttributeScore();
+	// todo: equip Puck?
 	puckChar.entity = new Entity("Vicious Mockery");
 	var rapierWit = new State.variables.Incarnation("Rapier Wit");
 	rapierWit.generateFlavorText = function(sourceChar,targetChar){
@@ -1089,7 +1130,7 @@ function init(){
 	}
 	rapierWit.effect = function(sourceChar,targetChar){
 		targetChar.stats.hp -= rapierWit.calcDmg(sourceChar,targetChar);
-		State.variables.addUniqueStatusEffect(targetChar,rapierWit);
+		State.variables.addUniqueStatusEffect(targetChar,doubtStatusEffect);
 	}
 	puckChar.incarnations["rapier_wit"] = rapierWit;
 	
@@ -1100,7 +1141,7 @@ function init(){
 	rainOfRadiance.targetType = rainOfRadiance.TargetTypesEnum.allEnemies;
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
-		return 5*State.variables.calcMod(sourceChar.attributes["intelligence"])
+		return 5*State.variables.calcMod(sourceChar.stats["pwr"])
 	}
 	/**
 	Rain of Radiance expects an array of target chars since it hits all enemies
@@ -1155,7 +1196,7 @@ function init(){
 				for(let player of playerParty){
 					
 					// overwrite player with least defense if applicable
-					if(player.attributes["defense"] < playerLeastDefense.attributes["defense"]){
+					if(player.stats["def"] < playerLeastDefense.stats["def"]){
 						playerLeastDefense = player;	
 					}
 					
