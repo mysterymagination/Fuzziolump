@@ -616,13 +616,17 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	// tick down status effects
 	for(let enemyChar of this.enemyParty){
 			for(let effect of enemyChar.statusEffects){
-				// process top of stateffects with variable effects per round
+				// process top of stateffects with variable or triggered effects per round
 				if(effect.id === "terror"){
 					// terror's effect will roll percentage, with 35% to skip this turn
 					if(effect.effect()){
 						enemyChar.combatFlags |= enemyChar.CombatFlags.FLAG_SKIP_TURN;	
 					}
 				}
+				else if(effect.id === "poison"){
+					enemyChar.stats["hp"] -= enemyChar.stats["maxHP"]*0.1; 	
+				}
+				
 				
 				effect.tickDown();
 				if(effect.ticks <= 0){
@@ -769,6 +773,10 @@ State.variables.statusEffectsDict = {
 	Terror gives a 35% chance to do nothing but shiver in fear
 	*/
 	"terror" : new State.variables.StatusEffect("terror","Terror",5)
+	/**
+	Poison inflicts 5% health dmg each turn, and helaves atk/def
+	*/
+	"poison" : new State.variables.StatusEffect("poison","Poison",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1049,6 +1057,19 @@ function init(){
 	}
 	terrorStatusEffect.reverseEffect = function(targetChar){}
 	
+	/**
+	Poison deals dmg each turn and halves atk/def stats
+	*/
+	var poisonStatusEffect = State.variables.statusEffectsDict["poison"];
+	poisonStatusEffect.effect = function(targetChar){
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["def"] *= 0.5;
+	}
+	poisonStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["def"] *= 2;
+	}
+	
 	// public incarnations
 	
 	// from Splinter of Serpentarius
@@ -1062,8 +1083,26 @@ function init(){
 	debilitate.effect = function(sourceChar,targetChar){
 		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
 	}
-	"pierce" 
-	"toxin" 
+	/**
+	Pierce is a physical strike for which atk bypasses def
+	*/
+	var pierceIncarnation = State.variables.incarnationsDict["pierce"];
+	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["atk"];		
+	}
+	pierceIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+	}
+	var toxinIncarnation = State.variables.incarnationsDict["toxin"];
+	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["pwr"]-targetChar.stats["res"];		
+	}
+	toxinIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		State.variables.addUniqueStatusEffect(targetChar,poisonStatusEffect);
+	}
 	
 	// from Splinter of Violet
 	"shadowform" 
