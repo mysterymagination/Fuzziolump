@@ -139,6 +139,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -772,11 +773,15 @@ State.variables.statusEffectsDict = {
 	/**
 	Terror gives a 35% chance to do nothing but shiver in fear
 	*/
-	"terror" : new State.variables.StatusEffect("terror","Terror",5)
+	"terror" : new State.variables.StatusEffect("terror","Terror",5),
 	/**
 	Poison inflicts 5% health dmg each turn, and helaves atk/def
 	*/
-	"poison" : new State.variables.StatusEffect("poison","Poison",3)
+	"poison" : new State.variables.StatusEffect("poison","Poison",3),
+	/**
+	Shadow makes the affected character immune to physical dmg
+	*/
+	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -949,6 +954,9 @@ Config.constructor.prototype.combat = function Combat(){
 Main program init function.  Configures and fleshes out global objects
 */
 function init(){
+	
+	// todo: Incarnations need to have an MP cost!
+	
 	//items
 	
 	var wickedlyCurvedAxe = State.variables.itemsDict["wicked_axe"];
@@ -1070,6 +1078,15 @@ function init(){
 		targetChar.stats["def"] *= 2;
 	}
 	
+	var shadowStatusEffect = State.variables.statusEffectsDict["shadow"];
+	shadowStatusEffect.effect = function(targetChar){
+		this.cachedDef = targetChar.stats["def"];
+		targetChar.stats["def"] = Infinity;
+	}
+	shadowStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["def"] = this.cachedDef;
+	}
+	
 	// public incarnations
 	
 	// from Splinter of Serpentarius
@@ -1083,6 +1100,9 @@ function init(){
 	debilitate.effect = function(sourceChar,targetChar){
 		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
 	}
+	debilitate.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" narrows "+sourceChar.getPronoun_gen()+" eyes, shining with cruel malice, at "+targetChar.name+".  Space distorts mildly, constricting around and through "+targetChar.name+", and "+targetChar.getPronoun_gen()+" presence seems to diminish substantially!";	
+	}
 	/**
 	Pierce is a physical strike for which atk bypasses def
 	*/
@@ -1094,6 +1114,10 @@ function init(){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats["hp"] -= this.dmg;
 	}
+	pierceIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name" smoothly reaches directly into "+targetChar.name+"'s soul, and fiddles around a little.  "+targetChar.name+" does not appreciate this, emphatically, to the tune of "+this.dmg+" delicious damages!";	
+	}
+	
 	var toxinIncarnation = State.variables.incarnationsDict["toxin"];
 	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["pwr"]-targetChar.stats["res"];		
@@ -1103,9 +1127,24 @@ function init(){
 		targetChar.stats["hp"] -= this.dmg;
 		State.variables.addUniqueStatusEffect(targetChar,poisonStatusEffect);
 	}
+	toxinIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return "An aura of gleaming electric purple light, striated with the cheerily deadly greenish glow of radioactivity, surrounds "+sourceChar.name+" as "+sourceChar.getPronoun_gen()+" fevered will infects "+targetChar.name+".";	
+	}
 	
 	// from Splinter of Violet
-	"shadowform" 
+	/**
+	Shadowform makes the character immune to physical damage.  
+	TODO: add a physical/magic damage typing system.  For now, we'll just make def infinite.
+	*/
+	var shadowFormIncarnation = State.variables.incarnationsDict["shadowform"];
+	shadowFormIncarnation.targetType = shadowFormIncarnation.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
+	shadowFormIncarnation.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
+	}
+	shadowFormIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return "Shadows dance free of their source lights, and embrace "+sourceChar.name+" warmly.  Velvet darkness spreads over "+sourceChar.getPronoun_gen()+" body, and "+sourceChar.getPronoun_nom()+" relaxes into oneness with the infinite possibilities of undefinition; "+sourceChar.getPronoun_nom()+" seems almost ethereal now.";	
+	}
+	
 	"perfect_stillness" 
 	"savage_sympathy" 
 	
@@ -1455,6 +1494,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
