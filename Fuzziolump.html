@@ -141,6 +141,8 @@
 
 
 
+
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -628,6 +630,9 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 				else if(effect.id === "poison"){
 					enemyChar.stats["hp"] -= enemyChar.stats["maxHP"]*0.1; 	
 				}
+				else if(effect.id === "regen"){
+					State.variables.statusEffectsDict["regen"].effect(enemyChar);	
+				}
 				
 				
 				effect.tickDown();
@@ -650,6 +655,9 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 					if(effect.effect()){
 						playerChar.combatFlags |= playerChar.CombatFlags.FLAG_SKIP_TURN;	
 					}
+				}
+				else if(effect.id === "regen"){
+					State.variables.statusEffectsDict["regen"].effect(playerChar);	
 				}
 				
 				effect.tickDown();
@@ -783,6 +791,10 @@ State.variables.statusEffectsDict = {
 	Shadow makes the affected character immune to physical dmg
 	*/
 	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3)
+	/**
+	Regen heals each turn
+	*/
+	"regen" : new State.variables.StatusEffect("regen","Regen",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1001,6 +1013,15 @@ function init(){
 		targetChar.stats["def"] *= 2;
 		targetChar.stats["res"] *= 2;
 	}
+	
+	/**
+	Regen heals a character by their RES each turn
+	*/
+	var regenStatusEffect = State.variables.statusEffectsDict["regen"];
+	regenStatusEffect.effect = function(targetChar){
+		targetChar.stats["hp"] += targetChar.stats["res"];
+	}
+	regenStatusEffect.reverseEffect = function(targetChar){}
 	
 	/**
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
@@ -1530,8 +1551,9 @@ function init(){
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
-	var hauntedFey = new State.variables.Incarnation("Haunted Fey");
+	var hauntedFey = new State.variables.Incarnation("haunted_fey","Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
+	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
 	hauntedFey.effect = function(sourceChar,targetChar){
 		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
 		// effect will be called on the Incarnation instance, so this should be bound to same
@@ -1544,8 +1566,9 @@ function init(){
 		return sourceChar.name"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
 	}
 	
-	var foxFire = new State.variables.Incarnation("Fox Fire");
+	var foxFire = new State.variables.Incarnation("fox_fire","Fox Fire");
 	marrahChar.incarnations["fox_fire"] = foxFire;
+	foxFire.targetType = foxFire.TargetTypesEnum.singleEnemy;
 	foxFire.calcDmg = function(sourceChar,targetChar){
 		// dmg based on source's cur:max MP ratio
 		var magicRat = sourceChar.stats.mp/sourceChar.stats.maxMP;
@@ -1569,8 +1592,9 @@ function init(){
 			targetChar.stats.hp -= this.dmg;
 	}
 		
-	var ghostWhip = new State.variables.Incarnation("Ghost Whip");
+	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
 	marrahChar.incarnations["ghost_whip"] = ghostWhip;
+	ghostWhip.targetType = ghostWhip.TargetTypesEnum.singleEnemy;
 	ghostWhip.calcDmg = function(sourceChar,targetChar,aspect){
 		if(aspect === "meat"){
 			// CHA vs. CON to damage HP and give half to source
@@ -1592,9 +1616,37 @@ function init(){
 	}
 	ghostWhip.generateFlavorText = function(sourceChar,targetChar){
 		// todo: reference hpDmg and mpDmg instead of dmg!
+		return "A whip of pale iridescent light appears in "+sourceChar.name+"'s paw, and "+sourceChar.getPronoun_nom()+" cracks it with a liquid flourish, shattering stillness.  "+targetChar.name+" recoils in horror as the whip passes through "+targetChar.getPronoun_gen()+" body and appears to wrap directly around "+targetChar.getPronoun_gen()+" heart.  A goofy grin crawls across "+sourceChar.name+"'s face as the light of will and life pulses back along the whip to "+sourceChar.getPronoun_obj()+" like blood through a glutted leech.  That'll be "+this.hpDmg+" damage to "+targetChar.getPronoun_gen()+" body and "+this.mpDmg+" to "+targetChar.getPronoun_gen()+" mind!";
 	}
-	//var fireClaw
+	
+	/**
+	Fire Claw combines Incarnation power with physical attack power to inflict heavy damage
+	*/
+	var fireClawIncarnation = new State.variables.Incarnation("fire_claw","Fire Claw");
+		marrahChar.incarnations["fire_claw"] = fireClawIncarnation;
+		fireClawIncarnation.targetType = fireClawIncarnation.TargetTypesEnum.singleEnemy;
+		fireClawIncarnation.calcDmg = function(sourceChar,targetChar){
+				return sourceChar.stats["pwr"]+sourceChar.stats["atk"];
+		}
+		fireClawIncarnation.effect = function(sourceChar,targetChar){
+				this.dmg = this.calcDmg(sourceChar,targetChar);
+				targetChar.stats["hp"] -= this.dmg;
+		}
+		fireClawIncarnation.generateFlavorText = function(sourceChar,targetChar){
+			// todo: add randomness to abl text, modified by wielder and maybe target descriptor tags
+			// todo: add non-Marrah text
+			
+			// Marrah specific text
+			return "Marrah spins in a blur of scarlet and as the sheer frenzy of her motion whips up wind around her, a bonfire of pure passion erupts from nowhere and wraps her in a gorgeously deadly veil.  In the midst of a blinding nova through which only the sleek curves of her silhouette can be seen, she halts with a flourish and extends a slender arm flirtatiously towards "+targetChar.name+", crooking a finger in all-too-warm invitation.  The wild nova gathers itself into tongues that lick their languid way over her body to coalesce around her arm.  Before "+targetChar.getPronoun_nom()+" can flee, she darts forward and slashes "+targetChar.getPronoun_obj()+" with flaming claws that dig out grisly-deep tracks of sizzling flesh!";
+		}
 		
+	var mootyChar = State.variables.characters["mooty"];
+	var drbeakmanChar = State.variables.characters["drbeakman"];
+	
+	/* // todo: add these guys later, post-demo
+	var nuviChar = State.variables.characters["nuvi"];
+	var shimmerinChar = State.variables.characters["shimmerin"];
+	*/
 	
 	
 	
@@ -1603,6 +1655,8 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
+
 
 
 
