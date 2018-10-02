@@ -143,6 +143,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -507,6 +508,11 @@ State.variables.Character = function Character(id,name){
 	
 	// combat status effects; these are temporary and only relevant to combat
 	this.statusEffects = [];
+	
+	/**
+	Boolean flag indicating whether or not the character is alive for the purposes of combat
+	*/
+	this.living = true;
 	
 	// arbitrary PoT bitfield used to raise/lower various combat-related flags for this Character
 	this.combatFlags = 0;
@@ -1012,6 +1018,43 @@ function init(){
 		// todo: this should get a recompute call that sources attrs and equipment rather than doing a direct reversal like this; otherwise defenseless + any defense buff + ~defenseless -> gt intended buff increase to defenses
 		targetChar.stats["def"] *= 2;
 		targetChar.stats["res"] *= 2;
+	}
+	
+	/**
+	Temper provides a simple ATK*2 for 3 turns
+	*/
+	var temperStatusEffect = State.variables.statusEffectsDict["temper"];
+	temperStatusEffect.effect = function(targetChar){
+		targetChar.stats["atk"] *= 2;
+	}
+	temperStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["atk"] *= 0.5;
+	}
+	
+	/**
+	Focus provides a simple PWR*2 for 3 turns
+	*/
+	var focusStatusEffect = State.variables.statusEffectsDict["focus"];
+	focusStatusEffect.effect = function(targetChar){
+		targetChar.stats["pwr"] *= 2;
+	}
+	focusStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["pwr"] *= 0.5;
+	}
+	
+	/**
+	Third Eye provides a PWR*4 at cost of ATK/2 and DEF/2 for 3 turns
+	*/
+	var thirdEyeStatusEffect = State.variables.statusEffectsDict["third_eye"];
+	thirdEyeStatusEffect.effect = function(targetChar){
+		targetChar.stats["pwr"] *= 4;
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["def"] *= 0.5;
+	}
+	thirdEyeStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["pwr"] *= 0.25;
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["def"] *= 2;
 	}
 	
 	/**
@@ -1641,11 +1684,139 @@ function init(){
 		}
 		
 	var mootyChar = State.variables.characters["mooty"];
-	var drbeakmanChar = State.variables.characters["drbeakman"];
+	mootyChar.gender = "male";
+	mootyChar.stats["hp"] = 65;
+	mootyChar.stats["mp"] = 50;
+	mootyChar.stats["maxHP"] = 65;
+	mootyChar.stats["maxMP"] = 50;
+	mootyChar.attributes["strength"] = 18;
+	mootyChar.attributes["dexterity"] = 8;
+	mootyChar.attributes["constitution"] = 14;
+	mootyChar.attributes["intelligence"] = 12;
+	mootyChar.attributes["wisdom"] = 20;
+	mootyChar.attributes["charisma"] = 13;
+	mootyChar.entity = new Entity("Burrower");
 	
-	/* // todo: add these guys later, post-demo
-	var nuviChar = State.variables.characters["nuvi"];
+	// todo: all these private Incarnations should be moved to the public Incarnations dict, unless there is some reason The Human should not be able to learn them
+		
+		/**
+		Regenerator adds regen to the target
+		*/
+	var regeneratorIncarnation = new State.variables.Incarnation("regenerator","Regenerator");
+		mootyChar.incarnations["regenerator"] = regeneratorIncarnation;
+		regeneratorIncarnation.targetType = regeneratorIncarnation.TargetTypesEnum.singleAlly;
+		regeneratorIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["regen"]);	
+		}
+		regeneratorIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" pours "+sourceChar.getPronoun_gen()+" empathy and will to protect into a tangible force, and it forms a gossamer veil that sparkles as if cut from sapphire around "+targetChar.name;
+		}
+		/**
+		Spring Rain heals the entire party
+		*/
+	var springRainIncarnation = new State.variables.Incarnation("spring_rain","Spring Rain");
+		mootyChar.incarnations["spring_rain"] = springRainIncarnation;
+		springRainIncarnation.targetType = springRainIncarnation.TargetTypesEnum.allAllies;
+		springRainIncarnation.calcDmg = function(sourceChar,targetChar){
+			// healed based on the wielder's pwr and how much the wielder likes the target
+			return sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id];
+		}
+		springRainIncarnation.effect = function(sourceChar,targetChars){
+			for(let targetChar of targetChars){
+				targetChar.stats["hp"] += this.calcDmg(sourceChar,targetChar);
+			}
+		}
+		springRainIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return "A friendly little cloud whose only stormy spots seem to form a smiling expression gathers over the party as "+sourceChar.name+" extols "+sourceChar.getPronoun_gen()+" love for them.  Warm revitalizing rain washes over the party, closing wounds and raising spirits all around!";
+		}
+		
+		/**
+		Grief Howl returns a deceased ally to life  
+		*/
+	var griefHowlIncarnation = new State.variables.Incarnation("grief_howl","Grief Howl");
+		mootyChar.incarnations["grief_howl"] = griefHowlIncarnation;
+		griefHowlIncarnation.targetType = griefHowlIncarnation.TargetTypesEnum.singleAlly;
+		griefHowlIncarnation.calcDmg = function(sourceChar,targetChar){
+			// healed for maxHP/2 plus how much the wielder likes the target
+			return targetChar.stats["maxHP"]/2+targetChar.affinities[sourceChar.id];
+		}
+		griefHowlIncarnation.effect = function(sourceChar,targetChar){
+			// remove dead status and heal for calcDmg()
+			targetChar.living = true;
+			
+			// first return HP to 0 baseline
+			targetChar.stats["hp"] = 0;
+			
+			// then heal based on calcDmg()
+			targetChar.stats["hp"] += this.calcDmg(sourceChar,targetChar);
+			
+			// todo: check living status during combat and when heals/dmg/targeting occurs (specifically for the demo with only a single enemy relative to the player: allAllies abilities should not hit nonliving party members, singleAlly abilities should not be able to target them, runAI()::singleEnemy should not choose them as target, and runAI()::allEnemies should not hit nonliving targets).
+		}
+		griefHowlIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" tosses back "+sourceChar.getPronoun_gen()+" head and howls at the sky, mourning the loss of "+targetChar.name+".  The weight of "+sourceChar.getPronoun_gen()+" grief is so overwhelming that reality staggers beneath it, and buckles just enough that "+targetChar.name+"'s spirit can escape the jaws of Death!";
+		}
+		
+	var drbeakmanChar = State.variables.characters["drbeakman"];
+	drbeakmanChar.gender = "male";
+	drbeakmanChar.stats["hp"] = 45;
+	drbeakmanChar.stats["mp"] = 65;
+	drbeakmanChar.stats["maxHP"] = 45;
+	drbeakmanChar.stats["maxMP"] = 65;
+	drbeakmanChar.attributes["strength"] = 8;
+	drbeakmanChar.attributes["dexterity"] = 10;
+	drbeakmanChar.attributes["constitution"] = 10;
+	drbeakmanChar.attributes["intelligence"] = 24;
+	drbeakmanChar.attributes["wisdom"] = 10;
+	drbeakmanChar.attributes["charisma"] = 10;
+	drbeakmanChar.entity = new Entity("Tactitian");
+	
+	/**
+		Vibroblade adds a chainsaw-like kinetic force to the target's weapon! (gives temper status effect)
+		*/
+	var vibrobladeIncarnation = new State.variables.Incarnation("vibroblade","Vibroblade");
+		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
+		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
+		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["temper"]);	
+		}
+		vibrobladeIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: need a 'get appendages' method that checks the descriptor array for tags that might hint at appendages.  Could even go into more detail with descriptors that are categorized to different details like the character's morphology, and have a subsection for appendages
+			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+(sourceChar.descriptors.includes("bird")?"wings":"paws")+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
+		} 
+		
+	/**
+		Laser Sight adds Focus status effect
+		*/
+	var laserSightIncarnation = new State.variables.Incarnation("laser_sight","Laser Sight");
+		drbeakmanChar.incarnations["laser_sight"] = laserSightIncarnation;
+		laserSightIncarnation.targetType = laserSightIncarnation.TargetTypesEnum.singleAlly;
+		laserSightIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["focus"]);	
+		}
+		laserSightIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: focus on ether in the surrounding env
+			return "Time slows down for "+targetChar.name" as "+sourceChar.name+" shows "+targetChar.getPronoun_obj()+" how to pull back the veil of our reality and see what lies behind.  The secrets of the universe fell somewhat closer!";
+		}
+		
+	/**
+		Fey Touch adds Third Eye status effect
+		*/
+	var feyTouchIncarnation = new State.variables.Incarnation("fey_touch","Fey Touch");
+		drbeakmanChar.incarnations["fey_touch"] = feyTouchIncarnation;
+		feyTouchIncarnation.targetType = feyTouchIncarnation.TargetTypesEnum.singleAlly;
+		feyTouchIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["third_eye"]);	
+		}
+		feyTouchIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: fey granting understanding of multiverse
+			return "";
+		}
+		
 	var shimmerinChar = State.variables.characters["shimmerin"];
+	
+	/* // todo: consider adding Nuvi as a combat character post-demo
+	var nuviChar = State.variables.characters["nuvi"];
+	
 	*/
 	
 	
@@ -1655,6 +1826,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
