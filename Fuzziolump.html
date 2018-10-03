@@ -144,6 +144,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1573,6 +1574,8 @@ function init(){
 			 }
 			/// end defaults block ///
 				
+				//todo: take advantage of dynamic typing and have the abl and target stored in vars above, and then apply them here where at a single point they can easily potentially be reset due to Confuse.
+				
 			}// if role is enemy
 		}// if role is defined
 	}//end Puck AI def
@@ -1809,10 +1812,44 @@ function init(){
 		}
 		feyTouchIncarnation.generateFlavorText = function(sourceChar, targetChar){
 			// todo: fey granting understanding of multiverse
-			return "";
+			return "As "+sourceChar.name+"'s eyes gleam in the direction of "+targetChar.name+", a portal to some place primordial, intense, and above all WILD rends reality in front of "+targetChar.getPronoun_obj()+".  A storm of beings emerge, each shimmering and distorted as a sort of veil of impossibility makes it difficult to focus on them.  The wind of whimsy weaves its way around "+targetChar.name+" for a few moments, then abruptly vanishes along with the portal it (they?) came through.  "+targetChar.name+" looks mostly unaffected, though a feral hunger lurks behind "+targetChar.getPronoun_nom()+" eyes.";
 		}
 		
 	var shimmerinChar = State.variables.characters["shimmerin"];
+	shimmerinChar.gender = "female";
+	shimmerinChar.stats["hp"] = 30;
+	shimmerinChar.stats["mp"] = 80;
+	shimmerinChar.stats["maxHP"] = 30;
+	shimmerinChar.stats["maxMP"] = 80;
+	shimmerinChar.attributes["strength"] = 6;
+	shimmerinChar.attributes["dexterity"] = 20;
+	shimmerinChar.attributes["constitution"] = 6;
+	shimmerinChar.attributes["intelligence"] = 18;
+	shimmerinChar.attributes["wisdom"] = 10;
+	shimmerinChar.attributes["charisma"] = 24;
+	shimmerinChar.entity = new Entity("Whimsy of Wind");
+	
+	/**
+		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation. 
+		*/
+	var vibrobladeIncarnation = new State.variables.Incarnation("vibroblade","Vibroblade");
+		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
+		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
+		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["temper"]);	
+		}
+		vibrobladeIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: need a 'get appendages' method that checks the descriptor array for tags that might hint at appendages.  Could even go into more detail with descriptors that are categorized to different details like the character's morphology, and have a subsection for appendages
+			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+(sourceChar.descriptors.includes("bird")?"wings":"paws")+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
+		} 
+		
+	/**
+	Phantasmagoria: whimsical breath full of wonder and horror inextricably merged washes over the foebeasts, damaging and confusing them! (Confused status effect causes 50% chance that whatever abl the confused character chooses to use will be targeted at themselves instead of the original target)	
+	*/
+		
+	/**
+	Caress of the Zephyr: teases, titillates, and slashes a target.  Deals dmg equal to pwr*2 - def/2 and charms the target (charm makes it so that the target cannot harm the charming character)
+	*/
 	
 	/* // todo: consider adding Nuvi as a combat character post-demo
 	var nuviChar = State.variables.characters["nuvi"];
@@ -1826,6 +1863,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
