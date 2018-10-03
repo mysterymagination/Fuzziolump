@@ -145,6 +145,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -198,6 +199,21 @@ State.variables.addUniqueStatusEffect = function(character,effect){
 }
 
 /**
+Applies the combat status effect to the given target character, adding it to their list of statuses and triggering its effect fn.
+The source character is the one who inflicted the status; this function should be used when a status effect's effect depends on the inflicting character.
+@param sourceCharacter the one who inflicted the status
+@param targetCharacter the recipient of the effect
+@param effect the status effect to apply
+*/
+State.variables.addUniqueStatusEffectWithSource = function(sourceCharacter, targetCharacter,effect){
+	var statuses = targetCharacter.statusEffects;
+	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		statuses.push(effectUnderTest);
+		effect.effect(sourceCharacter,targetCharacter);
+	}
+}
+
+/**
 Checks a given character for a given statyus effect
 @param character the Character under test
 @param effect the StatusEffect we're looking for
@@ -210,6 +226,17 @@ State.variables.hasStatusEffect = function(character,effect){
 	}else{
 		return false;	
 	}
+}
+
+/**
+Checks a given character for a given status effect and returns the discovered status effect instance
+@param character the Character under test
+@param effectId the ID of the StatusEffect we're looking for
+@return the status effect instance if found, otherwise undefined
+*/
+State.variables.getStatusEffect = function(character,effectId){
+	var statuses = character.statusEffects;
+	return statuses.find(effectUnderTest => effectId === effectUnderTest.id);
 }
 
 // find index of a particular character id in a character array
@@ -620,6 +647,14 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	// the text feedback to the user re: the state of combat
 	this.combatLogContent = "Kombat Time!";
 	
+	this.randoCombatantExcept = function(exceptCharacter){
+		var combatants = this.enemyParty.concat(this.playerParty);
+		var eligibleCombatants = this.combatants.filter(combatant => combatant.id != exceptCharacter.id);
+		var unluckyIndex = Math.floor(Math.random() * eligibleCombatants.length);
+		return eligibleCombatants[unluckyIndex];
+		
+	}
+	
 	/**
 	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
 	*/
@@ -797,11 +832,19 @@ State.variables.statusEffectsDict = {
 	/**
 	Shadow makes the affected character immune to physical dmg
 	*/
-	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3)
+	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3),
 	/**
 	Regen heals each turn
 	*/
-	"regen" : new State.variables.StatusEffect("regen","Regen",3)
+	"regen" : new State.variables.StatusEffect("regen","Regen",3),
+	/**
+	Confuse causes the AI to 50% redirct its chosen abl at itself
+	*/
+	"confuse" : new State.variables.StatusEffect("confuse","Confusion",3),
+	/**
+	Charm causes the afflicted character to be unable to target the character who charmed them with harmful abilities
+	*/
+	"charm" : new State.variables.StatusEffect("charm","Charm",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1153,6 +1196,21 @@ function init(){
 		targetChar.stats["def"] = this.cachedDef;
 	}
 	
+	var confuseStatusEffect = State.variables.statusEffectsDict["confuse"];
+	confuseStatusEffect.effect = function(targetChar){
+		return State.variables.rollPercentage() > 50;
+	}
+	confuseStatusEffect.reverseEffect = function(targetChar){}
+	
+	var charmStatusEffect = State.variables.statusEffectsDict["charm"];
+	charmStatusEffect.effect = function(sourceChar,targetChar){
+		// set the id of the forbidden target for this effect instance
+		this.sourceCharacterId = sourceChar.id;
+	}
+	charmStatusEffect.reverseEffect = function(targetChar){
+		this.sourceCharacterId = undefined;
+	}
+	
 	// public incarnations
 	
 	// from Splinter of Serpentarius
@@ -1425,6 +1483,8 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
+				var chosenAbility = "";
+				var chosenTarget = "";
 				/* todo: Puck enemy AI behavior	
 					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
 					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
@@ -1492,43 +1552,65 @@ function init(){
 						// if the player char with least def is bloodied...
 						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
 							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
+							/*
 							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
 							combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 							return;
+							*/
+							chosenAbility = puckChar.abilities["attack"];
+							chosenTarget = playerLeastDefense;
 						}else{
 							// Puck doesn't have bloodlust yet, so get it!
+								/*
 								puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);
 							combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
+							
 							return;
+							*/
+							chosenAbility = puckChar.incarnations["swords_dance"];
+							chosenTarget = puckChar;
 						}
 					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
 					// hit the latest player with a buff with debuff to balance the ol' scales
 					if(playerWithTargetBuff){
 							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
-							puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
+							
+/*								puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
 								combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
 								return;
-						}// end if player with target buff already has doubt
+								*/
+								chosenAbility = puckChar.incarnations["rapier_wit"];
+								chosenTarget = playerWithTargetBuff;
+						}// end if player with target buff does not already have doubt
 						else if(anyPlayerOffenseBuffed){
 							// presumably in this case every character with an offensive buff already has doubt.  With our scale balancing work done, just fry 'em with Rain of Radiance!
-							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+							
+/*							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
 							combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 							return;
+							*/
+							chosenAbility = puckChar.incarnations["rain_of_radiance"];
+							chosenTarget = combat.playerParty;
 						}
 					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
-							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+							
+/*						puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
 						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 						return;
+						*/
+						chosenAbility = puckChar.incarnations["rain_of_radiance"];
+						chosenTarget = combat.playerParty;
 					}
 				}
 				
 				/// end story scenario mod proc ///
 				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
+			if(chosenAbility === "" && chosenTarget === ""){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
@@ -1541,40 +1623,86 @@ function init(){
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
-			puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+			
+/*					puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
 					combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 					return;
+					*/
+					chosenAbility = puckChar.abilities["attack"];
+					chosenTarget = playerLeastDefense;
 				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
-					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
+					
+/*					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
 					combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
 					return;
+					*/
+					chosenAbility = puckChar.incarnations["rapier_wit"];
+					chosenTarget = playerRandoTarget;
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
 					
-					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
+					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					
+/*						puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
 																																																				combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
 																																																				return;
+																																																				*/
+						chosenAbility = puckChar.incarnations["swords_dance"];
+						chosenTarget = puckChar;
 																																								}else{
 
 						// Puck already has Bloodlust, so do the atk strat
-																																									puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+																																									
+																																			/*						puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
 																																									combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
 																																								return;
+																																									*/
+																																									chosenAbility = puckChar.abilities["attack"];
+																																									chosenTarget = playerLeastDefense;
 																																								}
 				}else{
-					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+					
+/*					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
 					combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 					return;
+					*/
+					chosenAbility = puckChar.incarnations["rain_of_radiance"];
+					chosenTarget = combat.playerParty;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
 			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
-				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+				 
+/*				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
 				 combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 				 return;
+				 */
+				 chosenAbility = puckChar.incarnations["rain_of_radiance"];
+				 chosenTarget = combat.playerParty;
 			 }
+			} // end if abl and target are not yet chosen, landing us in defaults
 			/// end defaults block ///
 				
-				//todo: take advantage of dynamic typing and have the abl and target stored in vars above, and then apply them here where at a single point they can easily potentially be reset due to Confuse.
+				// todo: consider finding a way to wrap specific AI in common AI handling, such that confusion/charm etc. handling like this can be common to all characters' AI scripts.
+		
+// todo: if confused, reassign chosenTarget with 50% self-target and 50% original target(s)
+				// todo: this reassignment would ideally take ability target types into account
+				if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["confuse"])){
+					
+// confuse's effect is to roll percentage and return true if value is > 50
+					if(State.variables.getStatusEffect(puckChar,"confuse").effect()){
+						chosenTarget = puckChar;	
+					}
+			}
+			else if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["charm"])){
+				var charmStatusInstance = State.variables.getStatusEffect(puckChar,"charm");
+				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
+					if(chosenTarget.id === charmingCharacterId){
+						 // rando reassign to someone other than charming character
+						chosenTarget = combat.randoCombatantExcept(charmingCharacterId);
+					}
+			}
+				
+				chosenAbility.effect(puckChar,chosenTarget);
+				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,chosenTarget);
 				
 			}// if role is enemy
 		}// if role is defined
@@ -1830,26 +1958,66 @@ function init(){
 	shimmerinChar.entity = new Entity("Whimsy of Wind");
 	
 	/**
-		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation. 
+		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation (using the character who cast the Wall Incarnation as the sourceChar). 
 		*/
-	var vibrobladeIncarnation = new State.variables.Incarnation("vibroblade","Vibroblade");
-		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
-		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
-		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["temper"]);	
+	var wallOfWonderIncarnation = new State.variables.Incarnation("wall_of_wonder","Wall of Wonder");
+		shimmerinChar.incarnations["wall_of_wonder"] = wallOfWonderIncarnation;
+		wallOfWonderIncarnation.cost = {"mp":35}
+		wallOfWonderIncarnation.targetType = wallOfWonderIncarnation.TargetTypesEnum.allAllies;
+		wallOfWonderIncarnation.effect = function(sourceChar,targetChar){
+			// todo: need something like a statuseffect that triggers based on an event (e.g. someone targeting this character with a harmful ability) rather than expires over time
+			
+			this.processCost(sourceChar);
 		}
-		vibrobladeIncarnation.generateFlavorText = function(sourceChar, targetChar){
-			// todo: need a 'get appendages' method that checks the descriptor array for tags that might hint at appendages.  Could even go into more detail with descriptors that are categorized to different details like the character's morphology, and have a subsection for appendages
-			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+(sourceChar.descriptors.includes("bird")?"wings":"paws")+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
+		wallOfWonderIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" grins broadly and begins dancing about in the air in impossibly complex patterns.  A faint trail of light lingers where "+sourceChar.getPronoun_nom()+" passes, giving the impression that "+sourceChar.name+" is painting a glorious tableau with extreme haste.  Soon, the tableau becomes a tableau vivant: lights pull together into vague and curious forms, and then beging to move of their own volition.  By the time "+sourceChar.getPronoun_nom()+"'s finished, there is a small world of magnificent and terrible things zooming about in front of the party.  Their attention, one and all, is locked upon "+sourceChar.name+"'s foes!";
 		} 
 		
 	/**
 	Phantasmagoria: whimsical breath full of wonder and horror inextricably merged washes over the foebeasts, damaging and confusing them! (Confused status effect causes 50% chance that whatever abl the confused character chooses to use will be targeted at themselves instead of the original target)	
 	*/
+		var phantasmagoriaIncarnation = new State.variables.Incarnation("phantasmagoria","Phantasmagoria");
+		shimmerinChar.incarnations["phantasmagoria"] = phantasmagoriaIncarnation;
+		phantasmagoriaIncarnation.cost = {"mp":20}
+		phantasmagoriaIncarnation.targetType = phantasmagoriaIncarnation.TargetTypesEnum.singleEnemy;
+		phantasmagoriaIncarnation.calcDmg = function(sourceChar,targetChar){
+			return sourceChar.stats["pwr"] - targetChar.stats["res"];
+		}
+		phantasmagoriaIncarnation.effect = function(sourceChar,targetChar){
+			// apply dmg + Confuse to target
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			targetChar.stats["hp"] -= this.dmg;
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["confuse"]);
+			
+			// handle cost to user
+			this.processCost(sourceChar);
+		}
+		phantasmagoriaIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return "";
+		}
 		
 	/**
 	Caress of the Zephyr: teases, titillates, and slashes a target.  Deals dmg equal to pwr*2 - def/2 and charms the target (charm makes it so that the target cannot harm the charming character)
 	*/
+		var caressOfZephyrIncarnation = new State.variables.Incarnation("caress_of_zephyr","Caress of the Zephyr");
+		shimmerinChar.incarnations["caress_of_zephyr"] = caressOfZephyrIncarnation;
+		caressOfZephyrIncarnation.cost = {"mp":25}
+		caressOfZephyrIncarnation.targetType = caressOfZephyrIncarnation.TargetTypesEnum.singleEnemy;
+		caressOfZephyrIncarnation.calcDmg = function(sourceChar,targetChar){
+			return sourceChar.stats["pwr"]*2 - targetChar.stats["def"]/2;	
+		}
+		caressOfZephyrIncarnation.effect = function(sourceChar,targetChar){
+			// todo: dmg + Charm
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			targetChar.stats["hp"] -= this.dmg;
+			State.variables.addUniqueStatusEffectWithSource(sourceChar,targetChar,State.variables.statusEffectsDict["charm"]);
+			
+			// handle cost to user
+			this.processCost(sourceChar);
+		}
+		caressOfZephyrIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return "";
+		}
 	
 	/* // todo: consider adding Nuvi as a combat character post-demo
 	var nuviChar = State.variables.characters["nuvi"];
@@ -1863,6 +2031,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
