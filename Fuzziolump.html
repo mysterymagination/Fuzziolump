@@ -147,6 +147,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1711,35 +1712,40 @@ function init(){
 					}
 			}
 				
-				/* // todo: how should individual potential target combat flags work together with abilities whose effect API expects an entire party of targets?  One target with wonder wall should not stop the abl from hitting others on the one hand, and on the other the walled character needs to not have the abl effect applied to them and should proc the wall of wonder reprisal.
+				 // todo: how should individual potential target combat flags work together with abilities whose effect API expects an entire party of targets?  One target with wonder wall should not stop the abl from hitting others on the one hand, and on the other the walled character needs to not have the abl effect applied to them and should proc the wall of wonder reprisal.
+				// UPDATE: create a set of chosen targets, even if only one.  Then step through and check for wall of wonder protection.  If found, remove the walled character from the set of targets and apply wall reprisal.  After iteration is complete, send the remaining target set into the chosen ability.
 				// since chosen target could be one or more, create an array if there is only one and then we can still just iterate over it
 			var targets = undefined;	
 			if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
 				targets = chosenTarget;
 			}else{
+				// in this case there is only one target, but by wrapping it in an array we can proceed with equivalent loop code below
 				targets = [chosenTarget];	
 			}
-				*/
 				
 				// process combat flags on the chosen target(s)
-			if(chosenTarget.combatFlags & chosenTarget.CombatFlags.FLAG_WONDER_WALLED === chosenTarget.CombatFlags.FLAG_WONDER_WALLED){
+				for(let target of targets){
+					if(target.combatFlags & target.CombatFlags.FLAG_WONDER_WALLED === target.CombatFlags.FLAG_WONDER_WALLED){
 				// lower the wonder wall flag
-				chosenTarget.combatFlags &= ~chosenTarget.CombatFlags.FLAG_WONDER_WALLED;
+				target.combatFlags &= ~target.CombatFlags.FLAG_WONDER_WALLED;
 				
 				// the combat log content should reflect the bounce off the wall and any and all reprisals concatenated
 				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
+						
+				// todo: remove the walled character from the chosenTarget array
 				
 				// todo: generate a random effect, dmg or status, to direct back at Puck
 				
 				// todo: apply the effect to Puck
 				
-				// todo: (it doesn't matter since his MP is infinite, but) still apply the cost of the wasted ability to Puck since it was used and bounced off the wall
-			}
-				else{
-				// wall of wonder did not block the abl so it goes off as normal
-				chosenAbility.effect(puckChar,chosenTarget);
-				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,chosenTarget);
-			}// end combat flag processing
+				
+				}// end wall of wonder flag processing
+			}// end combat flag processing for target(s)
+				
+				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text.
+				chosenAbility.effect(puckChar,targets);
+				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+			
 				
 				/* // todo: maybe set a flag that says someone reflected the attack and therefore special processing is needed?
 				if(wonderWalled){
@@ -2082,6 +2088,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
