@@ -146,6 +146,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -346,14 +347,16 @@ State.variables.Ability = function Ability(name){
 			singleAlly: 3,
 			allAllies: 4
 		});
-	this.CombatFlags = Object.freeze (
-		{ 
-			FLAG_SKIP_TURN: 1
-		});
+	
 	this.name = name;
 	
 	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
 	this.targetType = this.TargetTypesEnum.singleEnemy; 
+	
+	/**
+	The friendly property describes whether an ability is considered hostile or beneficial to its target
+	*/
+	this.friendly = false;
 	
 	// cached value of last calculated dmg
 	this.dmg = 0;
@@ -395,6 +398,11 @@ function Entity(name){
 
 // Character object definition
 State.variables.Character = function Character(id,name){
+	this.CombatFlags = Object.freeze (
+		{ 
+			FLAG_SKIP_TURN: 1,
+			FLAG_WONDER_WALLED: 2
+		});
 	this.id = id;
 	this.name = name;
 	this.gender = "";
@@ -420,7 +428,9 @@ State.variables.Character = function Character(id,name){
 	// simple object map of categorical descriptor arrays,
 	// e.g. descriptors.body = ["fur","curvacious"]
 	this.descriptors = {
-		body : []
+		body : {
+		 appendages : []	
+		}
 	}
 	
 	// attribute scores reflect the character's capabilities.
@@ -1701,8 +1711,46 @@ function init(){
 					}
 			}
 				
+				/* // todo: how should individual potential target combat flags work together with abilities whose effect API expects an entire party of targets?  One target with wonder wall should not stop the abl from hitting others on the one hand, and on the other the walled character needs to not have the abl effect applied to them and should proc the wall of wonder reprisal.
+				// since chosen target could be one or more, create an array if there is only one and then we can still just iterate over it
+			var targets = undefined;	
+			if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+				targets = chosenTarget;
+			}else{
+				targets = [chosenTarget];	
+			}
+				*/
+				
+				// process combat flags on the chosen target(s)
+			if(chosenTarget.combatFlags & chosenTarget.CombatFlags.FLAG_WONDER_WALLED === chosenTarget.CombatFlags.FLAG_WONDER_WALLED){
+				// lower the wonder wall flag
+				chosenTarget.combatFlags &= ~chosenTarget.CombatFlags.FLAG_WONDER_WALLED;
+				
+				// the combat log content should reflect the bounce off the wall and any and all reprisals concatenated
+				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
+				
+				// todo: generate a random effect, dmg or status, to direct back at Puck
+				
+				// todo: apply the effect to Puck
+				
+				// todo: (it doesn't matter since his MP is infinite, but) still apply the cost of the wasted ability to Puck since it was used and bounced off the wall
+			}
+				else{
+				// wall of wonder did not block the abl so it goes off as normal
 				chosenAbility.effect(puckChar,chosenTarget);
 				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,chosenTarget);
+			}// end combat flag processing
+				
+				/* // todo: maybe set a flag that says someone reflected the attack and therefore special processing is needed?
+				if(wonderWalled){
+				
+				}
+				else{
+				// wall of wonder did not block the abl so it goes off as normal
+				chosenAbility.effect(puckChar,chosenTarget);
+				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,chosenTarget);
+			}// end wall of wonder processing
+				*/
 				
 			}// if role is enemy
 		}// if role is defined
@@ -1964,8 +2012,11 @@ function init(){
 		shimmerinChar.incarnations["wall_of_wonder"] = wallOfWonderIncarnation;
 		wallOfWonderIncarnation.cost = {"mp":35}
 		wallOfWonderIncarnation.targetType = wallOfWonderIncarnation.TargetTypesEnum.allAllies;
-		wallOfWonderIncarnation.effect = function(sourceChar,targetChar){
-			// todo: need something like a statuseffect that triggers based on an event (e.g. someone targeting this character with a harmful ability) rather than expires over time
+		wallOfWonderIncarnation.effect = function(sourceChar,targetChars){
+			// raise the wall of wonder flag for each allied party member
+			for(let target of targetChars){
+				target.combatFlags |= target.CombatFlags.FLAG_WONDER_WALLED;	
+			}
 			
 			this.processCost(sourceChar);
 		}
@@ -2031,6 +2082,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
