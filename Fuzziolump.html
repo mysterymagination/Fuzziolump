@@ -148,6 +148,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -247,6 +248,25 @@ State.variables.findCharacterIndex = function(characterArray,characterID){
 		return character.id === characterID;
 	});	
 }
+
+/**
+Removes a Character from an array of Characters using splice()
+@parm character the Character to be removed from the array
+@param characterArray the array of Characters
+*/
+State.variables.removeCharacterFromArray = function(character,characterArray){
+	// find the index of the target character in the array
+	var index = State.variables.findCharacterIndex(characterArray,character.id);
+	// splice the character out of the array; this modified the given array
+	characterArray.splice(index,1); 
+}
+/* // not very space friendly
+State.variables.removeCharacterFromArray = function(character,characterArray){
+	return characterArray.filter(characterUnderTest =>
+		characterUnderTest.id != character.id
+	);	
+}
+*/
 																	
 State.variables.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
@@ -1732,7 +1752,8 @@ function init(){
 				// the combat log content should reflect the bounce off the wall and any and all reprisals concatenated
 				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
 						
-				// todo: remove the walled character from the chosenTarget array
+				// remove the walled character from the chosenTarget array
+						State.variables.removeCharacterFromArray(target,targets);
 				
 				// todo: generate a random effect, dmg or status, to direct back at Puck
 				
@@ -1740,11 +1761,19 @@ function init(){
 				
 				
 				}// end wall of wonder flag processing
-			}// end combat flag processing for target(s)
+			}// end combat flag processing loop for target(s)
 				
-				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text.
-				chosenAbility.effect(puckChar,targets);
-				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
+				if(targets.length > 0){
+					// there are still targets, so go forward with them as per usual
+					chosenAbility.effect(puckChar,targets);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+				}else{
+					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
+					for(costElement in chosenAbility.cost){
+						puckChar.stats[costElement] -= chosenAbility.cost[costElement];	
+					}
+				}
 			
 				
 				/* // todo: maybe set a flag that says someone reflected the attack and therefore special processing is needed?
@@ -2088,6 +2117,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
