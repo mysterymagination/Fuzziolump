@@ -149,6 +149,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -381,6 +382,21 @@ State.variables.Ability = function Ability(name){
 	
 	// cached value of last calculated dmg
 	this.dmg = 0;
+	
+	/**
+	The cost of using using the ability to the user.  It is given as
+	an object map with keys that correspond to mutable resource stats associated with integer values.  The given value should be subtracted from the corresponding stat resource pool.
+	*/
+	this.cost = {"mp":0};
+	
+	/**
+	Process the cost of the ability, parsing the cost object map
+	*/
+	this.processCost = function(character){
+		for(statCost of this.cost){
+			character.stats[statCost] -= this.cost[statCost];	
+		}
+	}
 	
 	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
 	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
@@ -1755,10 +1771,15 @@ function init(){
 				// remove the walled character from the chosenTarget array
 						State.variables.removeCharacterFromArray(target,targets);
 				
-				// todo: generate a random effect, dmg or status, to direct back at Puck
+				// generate a random effect, dmg or status, to direct back at Puck
+						var incarnationKeys = Object.keys(State.variables.incarnationsDict);
+						var randoIncarnationIndex = Math.floor(Math.random() * incarnationKeys.length);
 				
-				// todo: apply the effect to Puck
-				
+				// apply the effect to Puck
+				var randoReprisalAbility = State.variables.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
+						randoReprisalAbility.effect(puckChar);
+						// todo: need support for abilities going off without a caster/target.  For the demo, simply saying Miss Fortune for wielder and Puck for target of rando wall of wonder effect is fine.
+						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character("miss_fortune","Miss Fortune"),puckChar);
 				
 				}// end wall of wonder flag processing
 			}// end combat flag processing loop for target(s)
@@ -1766,27 +1787,21 @@ function init(){
 				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
 				if(targets.length > 0){
 					// there are still targets, so go forward with them as per usual
+					if(targets.length == 1){
+						// single target attack, expects only single character as target
+						chosenAbility.effect(puckChar,targets[0]);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets[0]);
+					}else{
+					// multi-target attack, expects an array of chars as target	
 					chosenAbility.effect(puckChar,targets);
 					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+					}
 				}else{
 					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
 					for(costElement in chosenAbility.cost){
 						puckChar.stats[costElement] -= chosenAbility.cost[costElement];	
 					}
-				}
-			
-				
-				/* // todo: maybe set a flag that says someone reflected the attack and therefore special processing is needed?
-				if(wonderWalled){
-				
-				}
-				else{
-				// wall of wonder did not block the abl so it goes off as normal
-				chosenAbility.effect(puckChar,chosenTarget);
-				combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,chosenTarget);
-			}// end wall of wonder processing
-				*/
-				
+				}// end if no targets left after flag processing, so only abl cost is applied
 			}// if role is enemy
 		}// if role is defined
 	}//end Puck AI def
@@ -2079,7 +2094,7 @@ function init(){
 			this.processCost(sourceChar);
 		}
 		phantasmagoriaIncarnation.generateFlavorText = function(sourceChar, targetChar){
-			return "";
+			return sourceChar.name+" locks eyes with "+targetChar.name+" and draws in a deep breath.  Gossamer, multi-hued tendrils sway and dance their way through the air from "+targetChar.getPronoun_gen()+" temple to "+sourceChar.getPronoun_gen()+" lips, and a wild, fey gleam steals over her eyes.  "+sourceChar.getPronoun_nom()+" puffs out "+sourceChar.getPronoun_gen()+" cheeks and blows out a capering, dancing, laughing, killing, screaming teeming cloud of phantasmal forms, its shape and color constantly in flux.  These encompass, eclipse, and overwhelm "+targetChar.name+", who hops about madly while variably slashing and grasping longingly at the ephemeral entities.  "+targetChar.name+"'s body seems to wither and decay wherever the beings touch "+targetChar.getPronoun_obj()+", resulting in a lovely "+this.dmg+" damage!";
 		}
 		
 	/**
@@ -2102,7 +2117,7 @@ function init(){
 			this.processCost(sourceChar);
 		}
 		caressOfZephyrIncarnation.generateFlavorText = function(sourceChar, targetChar){
-			return "";
+			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[hands[name]]]]+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "++sourceChar.descriptors[body[appendages[arms[name]]]]+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
 		}
 	
 	/* // todo: consider adding Nuvi as a combat character post-demo
@@ -2117,6 +2132,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
