@@ -150,6 +150,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -388,6 +389,22 @@ State.variables.Ability = function Ability(name){
 	an object map with keys that correspond to mutable resource stats associated with integer values.  The given value should be subtracted from the corresponding stat resource pool.
 	*/
 	this.cost = {"mp":0};
+	
+	/**
+	Formats the total cost as a string and returns it
+	*/
+	this.printCost = function(){
+		var costString = "";
+		var costKeys = Object.keys(this.cost);
+		for(let index=0;index<costKeys.length-1;index++){
+			// for all but the last element...
+			costString +=	costKeys[index]+" : "+this.cost[costKeys[index]];
+			costString += ", "
+		}
+		// final cost element, no comma needed
+		costString += costKeys[costKeys.length-1]+" : "+this.cost[costKeys[costKeys.length-1]];
+		return costString;
+	}
 	
 	/**
 	Process the cost of the ability, parsing the cost object map
@@ -2147,6 +2164,7 @@ init();
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -3273,7 +3291,8 @@ $combatArena.combatLogContent
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
 			&lt;&lt;capture _abilityName, _ability&gt;&gt;
-			&lt;&lt;link [[_abilityName-&gt;Combat]]&gt;&gt;
+			&lt;&lt;link [[&quot;_abilityName -- &quot;+_ability.printCost()-&gt;Combat]]&gt;&gt;
+			  &lt;&lt;if $combatArena.turnOwner.canAffordCost(_ability)&gt;&gt;
 				&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
@@ -3297,12 +3316,16 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.combatLogContent = _ability.generateFlavorText($combatArena.enemyParty)&gt;&gt;
 				&lt;&lt;run _ability.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
+		   &lt;&lt;else&gt;&gt;
+		     &lt;&lt;run alert(&quot;You can&#39;t afford &quot;+_abilityName+&quot;; it costs &quot;+_ability.printCost())&gt;&gt;
+		   &lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
 	&lt;&lt;for _incarnationName,_incarnation range _currentTurnOwner.incarnations&gt;&gt;
 			&lt;&lt;capture _incarnationName, _incarnation&gt;&gt;
-			&lt;&lt;link [[_incarnationName-&gt;Combat]]&gt;&gt; 
+			&lt;&lt;link [[&quot;_incarnationName -- &quot;+_incarnation.printCost()-&gt;Combat]]&gt;&gt; 
+			  &lt;&lt;if $combatArena.turnOwner.canAffordCost(_ability)&gt;&gt;
 				&lt;&lt;if _incarnation.targetType === _incarnation.TargetTypesEnum.singleEnemy&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _incarnation&gt;&gt;
@@ -3326,6 +3349,9 @@ $combatArena.combatLogContent
 				&lt;&lt;set $combatArena.combatLogContent = _incarnation.generateFlavorText($combatArena.enemyParty)&gt;&gt;
 				&lt;&lt;run _incarnation.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
+		   &lt;&lt;else&gt;&gt;
+		   	&lt;&lt;run alert(&quot;You cannot afford &quot;+_incarnationName+&quot;; it costs &quot;+_incarnation.printCost())&gt;&gt;
+		   &lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
