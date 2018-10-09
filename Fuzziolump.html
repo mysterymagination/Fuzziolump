@@ -151,6 +151,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -483,7 +484,14 @@ State.variables.Character = function Character(id,name){
 	// e.g. descriptors.body = ["fur","curvacious"]
 	this.descriptors = {
 		body : {
-		 appendages : []	
+		 appendages : {
+			arms: {
+				name : "arms"
+			},
+			hands : {
+			 name : "hands"	
+			}
+		 }
 		}
 	}
 	
@@ -541,6 +549,22 @@ State.variables.Character = function Character(id,name){
 	
 	// a character's Entity is their inherent set of talents re: Incarnation.  Only the human can learn Incarnations from any Entity.
 	this.entity = new Entity("unset");
+	
+	/**
+	Check whether the resource stat pools are in sufficient supply to feed a given ability
+	*/
+	this.canAffordCost = function(ability){
+		for(costElement of ability.cost){
+			if(this.stats[costElement] < ability.cost[costElement]){
+				// found a cost that cannot be satisfied, so return false
+				return false;
+			}
+		}
+		
+		// if we made it here without hitting any costs we couldn't cover
+		// we're good!
+		return true;
+	}
 	
 	this.abilities = {
 		"attack" : new State.variables.Ability("Attack"),
@@ -1446,7 +1470,7 @@ function init(){
 		sourceChar.stats["mp"] -= 10;
 	}
 	maenadFrenzyIncarnation.generateFlavorText = function(sourceChar,targetChar){
-		return "A manic gleam shines in "sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.";	
+		return "A manic gleam shines in "+sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.";	
 	} 
 	
 	var puckChar = State.variables.characters["puck"];
@@ -1852,7 +1876,7 @@ function init(){
 	}// end defining effect of haunted_fey
 	hauntedFey.generateFlavorText = function(sourceChar,targetChar){
 		// todo: this is a perfect opportunity for "generative text"; nothing too fancy, basically randomized madlibs sort of thing is what I was thinking, but maybe with some slight inductive bias/target and source character descriptor consideration weighing the randomness used in populating the blanks.
-		return sourceChar.name"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
+		return sourceChar.name+"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
 	}
 	
 	var foxFire = new State.variables.Incarnation("fox_fire","Fox Fire");
@@ -2041,7 +2065,7 @@ function init(){
 		}
 		laserSightIncarnation.generateFlavorText = function(sourceChar, targetChar){
 			// todo: focus on ether in the surrounding env
-			return "Time slows down for "+targetChar.name" as "+sourceChar.name+" shows "+targetChar.getPronoun_obj()+" how to pull back the veil of our reality and see what lies behind.  The secrets of the universe fell somewhat closer!";
+			return "Time slows down for "+targetChar.name+" as "+sourceChar.name+" shows "+targetChar.getPronoun_obj()+" how to pull back the veil of our reality and see what lies behind.  The secrets of the universe fell somewhat closer!";
 		}
 		
 	/**
@@ -2134,7 +2158,7 @@ function init(){
 			this.processCost(sourceChar);
 		}
 		caressOfZephyrIncarnation.generateFlavorText = function(sourceChar, targetChar){
-			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[hands[name]]]]+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "++sourceChar.descriptors[body[appendages[arms[name]]]]+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
+			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[hands[name]]]]+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[arms[name]]]]+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
 		}
 	
 	/* // todo: consider adding Nuvi as a combat character post-demo
@@ -2149,6 +2173,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
