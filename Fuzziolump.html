@@ -153,6 +153,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1919,6 +1920,7 @@ function init(){
 			
 			// deal dmg
 			targetChar.stats.hp -= this.dmg;
+		}
 	}
 		
 	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
@@ -2188,7 +2190,8 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///
+</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
