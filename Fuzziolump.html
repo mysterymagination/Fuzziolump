@@ -152,6 +152,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -411,7 +412,7 @@ State.variables.Ability = function Ability(name){
 	Process the cost of the ability, parsing the cost object map
 	*/
 	this.processCost = function(character){
-		for(statCost of this.cost){
+		for(statCost in this.cost){
 			character.stats[statCost] -= this.cost[statCost];	
 		}
 	}
@@ -484,6 +485,7 @@ State.variables.Character = function Character(id,name){
 	// e.g. descriptors.body = ["fur","curvacious"]
 	this.descriptors = {
 		body : {
+		 hair : [],
 		 appendages : {
 			arms: {
 				name : "arms"
@@ -554,7 +556,7 @@ State.variables.Character = function Character(id,name){
 	Check whether the resource stat pools are in sufficient supply to feed a given ability
 	*/
 	this.canAffordCost = function(ability){
-		for(costElement of ability.cost){
+		for(costElement in ability.cost){
 			if(this.stats[costElement] < ability.cost[costElement]){
 				// found a cost that cannot be satisfied, so return false
 				return false;
@@ -1106,7 +1108,7 @@ Main program init function.  Configures and fleshes out global objects
 */
 function init(){
 	
-	// todo: Incarnations need to have an MP cost!
+	// todo: add costs to all abilities!
 	
 	//items
 	
@@ -1114,7 +1116,7 @@ function init(){
 	wickedlyCurvedAxe.equipEffect = function(targetChar){
 		targetChar.stats["atk"] += 20;
 	}	
-	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that 'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them'... it's probably nothing.";
+	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that \'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them\'... it's probably nothing.";
 	// todo: bleed status effect on-hit?
 	var coldMace = State.variables.itemsDict["cold_mace"];
 	coldMace.equipEffect = function(targetChar){
@@ -1307,6 +1309,7 @@ function init(){
 	*/
 	var debilitate = State.variables.incarnationsDict["debilitate"];
 	debilitate.targetType = debilitate.TargetTypesEnum.singleEnemy;
+	debilitate.cost = {"mp":25};
 	debilitate.calcDmg = function(sourceChar,targetChar){
 		return targetChar.stats.hp*0.1;	
 	}
@@ -1314,7 +1317,7 @@ function init(){
 		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 25;
+		this.processCost(sourceChar);
 	}
 	debilitate.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" narrows "+sourceChar.getPronoun_gen()+" eyes, shining with cruel malice, at "+targetChar.name+".  Space distorts mildly, constricting around and through "+targetChar.name+", and "+targetChar.getPronoun_gen()+" presence seems to diminish substantially!";	
@@ -1324,6 +1327,7 @@ function init(){
 	*/
 	var pierceIncarnation = State.variables.incarnationsDict["pierce"];
 	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
+	pierceIncarnation.cost = {"hp":10};
 	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["atk"];		
 	}
@@ -1331,8 +1335,8 @@ function init(){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats["hp"] -= this.dmg;
 		
-		// MP cost
-		sourceChar.stats["mp"] -= 10;
+		// HP cost
+		this.processCost(sourceChar);
 	}
 	pierceIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" smoothly reaches directly into "+targetChar.name+"'s soul, and just kinda... fiddles around a little.  "+targetChar.name+" does not appreciate this, emphatically, to the tune of "+this.dmg+" delicious damages!";	
@@ -1340,6 +1344,7 @@ function init(){
 	
 	var toxinIncarnation = State.variables.incarnationsDict["toxin"];
 	toxinIncarnation.targetType = toxinIncarnation.TargetTypesEnum.singleEnemy;
+	toxinIncarnation.cost = {"mp":15};
 	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["pwr"]-targetChar.stats["res"];		
 	}
@@ -1349,7 +1354,7 @@ function init(){
 		State.variables.addUniqueStatusEffect(targetChar,poisonStatusEffect);
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 15;
+		this.processCost(sourceChar);
 	}
 	toxinIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return "An aura of gleaming electric purple light, striated with the cheerily deadly greenish glow of radioactivity, surrounds "+sourceChar.name+" as "+sourceChar.getPronoun_gen()+" fevered will infects "+targetChar.name+".";	
@@ -1362,11 +1367,12 @@ function init(){
 	*/
 	var shadowFormIncarnation = State.variables.incarnationsDict["shadowform"];
 	shadowFormIncarnation.targetType = shadowFormIncarnation.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
+	shadowFormIncarnation.cost = {"mp":30};
 	shadowFormIncarnation.effect = function(sourceChar,targetChar){
 		State.variables.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 30;
+		this.processCost(sourceChar);
 	}
 	shadowFormIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return "Shadows dance free of their source lights, and embrace "+sourceChar.name+" warmly.  Velvet darkness spreads over "+sourceChar.getPronoun_gen()+" body, and "+sourceChar.getPronoun_nom()+" relaxes into oneness with the infinite possibilities of undefinition; "+sourceChar.getPronoun_nom()+" seems almost ethereal now.";	
@@ -1377,6 +1383,8 @@ function init(){
 	*/
 	var perfectStillnessIncarnation = State.variables.incarnationsDict["perfectStillness"];
 	perfectStillnessIncarnation.targetType = perfectStillnessIncarnation.TargetTypesEnum.singleEnemy;
+	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
+	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
 	perfectStillnessIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["pwr"] - targetChar.stats["res"]/2;		
 	}
@@ -1384,10 +1392,10 @@ function init(){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		this.selfDmg = this.calcDmg(sourceChar,sourceChar);
 		targetChar.stats["hp"] -= this.dmg;
-		sourceChar.stats["hp"] -= this.selfDmg;
+		sourceChar.stats["hp"] -= this.selfDmg; // todo: move to cost so that it is transparent to user via UI display of abl costs; make sure calcDmg() can peek at the dmg from that point
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 15;
+		this.processCost(sourceChar);
 	}
 	perfectStillnessIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" extends "+sourceChar.getPronoun_gen()+" arms slowly towards "+targetChar.name+", almost as if inviting a hug.  Suddenly, a rolling torrent of absolute serenity and silence, so profoundly vaccuous that it forces all in attendance to take a step back as from an overwhelming physical force, explodes forth from "+sourceChar.getPronoun_obj()+".  Both folks are rocked by the violence of the peace, and "+targetChar.name+" is driven to "+targetChar.getPronoun_nom()+" knees";	
@@ -1398,6 +1406,7 @@ function init(){
 	*/
 	var savageSympathyIncarnation = State.variables.incarnationsDict["savage_sympathy"];
 	savageSympathyIncarnation.targetType = savageSympathyIncarnation.TargetTypesEnum.singleEnemy;
+	savageSympathyIncarnation.cost = {"mp":20};
 	savageSympathyIncarnation.calcDmg = function(sourceChar,targetChar){
 		return Math.abs(targetChar.stats["atk"] - sourceChar.stats["atk"])*2;		
 	}
@@ -1407,7 +1416,7 @@ function init(){
 		sourceChar.stats["hp"] += this.dmg/2;
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 20;
+		this.processCost(sourceChar);
 	}
 	savageSympathyIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" is no fan of natural privilege.  In fact, "+sourceChar.getPronoun_nom()+" takes ecstatic pleasure in balancing the old scales, with blood if necessary.  To wit, blood from "+targetChar.name+"'s orificeses begins slowly spiraling through the air and into "+sourceChar.name+"'s snarling mouth.";	
@@ -1419,6 +1428,7 @@ function init(){
 	*/
 	var warmestHugIncarnation = State.variables.incarnationsDict["warmest_hug"];
 	warmestHugIncarnation.targetType = warmestHugIncarnation.TargetTypesEnum.singleAlly;
+	warmestHugIncarnation.cost = {"mp":20};
 	warmestHugIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["atk"];		
 	}
@@ -1428,7 +1438,7 @@ function init(){
 		sourceChar.stats["hp"] += this.dmg;
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 20;
+		this.processCost(sourceChar);
 	}
 	warmestHugIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" embraces "+sourceChar.getPronoun_gen()+" friend "+targetChar.name+" fondly, a soft golden glow surrounding them both.";	
@@ -1439,6 +1449,7 @@ function init(){
 	*/
 	var woollyShieldIncarnation = State.variables.incarnationsDict["woolly_shield"];
 	woollyShieldIncarnation.targetType = woollyShieldIncarnation.TargetTypesEnum.singleAlly;
+	woollyShieldIncarnation.cost = {"mp":30};
 	woollyShieldIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["def"] + sourceChar.stats["res"];		
 	}
@@ -1447,7 +1458,7 @@ function init(){
 		targetChar.stats["def"] += this.dmg;
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 30;
+		this.processCost(sourceChar);
 	}
 	woollyShieldIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return sourceChar.name+" puffs out "+sourceChar.getPronoun_gen()+" hair, approximating thick wool as best "+targetChar.getPronoun_nom()+" can, and jumps in front of "+targetChar.name+", intent on protecting "+targetChar.getPronoun_gen()+" with "+sourceChar.getPronoun_gen()+" woolly life!";	
@@ -1458,6 +1469,7 @@ function init(){
 	*/
 	var maenadFrenzyIncarnation = State.variables.incarnationsDict["maenad_frenzy"];
 	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
+	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["atk"]+sourceChar.attributes["charisma"];		
 	}
@@ -1467,7 +1479,7 @@ function init(){
 		sourceChar.stats["hp"] -= this.dmg/2;
 		
 		// MP cost
-		sourceChar.stats["mp"] -= 10;
+		this.processCost(sourceChar);
 	}
 	maenadFrenzyIncarnation.generateFlavorText = function(sourceChar,targetChar){
 		return "A manic gleam shines in "+sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.";	
@@ -1495,12 +1507,16 @@ function init(){
 	var rapierWit = new State.variables.Incarnation("Rapier Wit");
 	rapierWit.generateFlavorText = function(sourceChar,targetChar){
 		if(targetChar){
-			// randomly selected insults based on descriptor tags
-			if(targetChar.descriptors.body.includes("fur")){
+			// todo: randomly selected insults based on descriptor tags
+			
 				var percentage = State.variables.rollPercentage();
 				if(targetChar.gender === "female"){
 					if(percentage <= 20){
-						return sourceChar.name+" accuses "+targetChar.name+" of having fur extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically coruscating with Incarnation.";
+						var hairWord = "hair";
+						if(targetChar.descriptors.body.hair.includes("fur")){
+							hairWord = "fur";
+						}
+						return sourceChar.name+" accuses "+targetChar.name+" of having "+hairWord+" extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically coruscating with Incarnation.";
 					}// end 1-20%
 					else if(percentage > 20 && percentage <= 70){
 						return "Looking down "+(sourceChar.gender==="female"?"her":"his")+" nose at "+targetChar.name+", "+sourceChar.name+" sniffs and conjectures that the once-sinuous curves of her body have become somewhat oblong... and lumpy!  She reels in bizarre anguish as the taunt burrows into her psyche.";
@@ -1515,7 +1531,7 @@ function init(){
 						return sourceChar.name+" takes a long hard look below "+targetChar.name+"'s belt and then scoffs, clearly underwhelmed.  Venemous doubt Incarnate seeps into the cracks of his self-image and harden there, shattering it!";	
 					}
 				}
-			}
+			
 		}// end if a targetChar is given
 		else{
 			return sourceChar.name+" points and laughs in a literally cutting fashion!"
@@ -2158,7 +2174,7 @@ function init(){
 			this.processCost(sourceChar);
 		}
 		caressOfZephyrIncarnation.generateFlavorText = function(sourceChar, targetChar){
-			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[hands[name]]]]+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors[body[appendages[arms[name]]]]+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
+			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors.body.appendages.hands.name+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors.body.appendages.arms.name+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
 		}
 	
 	/* // todo: consider adding Nuvi as a combat character post-demo
@@ -2172,25 +2188,7 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
