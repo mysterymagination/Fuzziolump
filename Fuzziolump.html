@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="52" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="56" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -154,6 +154,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -201,7 +202,7 @@ Applies the combat status effect to the given character, adding it to their list
 State.variables.addUniqueStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
-		statuses.push(effectUnderTest);
+		statuses.push(effect);
 		effect.effect(character);
 	}
 }
@@ -216,7 +217,7 @@ The source character is the one who inflicted the status; this function should b
 State.variables.addUniqueStatusEffectWithSource = function(sourceCharacter, targetCharacter,effect){
 	var statuses = targetCharacter.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
-		statuses.push(effectUnderTest);
+		statuses.push(effect);
 		effect.effect(sourceCharacter,targetCharacter);
 	}
 }
@@ -365,7 +366,7 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	}
 }
 
-State.variables.Ability = function Ability(name){
+State.variables.Ability = function Ability(id,name){
 	this.TargetTypesEnum = Object.freeze (
 		{ 
 			singleEnemy: 1, 
@@ -373,7 +374,7 @@ State.variables.Ability = function Ability(name){
 			singleAlly: 3,
 			allAllies: 4
 		});
-	
+	this.id = id;
 	this.name = name;
 	
 	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
@@ -413,7 +414,7 @@ State.variables.Ability = function Ability(name){
 	Process the cost of the ability, parsing the cost object map
 	*/
 	this.processCost = function(character){
-		for(statCost in this.cost){
+		for(let statCost in this.cost){
 			character.stats[statCost] -= this.cost[statCost];	
 		}
 	}
@@ -433,9 +434,9 @@ State.variables.Ability = function Ability(name){
 	
 } // end Ability def
 
-State.variables.Incarnation = function Incarnation(name){
+State.variables.Incarnation = function Incarnation(id,name){
 	// Incarnation inherits from Ability
-	State.variables.Ability.call(this,name);
+	State.variables.Ability.call(this,id,name);
 	
 }
 function Entity(name){
@@ -481,6 +482,14 @@ State.variables.Character = function Character(id,name){
 		else
 			return "they";	
 	}
+	this.getPronoun_obj = function(){
+		if(this.gender==="female")
+			return "her";
+		else if(this.gender==="male")
+			return "him";
+		else
+			return "them";	
+	}
 	
 	// simple object map of categorical descriptor arrays,
 	// e.g. descriptors.body = ["fur","curvacious"]
@@ -522,6 +531,14 @@ State.variables.Character = function Character(id,name){
 		"armored" : 10,
 		"touch" : 10
 	}
+
+	this.getMagicAttributeScore = function(){
+		if(this.attributes["charisma"] >= this.attributes["intelligence"]){
+			return this.attributes["charisma"];	
+		}else{
+			return this.attributes["intelligence"];	
+		}
+	}
 	
 	// basic stats, representing character vitality as resources.
 	// In the absence of clear classes, went with ~ avg d10s for level 10
@@ -538,14 +555,6 @@ State.variables.Character = function Character(id,name){
 		"res":this.getMagicAttributeScore()
 	}
 	
-	this.getMagicAttributeScore = function(){
-		if(this.attributes["charisma"] >= this.attributes["intelligence"]){
-			return this.attributes["charisma"];	
-		}else{
-			return this.attributes["intelligence"];	
-		}
-	}
-	
 	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
 	// on inherent Entity, or that have been learned by the human
 	this.incarnations = {};
@@ -557,7 +566,7 @@ State.variables.Character = function Character(id,name){
 	Check whether the resource stat pools are in sufficient supply to feed a given ability
 	*/
 	this.canAffordCost = function(ability){
-		for(costElement in ability.cost){
+		for(let costElement in ability.cost){
 			if(this.stats[costElement] < ability.cost[costElement]){
 				// found a cost that cannot be satisfied, so return false
 				return false;
@@ -570,9 +579,9 @@ State.variables.Character = function Character(id,name){
 	}
 	
 	this.abilities = {
-		"attack" : new State.variables.Ability("Attack"),
-		"defend" : new State.variables.Ability("Defend"),
-		"run" : new State.variables.Ability("Run") 
+		"attack" : new State.variables.Ability("attack","Attack"),
+		"defend" : new State.variables.Ability("defend","Defend"),
+		"run" : new State.variables.Ability("run","Run") 
 	}
 	this.abilities["attack"].calcDmg = function(sourceCharacter,targetCharacter){
 		// favor the STR since the attacker is the leading participant
@@ -581,7 +590,7 @@ State.variables.Character = function Character(id,name){
 		/*
 		return sourceCharacter.attributes["strength"]*2 - targetCharacter.attributes["constitution"]/4;
 		*/
-		return sourceCharacter.stats["atk"]*2 - targetCharacter.stats["def"]/4;
+		return sourceCharacter.stats["atk"]*2 - targetCharacter.stats["def"]/4 + Math.random()*10;
 	};
 	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
 		this.dmg = this.calcDmg(sourceCharacter,targetCharacter);
@@ -590,7 +599,7 @@ State.variables.Character = function Character(id,name){
 	};
 	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
 		// todo: clearing cached dmg after it is read to flavor text? 
-			return sourceCharacter+" strikes "+targetCharacter+" a mighty blow, dealing "+this.dmg+" damages!";
+			return sourceCharacter.name+" strikes "+targetCharacter.name+" a mighty blow, dealing "+this.dmg+" damages!";
 	};
 	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
 		/*
@@ -598,6 +607,7 @@ State.variables.Character = function Character(id,name){
 		*/
 		targetCharacter.stats["def"] += sourceCharacter.stats["def"];
 	};
+	this.abilities["defend"].targetType = this.abilities["defend"].TargetTypesEnum.singleAlly;
 	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
 	this.abilities["run"].generateFlavorText = function(playerParty){
 		console.log("run::generateFlavorText -- The player party consists of "+playerParty);
@@ -641,6 +651,15 @@ State.variables.Character = function Character(id,name){
 	// other simple lovely creatures that happily burrow and build all their
 	// lives, peaceful, passionate, and productive.
 	this.inductive_bias = [];
+	/**
+	Adds a unique inductive bias string to the inductive bias array
+	@param bias the bias to add; if it is already present, nothing happens
+	*/
+	this.addUniqueInductiveBias = function(bias){
+		if(!this.inductive_bias.includes(bias)){
+			this.inductive_bias.push(bias);
+		}
+	}
 	
 	this.updateAffinity = function(characterObject,modifier){
 		if(this.affinities.has(characterObject)){
@@ -736,7 +755,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.currentTargetCharacter = new State.variables.Character("unset");
 	
 	// the text feedback to the user re: the state of combat
-	this.combatLogContent = "Kombat Time!";
+	this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
 	
 	this.randoCombatantExcept = function(exceptCharacter){
 		var combatants = this.enemyParty.concat(this.playerParty);
@@ -857,7 +876,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	}// end processRoundBottom()
 }// end Combat
 
-State.variables.combatArena = new State.variables.Combat([],[]);
+State.variables.combatArena = undefined;
 
 function Room(){
 	
@@ -897,7 +916,7 @@ State.variables.characters = {
 	"sheila" : new State.variables.Character("sheila","Sheila"),
 	"council" : new State.variables.Character("council","Council Of Animals"),
 	"marrah" : new State.variables.Character("marrah","Marrah"),
-	"drbeakmen" : new State.variables.Character("drbeakman","Dr. Beakman"),
+	"drbeakman" : new State.variables.Character("drbeakman","Dr. Beakman"),
 	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
 	"puck" : new State.variables.Character("puck","Puck")
 }
@@ -935,7 +954,23 @@ State.variables.statusEffectsDict = {
 	/**
 	Charm causes the afflicted character to be unable to target the character who charmed them with harmful abilities
 	*/
-	"charm" : new State.variables.StatusEffect("charm","Charm",3)
+	"charm" : new State.variables.StatusEffect("charm","Charm",3),
+	/**
+	Temper doubles physical attack power for 3 turns
+	*/
+	"temper" : new State.variables.StatusEffect("temper","Temper",3),
+	/**
+	Focus doubles magic attack power for 3 turns
+	*/
+	"focus" : new State.variables.StatusEffect("focus","Focus",3),
+	/**
+	Third Eye quadruples magic attack power for 3 turns at the expense of halved physical attack and defense
+	*/
+	"third_eye" : new State.variables.StatusEffect("third_eye","Third Eye",3),
+	/**
+	Defenseless reduces the target's defensive stats by half for 3 turns
+	*/
+	"defenseless" : new State.variables.StatusEffect("defenseless","Defenseless",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
@@ -1382,7 +1417,7 @@ function init(){
 	/**
 	Perfect Stillness deals mild cold damage to the wielder and massive cold damage to the target
 	*/
-	var perfectStillnessIncarnation = State.variables.incarnationsDict["perfectStillness"];
+	var perfectStillnessIncarnation = State.variables.incarnationsDict["perfect_stillness"];
 	perfectStillnessIncarnation.targetType = perfectStillnessIncarnation.TargetTypesEnum.singleEnemy;
 	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
 	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
@@ -1884,12 +1919,16 @@ function init(){
 	var hauntedFey = new State.variables.Incarnation("haunted_fey","Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
 	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
+	hauntedFey.cost = {"mp":20};
 	hauntedFey.effect = function(sourceChar,targetChar){
 		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
 		// effect will be called on the Incarnation instance, so this should be bound to same
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
 			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
 		}
+		
+		// cost
+		this.processCost(sourceChar);
 	}// end defining effect of haunted_fey
 	hauntedFey.generateFlavorText = function(sourceChar,targetChar){
 		// todo: this is a perfect opportunity for "generative text"; nothing too fancy, basically randomized madlibs sort of thing is what I was thinking, but maybe with some slight inductive bias/target and source character descriptor consideration weighing the randomness used in populating the blanks.
@@ -1899,6 +1938,7 @@ function init(){
 	var foxFire = new State.variables.Incarnation("fox_fire","Fox Fire");
 	marrahChar.incarnations["fox_fire"] = foxFire;
 	foxFire.targetType = foxFire.TargetTypesEnum.singleEnemy;
+	foxFire.cost = {"mp":15};
 	foxFire.calcDmg = function(sourceChar,targetChar){
 		// dmg based on source's cur:max MP ratio
 		var magicRat = sourceChar.stats.mp/sourceChar.stats.maxMP;
@@ -1921,11 +1961,15 @@ function init(){
 			// deal dmg
 			targetChar.stats.hp -= this.dmg;
 		}
+		
+		// cost
+		this.processCost(sourceChar);
 	}
 		
 	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
 	marrahChar.incarnations["ghost_whip"] = ghostWhip;
 	ghostWhip.targetType = ghostWhip.TargetTypesEnum.singleEnemy;
+	ghostWhip.cost = {"mp":15};
 	ghostWhip.calcDmg = function(sourceChar,targetChar,aspect){
 		if(aspect === "meat"){
 			// CHA vs. CON to damage HP and give half to source
@@ -1944,6 +1988,9 @@ function init(){
 		targetChar.stats.mp -= this.mpDmg;
 		sourceChar.stats.hp += this.hpDmg/2;
 		sourceChar.stats.mp += this.mpDmg/2;
+		
+		// cost
+		this.processCost(sourceChar);
 	}
 	ghostWhip.generateFlavorText = function(sourceChar,targetChar){
 		// todo: reference hpDmg and mpDmg instead of dmg!
@@ -1956,12 +2003,16 @@ function init(){
 	var fireClawIncarnation = new State.variables.Incarnation("fire_claw","Fire Claw");
 		marrahChar.incarnations["fire_claw"] = fireClawIncarnation;
 		fireClawIncarnation.targetType = fireClawIncarnation.TargetTypesEnum.singleEnemy;
+	fireClawIncarnation.cost = {"mp":5,"hp":5};
 		fireClawIncarnation.calcDmg = function(sourceChar,targetChar){
 				return sourceChar.stats["pwr"]+sourceChar.stats["atk"];
 		}
 		fireClawIncarnation.effect = function(sourceChar,targetChar){
 				this.dmg = this.calcDmg(sourceChar,targetChar);
 				targetChar.stats["hp"] -= this.dmg;
+			
+			// cost
+			this.processCost(sourceChar);
 		}
 		fireClawIncarnation.generateFlavorText = function(sourceChar,targetChar){
 			// todo: add randomness to abl text, modified by wielder and maybe target descriptor tags
@@ -2191,6 +2242,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -3023,7 +3075,7 @@ scenario about work ethic and community focus
 	&lt;&lt;if $wombuddy_score &gt;= 10&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="7,1666" size="100,100">&lt;span id=council_chamber_desc&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="51" name="Bush_Warren_Council" tags="room" position="6,1665" size="100,100">&lt;span id=council_chamber_desc&gt;
 The tunnel beneath the gaudy crest quickly metamorphoses from lovingly sculpted earth to carefully hewn stone.  The tough gray rock has been chiseled to almost frictionless smoothness somehow, and only the colder temperature and reduced springiness of the subtrate alerted your feet to any change from the earthen tunnels.
 
 Golden sunlight floods the council chamber from an aperture some three dozen meters above you.  A complex series of pulleys rises along the stone wall on the far side of a massive round table, with thick cord threaded through each.  You wonder briefly what function such a convoluted mechanical system serves.  The walls and floor are completely bare of ornamentation; this room was clearly intended for serious matters.
@@ -3035,16 +3087,21 @@ Turning slightly, though taking care not to turn your back on the council member
 Glimmering lights in a thousand rainbow hues spring to life from the darkness, casting variably inviting and intimidating aesthetics upon the stark room.  They are faeries, but they seem notably more subdued than those you saw back in the Frosty Forest.  One drifts lazily toward you, alighting upon your shoulder.  Her glittering emerald gemstone eyes are dull and seem unfocused.  She smiles vaguely at you and then flits off dreamily in no particular direction.
 &lt;&lt;if $party.includes($characters[&quot;shimmerin&quot;])&gt;&gt;
 Shimmerin buzzes angrily from your pocket, refusing to look at the other faerie.
-// todo: Shimmerin should be outraged by the &#39;tame&#39; faeries, and should really cause a ruckus here
 &lt;&lt;/if&gt;&gt;
-// todo: EXPOSITION!!! *sigh* need a more show don&#39;t tell approach, like Marrah having the faeries act out the scene of lumpkin inception from creative energy.
+&lt;&lt;silently&gt;&gt;
+ todo: Shimmerin should be outraged by the &#39;tame&#39; faeries, and should really cause a ruckus here
+ todo: add affinity mods for other council members who can become party members
+ todo: EXPOSITION!!! *sigh* need a more show don&#39;t tell approach, like Marrah having the faeries act out the scene of lumpkin inception from creative energy, and revealing this stuff gradually instead of all in one scene.
+ &lt;&lt;/silently&gt;&gt;
 The fox approaches you and proffers her paw.  You extend a hand, unsure what she expects, and she rests her paw on it in an apparent show of solidarity.  &quot;Warm regards, human.  My name is Marrah, Voice of the council of animals.  I have never met one of your kind, one of the progenitors, but sadly there is no time to get to know one another.  Behold!&quot;
 
 She flings her paw commandingly toward the center of the table without taking her shining gaze off you.  The faerie lights floating about the room zoom together into a formless mass above the table for a moment, and then resolve into a glowing map of Fuzziolump.  Three continents are outlined in soft azure light, west, central, and east.  &quot;Show us Holly&#39;s reach,&quot; Marrah barks, and a circle of almost poisonously bright green spreads out from the center of the central continent to cover roughly 50% of it. 
 
 &quot;We are here,&quot; she points to a spot just to the west of the green zone&#39;s reach.  &quot;Just out of her grasp, for now.  Before we discuss the threat posed by the godlings, however, I should explain in more detail what exactly these creatures are.  All lumpkins and in fact the world of Fuzziolump itself are born of imagination and emotion, with creative energies being especially fertile.  At first this energy came almost exclusively from humans and some of the craftier monkeys of your earth. 
 
-// todo: something about creativity having a life of its own and passing that life onto created works... or radiating it off into places like Fuzziolump.
+&lt;&lt;silently&gt;&gt;
+ todo: something about creativity having a life of its own and passing that life onto created works... or radiating it off into places like Fuzziolump.
+&lt;&lt;/silently&gt;&gt;
 
 &quot;Fuzziolump has existed for almost as long as human life on earth, our first life emerging from your ancestors&#39; early experiments with cavernous canvas.  Intelligent life here is fairly new, however -- it takes quite a lot of imagination to wire up a complex brain, and the dribs and drabs of imaginative energy siphoned off of earth&#39;s creative corona probably never would have done it.  About a century ago, however, something changed fundamentally: your Guglielmo Marconi developed the first long distance radio!  As you know, broadcast technology exploded throughout your 20th century. These transmission served as much more efficient conduits of the thoughts and feelings on earth, and the pace and sophistication of lumpkin development increased exponentially. 
 
@@ -3086,17 +3143,17 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		nuvi opinion of player goes way down with such a violent approach
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],-100&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],-100)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		council opinion of player goes down, though they are relieved to have a definite course of action in play.  
 		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		Marrah is a little excited about it, though she doesn&#39;t want to admit it to herself.
-	&lt;/silently&gt;&gt;
-	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],10&gt;&gt;
-	&lt;&lt;run $characters[&quot;marrah&quot;].addToInductiveBias($inductive_bias_crush) &gt;&gt;
+	&lt;&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],10)&gt;&gt;
+	&lt;&lt;run $characters[&quot;marrah&quot;].addUniqueInductiveBias($inductive_bias_crush) &gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat for total war
 	&lt;&lt;/silently&gt;&gt;
@@ -3107,16 +3164,16 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		nuvi opinion of player goes up slightly with a creative and potentially nonviolent solution.  He&#39;s not so confident that terminating the loops won&#39;t kill the godlings, however, so he remains apprehensive.
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],10&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],10)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		council opinion of player goes up to a warm amount since this solution seems somewhat specific (though still not definite) and actionable and also might save their friends  
 		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],50&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],50)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		Marrah is a little disappointed that the human has opted for an indefinite strat
-	&lt;/silently&gt;&gt;
-	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-10)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat for circuitous hacking
 	&lt;&lt;/silently&gt;&gt;
@@ -3129,16 +3186,16 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		nuvi opinion of player goes way up since this is the only strat that ensures a peaceful resolution, even if the specifics are... non-specific.
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],100&gt;&gt;
+	&lt;&lt;run $characters[&quot;nuvi&quot;].updateAffinity($characters[&quot;player&quot;],100)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		council opinion of player goes down slightly because the plan is too vague  
 		for simplicity the council of animals will be a hive mind for affinity, except for marrah.
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10&gt;&gt;
+	&lt;&lt;run $characters[&quot;council&quot;].updateAffinity($characters[&quot;player&quot;],-10)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		Marrah is extremely disappointed that the human has opted for a definitively indefinite strat.  Doesn&#39;t make her hate the player of course, but she feels that she can&#39;t count on them
-	&lt;/silently&gt;&gt;
-	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-50&gt;&gt;
+	&lt;&lt;/silently&gt;&gt;
+	$characters[&quot;marrah&quot;].updateAffinity($characters[&quot;player&quot;],-50)&gt;&gt;
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat to fluffy bunnies and hugs for the hug inclined
 	&lt;&lt;/silently&gt;&gt;
@@ -3148,7 +3205,9 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 &lt;&lt;/link&gt;&gt;&quot;   
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;
-&lt;/span&gt;</tw-passagedata><tw-passagedata pid="52" name="Bush_Warren_Council_Postproc" tags="conversation" position="8,1797" size="100,100">// todo: allow player to choose a council member or Nuvi to get Incarnation &#39;scrolls&#39; from for the purpose of &#39;immediate defense&#39; (i.e. the Puck fight at the end of the demo).  Also have them say something about highly statically charged items coming through portals on their own, mostly socks but occasionally other items including a large dagger meant for human hands.
+&lt;/span&gt;</tw-passagedata><tw-passagedata pid="52" name="Bush_Warren_Council_Postproc" tags="conversation" position="8,1797" size="100,100">&lt;&lt;silently&gt;&gt;
+todo: allow player to choose a council member or Nuvi to get Incarnation &#39;scrolls&#39; from for the purpose of &#39;immediate defense&#39; (i.e. the Puck fight at the end of the demo).  Also have them say something about highly statically charged items coming through portals on their own, mostly socks but occasionally other items including a large dagger meant for human hands.
+&lt;&lt;/silently&gt;&gt;
 
 &lt;div id=&quot;council_postproc&quot;&gt;
 &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;
@@ -3175,29 +3234,29 @@ The mole shakes his broad snout sadly.  &quot;They simply will not listen.  Thos
 	Before anyone can leave, Nuvi pipes up, &quot;Wait wait! The Human has no way to defend themselves against danger.  Sure, they have mighty me, but we shouldn&#39;t leave The Human themselves unequipped.&quot;
 	The council pauses and looks are cast about as responsibility bounces tacitly around.  Finally, a dusty old raccoon lady steps toward you, away from the others.  &quot;I am Ingrid, Archivist and Keeper of Artifacts.  Sometimes odd things come through our conduits without any of our conductors like young Nuvi here opening the way for them.  For some reason they always seem to be highly charged with static electricity... and they&#39;re mostly socks.  However, we have saved them all for study and a few look like formidable weapons.&quot;  Shoving one of her colleagues aside, she waves a paw reverently over the ornate table and several items appear there.
 	&lt;&lt;link &quot;Wickedly Curved Axe&quot;&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;wicked_axe&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($itemsDict[&quot;wicked_axe&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link &quot;Inexplicably Cold Mace&quot;&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;cold_mace&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($itemsDict[&quot;cold_mace&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link &quot;Saw-tooth Dagger Glittering with Starlight from Within&quot;&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($items[&quot;sawtooth_star_dagger&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].equipment.push($itemsDict[&quot;sawtooth_star_dagger&quot;])&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	Ingrid nods her acceptance of your choice.  She begins stepping back into the fold, then pauses and returns to the table, sighing resignedly.  &quot;We also have a few Splinters of Entity that you could learn Incarnation from in a snap.&quot;  Her whiskers droop and her eyes go misty as she explains, &quot;Splinters grow over the place a Lumpkin died.  The phenomenon only occurs rarely, and only when said Lumpkin died while channeling Incarnation.  Even then, it takes about a century to grow large enough to be useful and its power only lasts a decade or so after that.  Lumpkins with a similar Entity can use them for a boost of power in a pinch, or Humans can learn them permanently.  I will allow you to devour all that remains of one of our well-liked but not really beloved ancestors, and no more.  Choose carefully!&quot;
 	&lt;&lt;link [[&quot;Take the Splinter of Serpentarius&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a vile cobra whose venom cut short a thousand thousand warriors&#39; lives before they managed to end his bid for absolute conquest of Fuzziolump.
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;debilitate&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;pierce&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;toxin&quot;])&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;debilitate&quot;] = $incarnationsDict[&quot;debilitate&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;pierce&quot;] = $incarnationsDict[&quot;pierce&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;toxin&quot;] = $incarnationsDict[&quot;toxin&quot;]&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link [[&quot;Take the Splinter of Violet&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a lovely young mink who only truly lived in her final hours when she discovered true solitude, bathed in shadow and cold beneath the cave-in that slowly smothered her.
-	&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;shadowform&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;perfect_stillness&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;savage_sympathy&quot;])&gt;&gt;
+	&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;shadowform&quot;] = $incarnationsDict[&quot;shadowform&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;perfect_stillness&quot;] = $incarnationsDict[&quot;perfect_stillness&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;savage_sympathy&quot;] = $incarnationsDict[&quot;savage_sympathy&quot;]&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;link [[&quot;Take the Splinter of Snugg-lor&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a guinea pig priest of pleasure and passion who, during a particularly rowdy drinking game, literally burst with joy.
-	&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;warmest_hug&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;woolly_shield&quot;])&gt;&gt;
-		&lt;&lt;run $characters[&quot;player&quot;].incarnations.push($incarnations[&quot;maenad_frenzy&quot;])&gt;&gt;
+	&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;warmest_hug&quot;] = $incarnationsDict[&quot;warmest_hug&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;wooly_shield&quot;] = $incarnationsDict[&quot;woolly_shield&quot;]&gt;&gt;
+		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;maenad_frenzy&quot;] = $incarnationsDict[&quot;maenad_frenzy&quot;]&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
 	&lt;&lt;/replace&gt;&gt;
 	&lt;&lt;/link&gt;&gt;
@@ -3225,31 +3284,7 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 
 // todo: Hashmalum minion too?  IDK, I don&#39;t think his folk would work with Holly&#39;s
 
-&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Combat_Time]]&quot;
-
-// todo: set combat params
-&lt;&lt;script&gt;&gt;
-/* apparently this is legal JS
-var x1 = {};        // object
-
-x1.MyClass = function MyClass(stuff,effectFn){ 
-	this.msg = stuff;
-	this.effect = effectFn;
-}
-
-var myClass = new x1.MyClass(&quot;hello from myclass&quot;, function(){return &quot;testing functional functionality in JS&quot;});
-
-var myClass2 = new x1.MyClass(&quot;hello from myotherclass&quot;, function(){return &quot;for a second time, we are testing functional functionality in JS&quot;});
-*/
-
-var monsterPuck = new State.variables.Character(&quot;Puck&quot;);
-monsterPuck.stats[&quot;hp&quot;] = 1000;
-monsterPuck.stats[&quot;mp&quot;] = Infinity;
-monsterPuck.stats[&quot;str&quot;] = 75;
-
-var monster_party = [monsterPuck];
-State.variables.combatArena = new State.variables.Combat(State.variables.party,monster_party,passage())
-&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
+&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
 &quot;I&#39;ve been told the gist of your plan.  I&#39;m no fan of having someone of your dubious wombatitude playing with the lives of two lumpkins, their current crazy godbeast forms notwithstanding.  You be careful!    
 &lt;&lt;else&gt;&gt;\
@@ -3263,9 +3298,7 @@ Together with a decidedly distant Nuvi (he keeps eyeing you suspiciously and the
 
 The body of an emaciated little man materializes in the air with a faintly wet pop to join his head.  He dances in place in the air, his fists raised in what he undoubtedly thinks is a fighting stance.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.  As you watch, his bizarre pre-fight exercises (?) knock said hat off to fall away and disappear into the darkness.
 
-&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would diminish her, [[en guarde!-&gt;Combat_Time]]&quot;
-
-// todo: set combat params</tw-passagedata><tw-passagedata pid="55" name="Encounter_Puck_Diplomancy" tags="encounter" position="136,2130" size="100,100">As you leave the warren complex, Sheila the steady wombat salutes you. 
+&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would diminish her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="55" name="Encounter_Puck_Diplomancy" tags="encounter" position="136,2130" size="100,100">As you leave the warren complex, Sheila the steady wombat salutes you. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
 &quot;I was wrong about you, human.  You&#39;re more wombatty than me!
 &lt;&lt;else&gt;&gt;\
@@ -3277,48 +3310,55 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;You would dare to threaten the power of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, and then the body of an emaciated little man materializes in the air to join them.  He bobs up and down in a reclined position, carefully carefree, and studies you appraisingly.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.
 
-&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Combat_Time]]&quot;
-
-// todo: set combat params</tw-passagedata><tw-passagedata pid="56" name="Combat_Time" tags="combat" position="136,2280" size="100,100">// todo: CSS for a pop-over combat screen?</tw-passagedata><tw-passagedata pid="57" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
+&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
-	&lt;&lt;set $party[2] to $characters[&quot;shimmerin&quot;]&gt;&gt;
-	&lt;&lt;set $party[3] to $characters[&quot;nuvi&quot;]&gt;&gt;
-	&lt;&lt;set $party[4] to $characters[&quot;mooty&quot;]&gt;&gt;
+	&lt;&lt;set $incarnationsDict[&quot;mighty_test_inc&quot;] = new $Incarnation(&quot;mighty_test_inc&quot;,&quot;Mighty Test Incarnation&quot;);&gt;&gt;
+	&lt;&lt;set $characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;] = $incarnationsDict[&quot;mighty_test_inc&quot;]&gt;&gt;
+	&lt;&lt;set _testInc to $characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;]&gt;&gt;
+	&lt;&lt;set _testInc.cost = {&quot;mp&quot;:25}&gt;&gt;
 	
 	&lt;&lt;set _puck to new $Character(&quot;puck&quot;,&quot;Puck&quot;)&gt;&gt;
 	&lt;&lt;set $characters[&quot;puck&quot;] to _puck&gt;&gt;
 	&lt;&lt;set _rapierWit to new $Incarnation(&quot;Rapier Wit&quot;)&gt;&gt;
 	&lt;&lt;set _puck.abilities[&quot;rapier_wit&quot;] = _rapierWit&gt;&gt;
 	&lt;&lt;set _rapierWit.targetType = _rapierWit.TargetTypesEnum.singleEnemy&gt;&gt;
+	&lt;&lt;set _rapierWit.calcDmg = function(){return 10;}&gt;&gt;
+	&lt;&lt;set _rapierWit.effect = function(sourceChar,targetChar){targetChar.stats[&quot;hp&quot;] -= this.calcDmg(); alert(this.calcDmg()+&quot; dmg received by Marrah!&quot;);}&gt;&gt;
+	&lt;&lt;set _rapierWit.generateFlavorText = function(){return &quot;Puck used Rapier Wit on Marrah... again.  Her HP is now &quot;+$characters[&quot;marrah&quot;].stats[&quot;hp&quot;];}&gt;&gt;
+	&lt;&lt;set _puck.runAI = function(){
+	var rapierWit = this.abilities[&quot;rapier_wit&quot;];
+	rapierWit.effect(_puck,$characters[&quot;marrah&quot;]);
+	$combatArena.combatLogContent = rapierWit.generateFlavorText();
+	}&gt;&gt;
 	
 	
 	&lt;&lt;set _enemyParty to [$characters[&quot;puck&quot;]]&gt;&gt;
 	&lt;&lt;set $combatArena = new $Combat($party,_enemyParty,passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="Combat" tags="dev" position="1208,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="57" name="Combat" tags="dev" position="1208,381" size="100,100">&lt;&lt;include &quot;CombatLog&quot;&gt;&gt;
 &lt;&lt;include &quot;PlayerCombatDisplay&quot;&gt;&gt;
-&lt;&lt;include &quot;PlayerPartyStats&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="59" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;
+&lt;&lt;include &quot;PlayerPartyStats&quot;&gt;&gt;</tw-passagedata><tw-passagedata pid="58" name="EnemyCombatDisplay" tags="dev" position="1325,274" size="100,100">&lt;div id=&quot;enemyCombatWindow&quot;&gt;
 &lt;&lt;silently&gt;&gt;
 &lt;&lt;set _enemy to $combatArena.enemyParty[0]&gt;&gt;
 &lt;&lt;print _enemy.name+&quot; HP: &quot;+_enemy.stats.hp+&quot;/&quot;+_enemy.stats.maxHP&gt;&gt;
 &lt;&lt;/silently&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="59" name="CombatLog" tags="dev" position="1326,386" size="100,100">&lt;div id=&quot;combatLog&quot;&gt;
 $combatArena.combatLogContent
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="PlayerCombatDisplay" tags="dev" position="1289,622" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="60" name="PlayerCombatDisplay" tags="dev" position="1289,622" size="100,100">&lt;div id=&quot;playerCombatWindow&quot;&gt;
 &lt;&lt;if $combatArena.turnGroup is &quot;player&quot;&gt;&gt;
 	&lt;&lt;if $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Establish temp reference to current turn owner Character
 		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.name === $characters[$combatArena.turnOwner].name; })&gt;&gt;
+		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.id === $characters[$combatArena.turnOwner].id; })&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Ability listing and init usage proc block
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
-			&lt;&lt;capture _abilityName, _ability&gt;&gt;
-			&lt;&lt;link [[&quot;_abilityName -- &quot;+_ability.printCost()-&gt;Combat]]&gt;&gt;
-			  &lt;&lt;if $combatArena.turnOwner.canAffordCost(_ability)&gt;&gt;
+			&lt;&lt;capture _abilityName, _ability, _currentTurnOwner&gt;&gt;
+			&lt;&lt;link [[_abilityName+&quot; -- &quot;+_ability.printCost()-&gt;Combat]]&gt;&gt;
+			  &lt;&lt;if _currentTurnOwner.canAffordCost(_ability)&gt;&gt;
 				&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
 					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
@@ -3348,10 +3388,11 @@ $combatArena.combatLogContent
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
+	&lt;&lt;run console.log(_currentTurnOwner.name+&quot; first incarnation id is &quot;+Object.keys(_currentTurnOwner.incarnations)[0]);&gt;&gt;
 	&lt;&lt;for _incarnationName,_incarnation range _currentTurnOwner.incarnations&gt;&gt;
-			&lt;&lt;capture _incarnationName, _incarnation&gt;&gt;
-			&lt;&lt;link [[&quot;_incarnationName -- &quot;+_incarnation.printCost()-&gt;Combat]]&gt;&gt; 
-			  &lt;&lt;if $combatArena.turnOwner.canAffordCost(_ability)&gt;&gt;
+			&lt;&lt;capture _incarnationName, _incarnation, _currentTurnOwner&gt;&gt;
+			&lt;&lt;link [[_incarnationName+&quot; -- &quot;+_incarnation.printCost()-&gt;Combat]]&gt;&gt; 
+			  &lt;&lt;if _currentTurnOwner.canAffordCost(_ability)&gt;&gt;
 				&lt;&lt;if _incarnation.targetType === _incarnation.TargetTypesEnum.singleEnemy&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _incarnation&gt;&gt;
@@ -3392,7 +3433,7 @@ $combatArena.combatLogContent
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target)&gt;&gt;
 						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText()&gt;&gt;
+						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText($characters[$combatArena.turnOwner],_target)&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -3454,7 +3495,7 @@ $combatArena.combatLogContent
 &lt;&lt;else&gt;&gt;
 	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
 &lt;&lt;/if&gt;&gt;
-&lt;/div&gt;</tw-passagedata><tw-passagedata pid="62" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="63" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="64" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
+&lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="62" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="63" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
 &lt;replace &quot;#combatLog&quot;&gt;
 	&quot;What will $characters[$combatArena.turnOwner].name do?&quot;
 &lt;/replace&gt;
@@ -3493,16 +3534,17 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 &lt;&lt;/for&gt;&gt;
 
 // Capturing several variables at once
-&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata><tw-passagedata pid="65" name="PlayerPartyStats" tags="combat" position="1324,495" size="100,100">&lt;table style=&quot;width:100%&quot;&gt;
+&lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata><tw-passagedata pid="64" name="PlayerPartyStats" tags="combat" position="1324,495" size="100,100">&lt;table style=&quot;width:100%&quot;&gt;
   &lt;tr&gt;
-  	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
+  	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
 		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
 		&lt;th&gt;&lt;u&gt;_playerChar.name&lt;/u&gt;&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-  	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
+  	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
 		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+		&lt;&lt;run console.log(_playerChar.name+&quot; has &quot;+_playerChar.stats.hp+&quot; HP; updating the table&quot;);&gt;&gt;
     	&lt;&lt;set _playerCharStatReadout to &quot;HP : &quot;+_playerChar.stats.hp+&quot;/&quot;+_playerChar.stats.maxHP&gt;&gt;
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
@@ -3514,4 +3556,25 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
-&lt;/table&gt;</tw-passagedata><tw-passagedata pid="66" name="Bush_Warren_Council_Exit" tags="conversation" position="12,1924" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata></tw-storydata>
+&lt;/table&gt;</tw-passagedata><tw-passagedata pid="65" name="Bush_Warren_Council_Exit" tags="conversation" position="12,1924" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata><tw-passagedata pid="66" name="Puck_Bossfight" tags="combat boss puck" position="121,2293" size="100,100">// set combat params and forward (valiantly) to Combat!
+&lt;&lt;script&gt;&gt;
+/* apparently this is legal JS
+var x1 = {};        // object
+
+x1.MyClass = function MyClass(stuff,effectFn){ 
+	this.msg = stuff;
+	this.effect = effectFn;
+}
+
+var myClass = new x1.MyClass(&quot;hello from myclass&quot;, function(){return &quot;testing functional functionality in JS&quot;});
+
+var myClass2 = new x1.MyClass(&quot;hello from myotherclass&quot;, function(){return &quot;for a second time, we are testing functional functionality in JS&quot;});
+*/
+
+var characters = State.variables.characters;
+
+var monster_party = [characters[&quot;puck&quot;]];
+State.variables.combatArena = new State.variables.Combat(State.variables.party,monster_party,passage())
+State.variables.combatArena.turnOwner = &quot;player&quot;
+&lt;&lt;/script&gt;&gt;
+&lt;&lt;goto [[Combat]]&gt;&gt;</tw-passagedata></tw-storydata>
