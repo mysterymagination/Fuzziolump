@@ -1,0 +1,5 @@
+1. not multiple Player instances afaics (alert w/ global instance counter in ctor).
+2. not a matter of Player vs. Character -- switching player to a Character("player","The Bland Human") led to same situation of correctly identified object but no incarnations.
+3. Not a matter of reading characters wrongly somehow in combat passages since Marrah gets her info correctly.
+4. could be some bizarre artifact of twinescript and/or order of operations, since adding incarnations to the Player via story javascript works.
+5. _currentTurnOwner is definitely somehow disparate from $characters["player"], as incarnations from former when processing The Human show empty and latter show the expected incarnation from twinescript.
