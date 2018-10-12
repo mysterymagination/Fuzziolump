@@ -155,6 +155,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -679,9 +680,11 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 			console.log("AI behavior unset");
 	}
 }
-
+State.variables.playerCount = 0;
 // Player object definition
 function Player(){
+	State.variables.playerCount++;
+	alert("Player object "+State.variables.playerCount+"is being created");
 	// inherit from Character
 	State.variables.Character.call(this,"player","The Human");
 	
@@ -1918,6 +1921,7 @@ function init(){
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
 	var hauntedFey = new State.variables.Incarnation("haunted_fey","Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
+	console.log("Marrah's first incarnation is "+Object.keys(marrahChar.incarnations)[0].name);
 	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
 	hauntedFey.cost = {"mp":20};
 	hauntedFey.effect = function(sourceChar,targetChar){
@@ -2242,6 +2246,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
@@ -3312,10 +3317,19 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1080,380" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
-	&lt;&lt;set $incarnationsDict[&quot;mighty_test_inc&quot;] = new $Incarnation(&quot;mighty_test_inc&quot;,&quot;Mighty Test Incarnation&quot;);&gt;&gt;
+	&lt;&lt;script&gt;&gt;
+	State.variables.incarnationsDict[&quot;mighty_test_inc&quot;] = new State.variables.Incarnation(&quot;mighty_test_inc&quot;,&quot;Mighty Test Incarnation&quot;);
+	console.log(&quot;incarnations dict at mighty test says: &quot;+State.variables.incarnationsDict[&quot;mighty_test_inc&quot;].name);
+	
+	 State.variables.characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;] = State.variables.incarnationsDict[&quot;mighty_test_inc&quot;];
+	 State.variables.characters[&quot;marrah&quot;].incarnations[&quot;mighty_test_inc&quot;] = State.variables.incarnationsDict[&quot;mighty_test_inc&quot;];
+	 console.log(&quot;Player&#39;s first Incarnation is &quot;+Object.keys(State.variables.characters[&quot;player&quot;].incarnations)[0].name);
+	 alert(&quot;Player&#39;s incarnations: &quot;+Object.keys(State.variables.characters[&quot;player&quot;].incarnations)+&quot;, and first one is &quot;+Object.keys(State.variables.characters[&quot;player&quot;].incarnations)[0]+&quot; with name &quot;+State.variables.characters[&quot;player&quot;].incarnations[Object.keys(State.variables.characters[&quot;player&quot;].incarnations)[0]].name);
+	&lt;&lt;/script&gt;&gt;
 	&lt;&lt;set $characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;] = $incarnationsDict[&quot;mighty_test_inc&quot;]&gt;&gt;
 	&lt;&lt;set _testInc to $characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;]&gt;&gt;
 	&lt;&lt;set _testInc.cost = {&quot;mp&quot;:25}&gt;&gt;
+	&lt;&lt;run console.log(&quot;Player&#39;s first Incarnation from twinescript is &quot;+Object.keys($characters[&quot;player&quot;].incarnations)[0].name);&gt;&gt;
 	
 	&lt;&lt;set _puck to new $Character(&quot;puck&quot;,&quot;Puck&quot;)&gt;&gt;
 	&lt;&lt;set $characters[&quot;puck&quot;] to _puck&gt;&gt;
@@ -3352,6 +3366,7 @@ $combatArena.combatLogContent
 			Establish temp reference to current turn owner Character
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.id === $characters[$combatArena.turnOwner].id; })&gt;&gt;
+		&lt;&lt;run alert(&quot;current turn owenr is &quot;+_currentTurnOwner.name+&quot; with incarnation ids &quot;+Object.keys(_currentTurnOwner.incarnations)+&quot;.  Marrah&#39;s incarnation ids are &quot;+Object.keys($characters[&quot;marrah&quot;].incarnations));&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Ability listing and init usage proc block
 		&lt;&lt;/silently&gt;&gt;
