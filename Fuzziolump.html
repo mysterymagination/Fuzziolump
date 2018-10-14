@@ -158,6 +158,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -694,8 +695,6 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 State.variables.playerCount = 0;
 // Player object definition; should not need to be a story variable since it will only be defined once, later on in the characters dict (no multiplayer in the demo)
 function Player(){
-	State.variables.playerCount++;
-	alert("Player object "+State.variables.playerCount+"is being created");
 	// inherit from Character
 	State.variables.Character.call(this,"player","The Human");
 	
@@ -1980,6 +1979,10 @@ function init(){
 		// cost
 		this.processCost(sourceChar);
 	}
+	foxFire.generateFlavorText = function(sourceChar,targetChar){
+		// todo: generic version
+		return "Marrah's brilliant scarlet fur stands on end as static electricity fills the air, along with a menacing hum.  Her yellow eyes flash electric blue for a moment and she puts both paws over her heart.  Closing her eyes, she inhales deeply, her chest puffing out proud and strong, as she allows her awareness to cascade inward.  The world waits on her discovery for a few moments, and then her eyes fly wide open -- they are glowing a painfully bright ruby with a molten gold corona.  Fires of every imaginable hue, from ghostly green to putrescent purple, whirl into life in a tornado around her, quickly obscuring her from view.  A slender paw extends forth from the tornado and flourishes languidly, then flicks dismissively towards "+targetChar.name+".  The technicolor flames leap from Marrah with gleeful fervor, and engulf "+targetChar.getPronoun_obj()+" for "+this.dmg+" damage!";	
+	}
 		
 	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
 	marrahChar.incarnations["ghost_whip"] = ghostWhip;
@@ -2262,6 +2265,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 
 
@@ -3334,27 +3338,26 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 &quot;You would dare to threaten the power of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, and then the body of an emaciated little man materializes in the air to join them.  He bobs up and down in a reclined position, carefully carefree, and studies you appraisingly.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1081,379" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
-	&lt;&lt;run alert(&quot;Player party first member is named &quot;+$party[0].name);&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
-	&lt;&lt;set $characters[&quot;player&quot;].incarnations[&quot;mighty_test_inc&quot;] = $incarnationsDict[&quot;maenad_frenzy&quot;]&gt;&gt;
-	&lt;&lt;run alert(&quot;Player&#39;s incarnations from twinescript is &quot;+Object.keys($characters[&quot;player&quot;].incarnations));&gt;&gt;
+	&lt;&lt;set $characters[&quot;player&quot;].incarnations[&quot;maenad_frenzy&quot;] = $incarnationsDict[&quot;maenad_frenzy&quot;]&gt;&gt;
+	&lt;&lt;set $characters[&quot;player&quot;].abilities[&quot;woolly_shield&quot;] = $incarnationsDict[&quot;woolly_shield&quot;]&gt;&gt;
 	
 	&lt;&lt;set _puck to new $Character(&quot;puck&quot;,&quot;Puck&quot;)&gt;&gt;
-	&lt;&lt;set $characters[&quot;puck&quot;] to _puck&gt;&gt;
-	&lt;&lt;set _rapierWit to new $Incarnation(&quot;Rapier Wit&quot;)&gt;&gt;
-	&lt;&lt;set _puck.abilities[&quot;rapier_wit&quot;] = _rapierWit&gt;&gt;
+	&lt;&lt;set _puck.gender to &quot;male&quot;&gt;&gt;
+	&lt;&lt;set _rapierWit to new $Incarnation(&quot;rapier_wit&quot;,&quot;Rapier Wit&quot;)&gt;&gt;
+	&lt;&lt;set _puck.incarnations[&quot;rapier_wit&quot;] = _rapierWit&gt;&gt;
 	&lt;&lt;set _rapierWit.targetType = _rapierWit.TargetTypesEnum.singleEnemy&gt;&gt;
 	&lt;&lt;set _rapierWit.calcDmg = function(){return 10;}&gt;&gt;
 	&lt;&lt;set _rapierWit.effect = function(sourceChar,targetChar){targetChar.stats[&quot;hp&quot;] -= this.calcDmg(); alert(this.calcDmg()+&quot; dmg received by Marrah!&quot;);}&gt;&gt;
 	&lt;&lt;set _rapierWit.generateFlavorText = function(){return &quot;Puck used Rapier Wit on Marrah... again.  Her HP is now &quot;+$characters[&quot;marrah&quot;].stats[&quot;hp&quot;];}&gt;&gt;
 	&lt;&lt;set _puck.runAI = function(){
-	var rapierWit = this.abilities[&quot;rapier_wit&quot;];
+	var rapierWit = this.incarnations[&quot;rapier_wit&quot;];
 	rapierWit.effect(_puck,$characters[&quot;marrah&quot;]);
 	$combatArena.combatLogContent = rapierWit.generateFlavorText();
 	}&gt;&gt;
 	
 	
-	&lt;&lt;set _enemyParty to [$characters[&quot;puck&quot;]]&gt;&gt;
+	&lt;&lt;set _enemyParty to [_puck]&gt;&gt;
 	&lt;&lt;set $combatArena = new $Combat($party,_enemyParty,passage())&gt;&gt;
 	&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
 	&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+ $characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
@@ -3373,17 +3376,17 @@ $combatArena.combatLogContent
 		&lt;&lt;silently&gt;&gt;
 			Establish temp reference to current turn owner Character
 		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;set _currentTurnOwner = $combatArena.playerParty.find(function (obj) { return obj.id === $characters[$combatArena.turnOwner].id; })&gt;&gt;
-		&lt;&lt;run alert(&quot;current turn owenr is &quot;+_currentTurnOwner.name+&quot; with incarnation ids &quot;+Object.keys(_currentTurnOwner.incarnations)+&quot;.  Marrah&#39;s incarnation ids are &quot;+Object.keys($characters[&quot;marrah&quot;].incarnations)+&quot; and The Human&#39;s are &quot;+Object.keys($characters[&quot;player&quot;].incarnations));&gt;&gt;
+		&lt;&lt;set _currentTurnOwner = $characters[$combatArena.turnOwner]&gt;&gt;
+		&lt;&lt;run alert(&quot;current turn owner from char dict is &quot;+_currentTurnOwner.name+&quot; with incarnations &quot;+Object.keys(_currentTurnOwner.incarnations)+&quot;.  The player party at 0 is &quot;+$combatArena.playerParty[0].name+&quot; with incs &quot;+Object.keys($combatArena.playerParty[0].incarnations));&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Ability listing and init usage proc block
 		&lt;&lt;/silently&gt;&gt;
-		&lt;&lt;for _abilityName,_ability range _currentTurnOwner.abilities&gt;&gt;
-			&lt;&lt;capture _abilityName, _ability, _currentTurnOwner&gt;&gt;
-			&lt;&lt;link [[_abilityName+&quot; -- &quot;+_ability.printCost()-&gt;Combat]]&gt;&gt;
+		&lt;&lt;for _abilityKey,_ability range _currentTurnOwner.abilities&gt;&gt;
+			&lt;&lt;capture _abilityKey, _ability, _currentTurnOwner&gt;&gt;
+			&lt;&lt;link [[_ability.name+&quot; -- &quot;+_ability.printCost()-&gt;Combat]]&gt;&gt;
 			  &lt;&lt;if _currentTurnOwner.canAffordCost(_ability)&gt;&gt;
 				&lt;&lt;if _ability.targetType === _ability.TargetTypesEnum.singleEnemy&gt;&gt;
-					&lt;&lt;set _testAbl += _abilityName&gt;&gt;
+					&lt;&lt;set _testAbl += _abilityKey&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer the wrath of &quot;+$combatArena.currentSelectedAbility.name+&quot;!&quot;&gt;&gt;  
@@ -3406,16 +3409,16 @@ $combatArena.combatLogContent
 				&lt;&lt;run _ability.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		   &lt;&lt;else&gt;&gt;
-		     &lt;&lt;run alert(&quot;You can&#39;t afford &quot;+_abilityName+&quot;; it costs &quot;+_ability.printCost())&gt;&gt;
+		     &lt;&lt;run alert(&quot;You can&#39;t afford &quot;+_abilityKey+&quot;; it costs &quot;+_ability.printCost())&gt;&gt;
 		   &lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
 	&lt;&lt;/for&gt;&gt;
 	&lt;&lt;run console.log(_currentTurnOwner.name+&quot; first incarnation id is &quot;+Object.keys(_currentTurnOwner.incarnations)[0]);&gt;&gt;
-	&lt;&lt;for _incarnationName,_incarnation range _currentTurnOwner.incarnations&gt;&gt;
-			&lt;&lt;capture _incarnationName, _incarnation, _currentTurnOwner&gt;&gt;
-			&lt;&lt;link [[_incarnationName+&quot; -- &quot;+_incarnation.printCost()-&gt;Combat]]&gt;&gt; 
-			  &lt;&lt;if _currentTurnOwner.canAffordCost(_ability)&gt;&gt;
+	&lt;&lt;for _incarnationKey,_incarnation range _currentTurnOwner.incarnations&gt;&gt;
+			&lt;&lt;capture _incarnationKey, _incarnation, _currentTurnOwner&gt;&gt;
+			&lt;&lt;link [[_incarnation.name+&quot; -- &quot;+_incarnation.printCost()-&gt;Combat]]&gt;&gt; 
+			  &lt;&lt;if _currentTurnOwner.canAffordCost(_incarnation)&gt;&gt;
 				&lt;&lt;if _incarnation.targetType === _incarnation.TargetTypesEnum.singleEnemy&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 					&lt;&lt;set $combatArena.currentSelectedAbility = _incarnation&gt;&gt;
@@ -3440,7 +3443,7 @@ $combatArena.combatLogContent
 				&lt;&lt;run _incarnation.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		   &lt;&lt;else&gt;&gt;
-		   	&lt;&lt;run alert(&quot;You cannot afford &quot;+_incarnationName+&quot;; it costs &quot;+_incarnation.printCost())&gt;&gt;
+		   	&lt;&lt;run alert(&quot;You cannot afford &quot;+_incarnationKey+&quot;; it costs &quot;+_incarnation.printCost())&gt;&gt;
 		   &lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
@@ -3559,22 +3562,27 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 // Capturing several variables at once
 &lt;&lt;capture $aStoryVar, $anotherStoryVar, _aTempVar&gt;&gt; … &lt;&lt;/capture&gt;&gt;</tw-passagedata><tw-passagedata pid="64" name="PlayerPartyStats" tags="combat" position="1324,495" size="100,100">&lt;table style=&quot;width:100%&quot;&gt;
   &lt;tr&gt;
+  	&lt;&lt;silently&gt;&gt;
+	todo: apparently somehow I was winding up with the character objects as defined in story js when I referenced from the player party directly; the updates from the setup Ready passage were not reflected and the damage/costs were not applied since those reference via the characters dict and it seems in this case the character objects pointed to by char dict vs. player party array were disparate.  Since the playerparty array is built with the references drawn from the char dict, it should be the same underlying object... plus, I didn&#39;t see the ctor message/count fire more than once, so a pass by value that copy-constructs a new object based on an out-dated character object should not have been the problem (also JS is pass by value BUT every value is a reference except primitives, like Java, I think).
+	
+	Anyway, problem is patched for now by referencing characters only by character dict.
+	&lt;&lt;/silently&gt;&gt;
   	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
-		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+		&lt;&lt;set _playerChar to $characters[$combatArena.playerParty[_playerCharIndex].id]&gt;&gt;
 		&lt;th&gt;&lt;u&gt;_playerChar.name&lt;/u&gt;&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
   	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
-		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
-		&lt;&lt;run console.log(_playerChar.name+&quot; has &quot;+_playerChar.stats.hp+&quot; HP; updating the table&quot;);&gt;&gt;
+		&lt;&lt;set _playerChar to $characters[$combatArena.playerParty[_playerCharIndex].id]&gt;&gt;
+		&lt;&lt;run alert(&quot;stats char has name &quot;+_playerChar.name+&quot; and incarnations &quot;+Object.keys(_playerChar.incarnations))&gt;&gt;
     	&lt;&lt;set _playerCharStatReadout to &quot;HP : &quot;+_playerChar.stats.hp+&quot;/&quot;+_playerChar.stats.maxHP&gt;&gt;
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
   	&lt;&lt;for  _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
-		&lt;&lt;set _playerChar to $combatArena.playerParty[_playerCharIndex]&gt;&gt;
+		&lt;&lt;set _playerChar to $characters[$combatArena.playerParty[_playerCharIndex].id]&gt;&gt;
     	&lt;&lt;set _playerCharStatReadout to &quot;MP : &quot;+_playerChar.stats.mp+&quot;/&quot;+_playerChar.stats.maxMP&gt;&gt;
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
