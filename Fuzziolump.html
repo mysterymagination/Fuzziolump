@@ -159,6 +159,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -620,6 +621,9 @@ State.variables.Character = function Character(id,name){
 		*/
 		targetCharacter.stats["def"] += sourceCharacter.stats["def"];
 	};
+	this.abilities["defend"].generateFlavorText = function(sourceCharacter,targetCharacter){
+		return sourceCharacter.name+" hops in front of "+targetCharacter.name+", valiantly using "+sourceCharacter.getPronoun_gen()+" own flesh to protect "+targetCharacter.getPronoun_obj()+"!";	
+	};
 	this.abilities["defend"].targetType = this.abilities["defend"].TargetTypesEnum.singleAlly;
 	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
 	this.abilities["run"].generateFlavorText = function(playerParty){
@@ -730,7 +734,9 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		{ 
 			selectTarget: 1, 
 			selectAbility: 2,
-			displayResults: 3
+			displayResults: 3,
+			selectEnemyTarget: 4,
+			selectAllyTarget: 5
 		});
 	this.EnemyTurnState = Object.freeze (
 		{ 
@@ -2270,6 +2276,7 @@ init();
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -3377,7 +3384,6 @@ $combatArena.combatLogContent
 			Establish temp reference to current turn owner Character
 		&lt;&lt;/silently&gt;&gt;
 		&lt;&lt;set _currentTurnOwner = $characters[$combatArena.turnOwner]&gt;&gt;
-		&lt;&lt;run alert(&quot;current turn owner from char dict is &quot;+_currentTurnOwner.name+&quot; with incarnations &quot;+Object.keys(_currentTurnOwner.incarnations)+&quot;.  The player party at 0 is &quot;+$combatArena.playerParty[0].name+&quot; with incs &quot;+Object.keys($combatArena.playerParty[0].incarnations));&gt;&gt;
 		&lt;&lt;silently&gt;&gt;
 			Ability listing and init usage proc block
 		&lt;&lt;/silently&gt;&gt;
@@ -3392,6 +3398,8 @@ $combatArena.combatLogContent
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer the wrath of &quot;+$combatArena.currentSelectedAbility.name+&quot;!&quot;&gt;&gt;  
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
+				&lt;&lt;run alert(&quot;set turn state to select ally target, &quot;+$combatArena.playerTurnState);&gt;&gt;
+				&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.allAllies&gt;&gt;
 				&lt;&lt;silently&gt;&gt;\
@@ -3454,6 +3462,7 @@ $combatArena.combatLogContent
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;run alert(&quot;In select enemy target state, &quot;+$combatArena.playerTurnState+&quot;.  Showing pot target &quot;+_target.name);&gt;&gt;
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
@@ -3469,12 +3478,15 @@ $combatArena.combatLogContent
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
+					&lt;&lt;run alert(&quot;Just set ally target to &quot;+_target.name);&gt;&gt;
 					&lt;&lt;capture _target&gt;&gt;
-					&lt;&lt;link _target.name&gt;&gt;
+					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;	
 						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText()&gt;&gt;
+						&lt;&lt;run alert(&quot;Prior to set, combat log content is &quot;+$combatArena.combatLogContent+&quot;.  Current selected abl is &quot;+$combatArena.currentSelectedAbility.name);&gt;&gt;
+						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText($characters[$combatArena.turnOwner],_target)&gt;&gt;
+						&lt;&lt;run alert(&quot;Just set combat log content to &quot;+$combatArena.combatLogContent);&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -3565,6 +3577,8 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
   	&lt;&lt;silently&gt;&gt;
 	todo: apparently somehow I was winding up with the character objects as defined in story js when I referenced from the player party directly; the updates from the setup Ready passage were not reflected and the damage/costs were not applied since those reference via the characters dict and it seems in this case the character objects pointed to by char dict vs. player party array were disparate.  Since the playerparty array is built with the references drawn from the char dict, it should be the same underlying object... plus, I didn&#39;t see the ctor message/count fire more than once, so a pass by value that copy-constructs a new object based on an out-dated character object should not have been the problem (also JS is pass by value BUT every value is a reference except primitives, like Java, I think).
 	
+	UPDATE: tested this situation (creating object inside object map, creating an array with an element referencing the object in the map, modifying the object via the map, and then printing out results from both the map and the array to see if the new stuff is picked up in both) in vanilla JS and found that the underlying object instance is indeed the same in both map and array.  No idea what&#39;s happening here in Twine land.
+	
 	Anyway, problem is patched for now by referencing characters only by character dict.
 	&lt;&lt;/silently&gt;&gt;
   	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
@@ -3575,7 +3589,6 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
   &lt;tr&gt;
   	&lt;&lt;for _playerCharIndex to 0; _playerCharIndex lt $combatArena.playerParty.length; _playerCharIndex++&gt;&gt;
 		&lt;&lt;set _playerChar to $characters[$combatArena.playerParty[_playerCharIndex].id]&gt;&gt;
-		&lt;&lt;run alert(&quot;stats char has name &quot;+_playerChar.name+&quot; and incarnations &quot;+Object.keys(_playerChar.incarnations))&gt;&gt;
     	&lt;&lt;set _playerCharStatReadout to &quot;HP : &quot;+_playerChar.stats.hp+&quot;/&quot;+_playerChar.stats.maxHP&gt;&gt;
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
