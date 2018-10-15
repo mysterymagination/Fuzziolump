@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="56" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="1" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -46,6 +46,7 @@
 	box-shadow: #000 0.5em 0.5em 0;
     transition-property: none;
 }
+
 
 
 
@@ -678,6 +679,7 @@ State.variables.Character = function Character(id,name){
 		}
 	}
 	
+	// todo: can a Map retrieve values using non-primitive keys (e.g. Character object)?
 	this.updateAffinity = function(characterObject,modifier){
 		if(this.affinities.has(characterObject)){
 this.affinities.set(characterObject,this.affinities.get(characterObject)+modifier);	
@@ -1516,7 +1518,7 @@ function init(){
 		this.processCost(sourceChar);
 	}
 	woollyShieldIncarnation.generateFlavorText = function(sourceChar,targetChar){
-		return sourceChar.name+" puffs out "+sourceChar.getPronoun_gen()+" hair, approximating thick wool as best "+targetChar.getPronoun_nom()+" can, and jumps in front of "+targetChar.name+", intent on protecting "+targetChar.getPronoun_gen()+" with "+sourceChar.getPronoun_gen()+" woolly life!";	
+		return sourceChar.name+" puffs out "+sourceChar.getPronoun_gen()+" hair, approximating thick wool as best "+sourceChar.getPronoun_nom()+" can, and jumps in front of "+targetChar.name+", intent on protecting "+targetChar.getPronoun_obj()+" with "+sourceChar.getPronoun_gen()+" woolly life!";	
 	} 
 	
 	/**
@@ -1963,8 +1965,8 @@ function init(){
 		// dmg based on source's cur:max MP ratio
 		var magicRat = sourceChar.stats.mp/sourceChar.stats.maxMP;
 		
-		// the max damage possible is based on _ and will be reduced by any magicRat less than 1
-		return magicRat*(sourceChar.stats.maxMP/2); //so Marrah will start at max 35 damage, which is a little over double the normal attack damage.
+		// the max damage possible is based on MP and will be reduced by any magicRat less than 1
+		return magicRat*(sourceChar.stats.maxMP); //so Marrah will start at max 70 damage, which is a little over triple the normal attack damage.
 		
 	}
 	foxFire.effect = function(sourceChar,targetChar){
@@ -1987,7 +1989,7 @@ function init(){
 	}
 	foxFire.generateFlavorText = function(sourceChar,targetChar){
 		// todo: generic version
-		return "Marrah's brilliant scarlet fur stands on end as static electricity fills the air, along with a menacing hum.  Her yellow eyes flash electric blue for a moment and she puts both paws over her heart.  Closing her eyes, she inhales deeply, her chest puffing out proud and strong, as she allows her awareness to cascade inward.  The world waits on her discovery for a few moments, and then her eyes fly wide open -- they are glowing a painfully bright ruby with a molten gold corona.  Fires of every imaginable hue, from ghostly green to putrescent purple, whirl into life in a tornado around her, quickly obscuring her from view.  A slender paw extends forth from the tornado and flourishes languidly, then flicks dismissively towards "+targetChar.name+".  The technicolor flames leap from Marrah with gleeful fervor, and engulf "+targetChar.getPronoun_obj()+" for "+this.dmg+" damage!";	
+		return "Marrah's brilliant scarlet fur stands on end as static electricity fills the air, along with a menacing hum.  Her yellow eyes flash electric blue for a moment and she puts both paws over her heart.  Closing her eyes, she inhales deeply, her chest puffing out proud and strong, as she allows her awareness to cascade inward.  The world waits on her discovery for a few moments, and then her eyes fly wide open -- they are glowing a painfully bright ruby with a molten gold corona.  Eight tails forged from fires of every imaginable hue, from ghostly green to putrescent purple, join her only slightly less magical normal one. She turns tail and flicks all nine dismissively towards "+targetChar.name+".  The technicolor flames leap from Marrah with gleeful fervor, and engulf "+targetChar.getPronoun_obj()+" for "+this.dmg+" damage!";	
 	}
 		
 	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
@@ -2018,7 +2020,7 @@ function init(){
 	}
 	ghostWhip.generateFlavorText = function(sourceChar,targetChar){
 		// todo: reference hpDmg and mpDmg instead of dmg!
-		return "A whip of pale iridescent light appears in "+sourceChar.name+"'s paw, and "+sourceChar.getPronoun_nom()+" cracks it with a liquid flourish, shattering stillness.  "+targetChar.name+" recoils in horror as the whip passes through "+targetChar.getPronoun_gen()+" body and appears to wrap directly around "+targetChar.getPronoun_gen()+" heart.  A goofy grin crawls across "+sourceChar.name+"'s face as the light of will and life pulses back along the whip to "+sourceChar.getPronoun_obj()+" like blood through a glutted leech.  That'll be "+this.hpDmg+" damage to "+targetChar.getPronoun_gen()+" body and "+this.mpDmg+" to "+targetChar.getPronoun_gen()+" mind!";
+		return "A whip of pale iridescent light appears in "+sourceChar.name+"'s paw, and "+sourceChar.getPronoun_nom()+" cracks it with a liquid flourish, shattering stillness.  "+targetChar.name+" recoils in horror as the whip passes through "+targetChar.getPronoun_gen()+" body and appears to wrap directly around "+targetChar.getPronoun_gen()+" heart.  A goofy grin crawls across "+sourceChar.name+"'s face as the light of will and life pulses back along the whip to "+sourceChar.getPronoun_obj()+" like blood through a glutted leech.  "+sourceChar.getPronoun_gen()+" eyelids flutter and "+sourceChar.getPronoun_gen()+" eyes roll in a mild ecstasy as pilfered personhood flows into "+sourceChar.getPronoun_obj()+"...  That'll be "+this.hpDmg+" damage to "+targetChar.getPronoun_gen()+" body and "+this.mpDmg+" to "+targetChar.getPronoun_gen()+" mind!";
 	}
 	
 	/**
@@ -2043,7 +2045,7 @@ function init(){
 			// todo: add non-Marrah text
 			
 			// Marrah specific text
-			return "Marrah spins in a blur of scarlet and as the sheer frenzy of her motion whips up wind around her, a bonfire of pure passion erupts from nowhere and wraps her in a gorgeously deadly veil.  In the midst of a blinding nova through which only the sleek curves of her silhouette can be seen, she halts with a flourish and extends a slender arm flirtatiously towards "+targetChar.name+", crooking a finger in all-too-warm invitation.  The wild nova gathers itself into tongues that lick their languid way over her body to coalesce around her arm.  Before "+targetChar.getPronoun_nom()+" can flee, she darts forward and slashes "+targetChar.getPronoun_obj()+" with flaming claws that dig out grisly-deep tracks of sizzling flesh!";
+			return "Marrah spins in a blur of scarlet and as the sheer frenzy of her motion whips up wind around her, a bonfire of pure passion erupts from nowhere and wraps her in a gorgeously deadly veil.  In the midst of a blinding nova through which only the sleek curves of her silhouette can be seen, she halts with a flourish of her bushy tail and extends a slender paw flirtatiously towards "+targetChar.name+", crooking a finger in all-too-warm invitation.  The wild nova gathers itself into tongues that lick their languid way over her body to coalesce around her arm.  Before "+targetChar.getPronoun_nom()+" can flee, she darts forward and slashes "+targetChar.getPronoun_obj()+" with flaming claws that dig out grisly-deep tracks of sizzling flesh!";
 		}
 		
 	var mootyChar = State.variables.characters["mooty"];
@@ -2277,6 +2279,7 @@ init();
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -2325,12 +2328,7 @@ You feel the need to speak:
 [[&quot;Where am I?&quot;-&gt;Atrium_Glade_Where_Player]]
 [[&quot;Who are you?&quot;-&gt;Atrium_Glade_Who_Nuvi]]
 [[&quot;What are you?&quot;-&gt;Atrium_Glade_What_Nuvi]]
-[[&quot;I really like your wings!&quot;-&gt;Atrium_Glade_Wings_Compliment_Nuvi][$playerAffinities.nuvi_affinity += 1]]
-
-// looks like Sugarcube will not create a variable for you on the fly as part of an operation like this; $nuvi_affinity needs to have already been set somewhere
-//[&quot;Test&quot;][$nuvi_affinity += 1]
-test is: &lt;&lt;print $test&gt;&gt;
-Affinity is: &lt;&lt;print $playerAffinities.nuvi_affinity&gt;&gt;
+[[&quot;I really like your wings!&quot;-&gt;Atrium_Glade_Wings_Compliment_Nuvi][$characters.player.updateAffinity($characters.nuvi,1)]]
 
 </tw-passagedata><tw-passagedata pid="14" name="Alpha_Thanks_Player_Of_Romantic_Interest" tags="alpha user-targeted" position="812,329" size="100,100">/*something to the tune of &#39;hope you&#39;ve enjoyed exploring the land of Fuzziolump!  Speaking of exploring, would you like to explore a relationship with me?&#39; [cripes that sounds lame.  Think of better phrasing if we go with this one] and/or something referencing celebratory redwall-esque feasts in game and say &#39;speaking of feasting, would you like to get dinner sometime?*/</tw-passagedata><tw-passagedata pid="15" name="Atrium_Glade_Where_Player" tags="query conversation" position="24,482" size="100,100">&quot;You&#39;ve landed in the glorious world of [[Fuzziolump-&gt;Fuzziolump_Desc]], a reality born from your own species&#39; collective psyche! /*something about advent of electricity and telecomm tech leading to quantum tunneling/entanglement signal propagation and accidental influence of the development of life in this alternate universe.  Also something more directly SciFey, such that the particular thoughts/feelings conveyed by those signals matter and were shaping Fuzziolump even before telecomm simply from being experienced by humans.  Explains the personification of memes in the lumpkins, but not so much why they&#39;re mystified by human tech that comes through dryers.*/ To use more modern terminology, we were born of the internet... but in a good way!
 
@@ -2471,7 +2469,8 @@ Demo Scope{
 2. Surgical Strike: terminate the feedback loop, and maybe hope it returns the Holly to her old lumpkin-y self instead of killing her horribly
 3. Diplomancy: come up with a new way to reach Holly beyond simply talking to some leaf node of her</tw-passagedata><tw-passagedata pid="20" name="Atrium_Glade_Wings_Compliment_Nuvi" tags="nuvi character_dev affinities" position="468,358" size="100,100">&quot;Why thank you, human!  They help me execute precise maneuvers in the air, but other than that they&#39;re mostly for show -- I fly by lessening the effect of gravity on myself with _&lt;todo: some wordplay on mana/magic&gt;&quot;  He zooms around your head, swimming through the air without flapping his wings to demonstrate.
 
-[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="" position="518,647" size="100,100">todo: add the sprig of holly to the inventory; this will help the player with Holly later</tw-passagedata><tw-passagedata pid="23" name="Test Arena" tags="dev test" position="723,627" size="100,100">&lt;&lt;script&gt;&gt;
+[[Exit Conversation-&gt;Atrium Glade]]</tw-passagedata><tw-passagedata pid="21" name="Atrium_Glade_Foliage" tags="" position="518,497" size="100,100">You examine the nearest frosted greenery, a holly bush whose bright red berries contrast beautifully with the pure white snow.  Brushing a hand over the bush idly, you jump higher than you thought possible when one of its branches extends creakily and a sprig reaches out to pat you right back.  As if taken aback and perhaps chagrined by your startled reaction, the branch withdraws shyly, and the [[sprig of holly]] flutters gently to the ground. </tw-passagedata><tw-passagedata pid="22" name="sprig of holly" tags="item" position="518,647" size="100,100">You tuck the Sprig of Holly safely into your pack, giving it a fond pat to make sure it&#39;s settled.
+&lt;&lt;run $characters.player.inventory.push(new $Item(&quot;holly_sprig&quot;,&quot;Spring of Holly&quot;));&gt;&gt;</tw-passagedata><tw-passagedata pid="23" name="Test Arena" tags="dev test" position="723,627" size="100,100">&lt;&lt;script&gt;&gt;
 //var combatPassage = Story.get(&quot;CombatArena&quot;);
 //combatPassage.prototype.testField = &quot;helloarena&quot;;
 //Would need to modify the prototype of Passage itself
@@ -3355,7 +3354,7 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 	&lt;&lt;set _puck.incarnations[&quot;rapier_wit&quot;] = _rapierWit&gt;&gt;
 	&lt;&lt;set _rapierWit.targetType = _rapierWit.TargetTypesEnum.singleEnemy&gt;&gt;
 	&lt;&lt;set _rapierWit.calcDmg = function(){return 10;}&gt;&gt;
-	&lt;&lt;set _rapierWit.effect = function(sourceChar,targetChar){targetChar.stats[&quot;hp&quot;] -= this.calcDmg(); alert(this.calcDmg()+&quot; dmg received by Marrah!&quot;);}&gt;&gt;
+	&lt;&lt;set _rapierWit.effect = function(sourceChar,targetChar){targetChar.stats[&quot;hp&quot;] -= this.calcDmg();}&gt;&gt;
 	&lt;&lt;set _rapierWit.generateFlavorText = function(){return &quot;Puck used Rapier Wit on Marrah... again.  Her HP is now &quot;+$characters[&quot;marrah&quot;].stats[&quot;hp&quot;];}&gt;&gt;
 	&lt;&lt;set _puck.runAI = function(){
 	var rapierWit = this.incarnations[&quot;rapier_wit&quot;];
@@ -3398,7 +3397,6 @@ $combatArena.combatLogContent
 					&lt;&lt;set $combatArena.combatLogContent = &quot;Choose the fiend who will uffer the wrath of &quot;+$combatArena.currentSelectedAbility.name+&quot;!&quot;&gt;&gt;  
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.singleAlly&gt;&gt;
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
-				&lt;&lt;run alert(&quot;set turn state to select ally target, &quot;+$combatArena.playerTurnState);&gt;&gt;
 				&lt;&lt;set $combatArena.currentSelectedAbility = _ability&gt;&gt;
 				&lt;&lt;set $combatArena.combatLogContent = &quot;Choose your buddy to buff!&quot;&gt;&gt;
 			&lt;&lt;elseif _ability.targetType === _ability.TargetTypesEnum.allAllies&gt;&gt;
@@ -3417,7 +3415,7 @@ $combatArena.combatLogContent
 				&lt;&lt;run _ability.effect($combatArena.enemyParty)&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		   &lt;&lt;else&gt;&gt;
-		     &lt;&lt;run alert(&quot;You can&#39;t afford &quot;+_abilityKey+&quot;; it costs &quot;+_ability.printCost())&gt;&gt;
+		     &lt;&lt;run alert(&quot;You cannot afford &quot;+_abilityKey+&quot;; it costs &quot;+_ability.printCost())&gt;&gt;
 		   &lt;&lt;/if&gt;&gt;
 		  &lt;&lt;/link&gt;&gt;
 		&lt;&lt;/capture&gt;&gt;
@@ -3462,7 +3460,6 @@ $combatArena.combatLogContent
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectEnemyTarget&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.enemyParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.enemyParty[_potentialTargetIndex]&gt;&gt;
-					&lt;&lt;run alert(&quot;In select enemy target state, &quot;+$combatArena.playerTurnState+&quot;.  Showing pot target &quot;+_target.name);&gt;&gt;
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
@@ -3478,15 +3475,12 @@ $combatArena.combatLogContent
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.selectAllyTarget&gt;&gt;
 		&lt;&lt;for _potentialTargetIndex to 0; _potentialTargetIndex lt $combatArena.playerParty.length; _potentialTargetIndex++&gt;&gt;
 					&lt;&lt;set _target to $combatArena.playerParty[_potentialTargetIndex]&gt;&gt;
-					&lt;&lt;run alert(&quot;Just set ally target to &quot;+_target.name);&gt;&gt;
 					&lt;&lt;capture _target&gt;&gt;
 					&lt;&lt;link [[_target.name-&gt;Combat]]&gt;&gt;
 						&lt;&lt;set $combatArena.currentTargetCharacter = _target&gt;&gt; 
 						&lt;&lt;run $combatArena.currentSelectedAbility.effect($characters[$combatArena.turnOwner],_target);&gt;&gt;	
 						&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.displayResults&gt;&gt;
-						&lt;&lt;run alert(&quot;Prior to set, combat log content is &quot;+$combatArena.combatLogContent+&quot;.  Current selected abl is &quot;+$combatArena.currentSelectedAbility.name);&gt;&gt;
 						&lt;&lt;set $combatArena.combatLogContent = $combatArena.currentSelectedAbility.generateFlavorText($characters[$combatArena.turnOwner],_target)&gt;&gt;
-						&lt;&lt;run alert(&quot;Just set combat log content to &quot;+$combatArena.combatLogContent);&gt;&gt;
 					&lt;&lt;/link&gt;&gt;
 					&lt;&lt;/capture&gt;&gt;
 				&lt;&lt;/for&gt;&gt;
@@ -3512,6 +3506,7 @@ $combatArena.combatLogContent
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Rally!&quot;-&gt;Combat]]&gt;&gt;
+  	&lt;&lt;run console.log(&quot;enemy HP is &quot;+$combatArena.enemyParty[0].stats.hp);&gt;&gt;
   	&lt;&lt;if $combatArena.processRoundBottom()&gt;&gt;
   		&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 		&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
@@ -3526,12 +3521,12 @@ $combatArena.combatLogContent
 		&lt;&lt;if $combatArena.combatResult === $combatArena.CombatResultEnum.playerVictory&gt;&gt;
 			&lt;&lt;set $combatArena.combatLogContent = &quot;The party has triumphed over evil once more!&quot;&gt;&gt;
 		&lt;&lt;else&gt;&gt;
-			&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here -- in the next months, with nothing to meaningfully oppose them, the godlings will grow and grow out of control, and soon swallow up (intentionally or not) the gentle land of Fuzziolump.  Your deaths mark the end of all hopes and dreams!&quot;&gt;&gt;
+			&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here -- in the next months, with nothing to meaningfully oppose them, the godlings will grow and grow out of control, and soon swallow up (intentionally or not) the gentle land of Fuzziolump.  Your deaths mark the end for all hopes and dreams!&quot;&gt;&gt;
 		&lt;&lt;/if&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
   &lt;&lt;/link&gt;&gt;
-&lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;turngroup is wrong&quot;&gt;&gt;
+&lt;&lt;elseif $combatArena.turnGroup is &quot;system&quot;&gt;&gt;
+	&lt;&lt;link [[&quot;Continue the adventure...&quot;-&gt;Demo_Postproc]]&gt;&gt;&lt;&lt;/link&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="62" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="63" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
 &lt;replace &quot;#combatLog&quot;&gt;
@@ -3621,4 +3616,4 @@ var monster_party = [characters[&quot;puck&quot;]];
 State.variables.combatArena = new State.variables.Combat(State.variables.party,monster_party,passage())
 State.variables.combatArena.turnOwner = &quot;player&quot;
 &lt;&lt;/script&gt;&gt;
-&lt;&lt;goto [[Combat]]&gt;&gt;</tw-passagedata></tw-storydata>
+&lt;&lt;goto [[Combat]]&gt;&gt;</tw-passagedata><tw-passagedata pid="67" name="Demo_Postproc" tags="demo dev" position="1451,633" size="100,100">Thanks so much for playing the demo!  It&#39;s been fun, but it&#39;s over for now; please feel free to close the window/tab.</tw-passagedata></tw-storydata>
