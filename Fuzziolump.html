@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="13" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="30" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -46,6 +46,7 @@
 	box-shadow: #000 0.5em 0.5em 0;
     transition-property: none;
 }
+
 
 
 
@@ -706,7 +707,7 @@ function Player(){
 	
 	// the player can remain in full cold for 25 room moves
 	// before becoming hypothermic
-	this.cold_max_count = 25;
+	this.cold_max_count = Infinity; // this was a dumb idea for the demo
 	
 	// the count of turns a player has been out in the cold
 	this.cold_count = 0;
@@ -1081,7 +1082,7 @@ function AnIceMole(){
 			// set the current room to the room along the path
 			// at the new index
 			this.ice_mole_room = this.ice_mole_path[this.path_index];
-		  alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
+		  //alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
 	} // end advance function
 	/**
 	Retreats anicemole along his path
@@ -1096,7 +1097,7 @@ function AnIceMole(){
 			// set the current room to the room along the path
 			// at the new index
 			this.ice_mole_room = this.ice_mole_path[this.path_index];
-		  alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
+		  //alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
 	} // end retreat function
 	
 	/**
@@ -2280,6 +2281,7 @@ init();
 
 
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -2538,10 +2540,9 @@ alert(&quot;eatk is &quot;+State.variables.eatkname);
 We didn&#39;t have any at first.  The fully mortal lumpkins are quite complex enough, and even with the vast sum of Earth&#39;s imaginings it took ages for us to develop.  Several centuries have passed since we grew smart enough to start recording our history, and it seems the more we wrote and thought and felt the experiences of life, the faster Fuzziolump grew.  Its own denizens&#39; imaginings fuel it in addition to Earth&#39;s pool of creative energy, and this exponentiation has led to more potent lifeforms.  Effectively, gods.
 
 Now, this might be cause for celebration -- a whole new category of sapient life, more deeply sapient than any of us can fathom!  Unfortunately, power and depth of mind do not equate to wisdom.  The young gods of Fuzziolump are all very different, but their common trait is an understandable lack of experience combined with an unprecedented ability to influence the world around them.  Some have even learned to syphon off the creative energy Fuzziolump thrives on, and threaten to collapse this world in on itself.  It isn&#39;t clear what would happen the gods if this world perished, but I and my loved ones and millions more like us would surely be snuffed out like the humble little candle flames we are.  I cannot allow that to happen.
-
 /*todo: refresh page on click here?  I don&#39;t necessarily want a new passage, but I don&#39;t want the text wall to go on forever either*/
 
-What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  You create every day -- [[you must know-&gt;Wombat_Warren_Reveal]] how to turn that power off, or keep it under control?&quot;</tw-passagedata><tw-passagedata pid="29" name="Wombat_Warren_Reveal" tags="quest main_quest" position="2,823" size="100,100">&quot;Is that not really a thing you humans do?  Well, I&#39;m sure you&#39;ll figure something out!  Anyways, we need to present you to the Animal Council and discuss with them how to proceed.  We&#39;ll find them [[North-&gt;Bejeweled_Pines]] of the Frosted Forest (in which you stand currently), in the sandy savannah of the Wombat Warren.&quot;</tw-passagedata><tw-passagedata pid="30" name="Bejeweled_Pines" tags="room frosty_forest" position="2,973" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  At least, I think that&#39;s why we&#39;ve summoned you.  The Council of Animals made it a top secret matter, so little folk like me can only guess.  But yeah, you create every day -- [[you must know-&gt;Wombat_Warren_Reveal]] how to turn that power off, or keep it under control?&quot;</tw-passagedata><tw-passagedata pid="29" name="Wombat_Warren_Reveal" tags="quest main_quest" position="2,823" size="100,100">&quot;Is that not really a thing you humans do?  Well, I&#39;m sure you&#39;ll figure something out!  Anyways, we need to present you to the Animal Council and discuss with them how to proceed.  We&#39;ll find them [[North-&gt;Bejeweled_Pines]] of the Frosted Forest (in which you stand currently), in the sandy savannah of the Wombat Warren.&quot;</tw-passagedata><tw-passagedata pid="30" name="Bejeweled_Pines" tags="room frosty_forest" position="2,973" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
 Nuvi flaps off northward a short span, then pauses as he notes you are not beside him.  Looking back and flashing a reassuring and whiskery grin, he proffers a fuzzy little paw to you.  Squaring your shoulders with purpose, you gently take the soft paw and allow the otter to lead you through the hidden paths in the thick snow-blanketed verge.  
 
 After some stumbling and a small labyrinth of green and whit, he leads you to
@@ -2558,7 +2559,7 @@ Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;T
 
 Each faery&#39;s wings are different colors, like intricate stained glass.  As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="164,901" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
 
-&quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as [[their trees-&gt;Bejeweled_Pines]].&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="565,1151" size="100,100">/*
+&quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as [[their trees-&gt;Bejeweled_Pines]].&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="567,1089" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
 Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="593,1404" size="100,100">&lt;&lt;silently&gt;&gt;
@@ -2575,14 +2576,14 @@ hypothermia processing
 Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
 &lt;&lt;else&gt;&gt;
 &lt;&lt;silently&gt;&gt;
-// We only want the mole to be processed if this is not the first time in the room, since the player starts here and we want to at least potentially show the mole mechanic with the rooms to the E and S
+ We only want the mole to be processed if this is not the first time in the room, since the player starts here and we want to at least potentially show the mole mechanic with the rooms to the E and S
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole discovered!  He burrows hastily away from the human in &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole discovered!  He burrows hastily away from the human in &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;
@@ -2595,14 +2596,12 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 &lt;&lt;/if&gt;&gt;
 
 
-//todox: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
+/*todox: our first game element!  Surprise, surprise, it&#39;s a maze.  I don&#39;t want it to be a bunch of twisty passages all alike though; the player doesn&#39;t have enough inventory junk for that yet.  Plus those kinda suck.  There should be clear landmarks in the maze, allowing the player to actually learn and traverse it without making their own landmarks out of dropped items, BUT these landmarks should ideally shift as time goes by such that they really only exist as patterns of landscape.  That way the player has to recognize the patterns as a simple puzzle in order to navigate the maze. Shimmerin may alter things and leave false clues as well. 
 
 // The simplest way to do something like the above would probably be to have a prefab maze in mind, and then randomly/conditionally change little bits of the descripter text for each room, and each room could be implemented as a prefab passage in Twine.  So draw that maze first!
 
 //todo: make the mole go CC when player is already in the room when it arrives.  Also make sure the mole&#39;s direction of burrowing is clear so that this doesn&#39;t turn into another Rilix Castle situation that can&#39;t be solved without already knowing the map.
-
-
-
+*/
 &lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
@@ -2626,24 +2625,24 @@ hypothermia processing
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	An ice mole (who is, incidentally, a nice mole) is sniffing at the few valiant flowers poking up through the snow.  When he senses your approach he bellows with a mighty voice that would make a hippopotamus proud, and then dives into the ground just to the side of the marble tile like a breaching porpoise.  Tile cracks and rises for a few yards on a distinctly Southwest heading.
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	
 	&lt;&lt;silently&gt;&gt;
 	Need to check if mole has wandered into the room the human is currently in, and process his retreat
 	&lt;&lt;/silently&gt;&gt;
 	
 	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.retreat()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	
 	An ice mole slides in on his belly like (?) the most elegant figure skater you&#39;ve ever seen from the Northwest.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
@@ -2680,24 +2679,24 @@ hypothermia processing
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	An ice mole licks the frozen waterfall gingerly, as if giving it a friendly kiss.  Or perhaps more than friendly.  When he hears you tromping through the crunchy snows, he tunnels away Northwest directly into the ice and has been replaced by a mole hole in the blink of an eye.
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	
 	&lt;&lt;silently&gt;&gt;
 	Need to check if mole has wandered into the room the human is currently in, and process his retreat
 	&lt;&lt;/silently&gt;&gt;
 	
 	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.retreat()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;)&gt;&gt;
 	
 	
 	An ice mole shimmies down from the Northeast over the frozen staircase, managing the steps with more dignity than any quadraped ever managed steps before (you&#39;re certain).  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
@@ -2734,25 +2733,25 @@ hypothermia processing
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	An ice mole patiently shovels snow with his great digging claws, to no particular purpose you can see.  His earnest little brow is furrowed, however, so you imagine he must have important duties here.  When he catches your scent on the wind, he abandons his shoveling and burrows away in a shower of glittering ice chips.  The tinkling of disturbed gold and gemstones showering over one another fades out to the Northeast.
 	
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	
 	&lt;&lt;silently&gt;&gt;
 	Need to check if mole has wandered into the room the human is currently in, and process his retreat
 	&lt;&lt;/silently&gt;&gt;
 	
 	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.retreat()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	
 	An ice mole snuffles in amongst the treasures from the Southeast, ignoring the sparklies and evidently intent on some secret quest.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
@@ -2799,25 +2798,25 @@ hypothermia processing
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole discovered!  He burrows with haste out of &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.burrow()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s burrowing brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	An ice mole snuffles about busily beneath a huge growth of emeralds in the shape of a towering oak tree.  His giant claws scrape patiently away at the &#39;roots&#39;, hard enough to chip away the stone.  When the mole sees you approaching, he panics and dives beneath the ice and snow at the base of the emerald tree.  His frenzied digging upsets the root system, which is apparently a thing, and the emerald oak comes crashing to the ground, throwing up a mist of powdery snow that glitters in the multi-hued sunlight.  The perfectly rounded tunnel appears to lead Southeast. 
 	
 &lt;&lt;else&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  His position before advance is &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	&lt;&lt;run $anicemole.advance()&gt;&gt;
-	&lt;&lt;print &quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room&gt;&gt;
+	&lt;&lt;run console.log(&quot;the mole wanders onward, digging digging deep down underground.  He snuffled off to &quot;+$anicemole.ice_mole_room);&gt;&gt;
 	
 	&lt;&lt;silently&gt;&gt;
 	Need to check if mole has wandered into the room the human is currently in, and process his retreat
 	&lt;&lt;/silently&gt;&gt;
 	
 	&lt;&lt;if $anicemole.ice_mole_room is passage()&gt;&gt;
-	&lt;&lt;print &quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;mole has discovered the human!  He retreats from &quot;+passage()+&quot;!&quot;);&gt;&gt;
 	&lt;&lt;run $anicemole.retreat()&gt;&gt;
-	&lt;&lt;print &quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;&gt;&gt;
+	&lt;&lt;run console.log(&quot;Anice mole&#39;s retreat brings him to &quot;+$anicemole.ice_mole_room+&quot;!&quot;);&gt;&gt;
 	
 	
 	An ice mole hops up on a nearby yucca plant carved from solid ruby slightly to the Southwest, assuming the pose of a stalwart caretaker.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
@@ -2837,9 +2836,9 @@ The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as 
 		Then, her eyes shift to your pack, which has begun to hum and vibrate softly.  Zooming over in a blur of enthusiasm, the little fairy opens your pack, dives in, and emerges holding reverently the tiny tiara you picked up in the treasure room.
 		
 		&quot;This... how did you get this?&quot; she asks, breathlessly, her face a mask of astonishment and all pretense of teasing silliness forgotten.  &quot;She&#39;s the Summer Queen&#39;s own tiara, and has been lost to us since the fall of the courts centuries ago.  Everything hears her call, faeries most of all, so we knew she was under the ice amongst the forsaken treasures but no one could get past the treasure&#39;s curse to reach her!&quot;
-		// todo: the question should be more how rather than where, since the treasure room is right over there.  I would say the focus should be on the treasure&#39;s curse repelling raiders, and the mole&#39;s pure goodness and innocence making it immune.  As for why the fairy never noticed that, well maybe the mole isn&#39;t frightened of them and/or maybe they don&#39;t have the attention to detail necessary to set up the mole to dig things out for them.
+		/* todo: the question should be more how rather than where, since the treasure room is right over there.  I would say the focus should be on the treasure&#39;s curse repelling raiders, and the mole&#39;s pure goodness and innocence making it immune.  As for why the fairy never noticed that, well maybe the mole isn&#39;t frightened of them and/or maybe they don&#39;t have the attention to detail necessary to set up the mole to dig things out for them.
 		
-		// todo: do we want a conversation here?  It could be done without too too much hassle by setting control vars to manage the passage text here and adding an exit conversation link in the conversation branch passages that comes back here.  Does it serve a purpose, however?  On the one hand, we could force the player&#39;s tongue here and give their truthful answer about the mole which would allow Shimmerin to respond that she never noticed the mole digging frenziedly and/or was unable/unwilling to frighten it.  On the other hand, we could let the player lie or ignore Shimmerin, which would mod her affinity.  We could even give the player a CHA score, which can be influenced by equipment etc, which influences the likelihood of the bluff succeeding.  I guess the main question is: is there a response the player could give that would significantly (i.e. not just slight affinity mod) change something re: Shimmerin in the story going forward?  Eh, I suppose so: maybe Shimmerin decides that the player must be as good-hearted and earnest as a mole and the aff takes a big jump up AND we add &#39;mole-level-good&#39; to her inductive bias re: the player, which could well have important consequences later (e.g. she assumes something that can&#39;t hurt the pure of heart can&#39;t hurt the player, and so doesn&#39;t warn them...)
+		 todo: do we want a conversation here?  It could be done without too too much hassle by setting control vars to manage the passage text here and adding an exit conversation link in the conversation branch passages that comes back here.  Does it serve a purpose, however?  On the one hand, we could force the player&#39;s tongue here and give their truthful answer about the mole which would allow Shimmerin to respond that she never noticed the mole digging frenziedly and/or was unable/unwilling to frighten it.  On the other hand, we could let the player lie or ignore Shimmerin, which would mod her affinity.  We could even give the player a CHA score, which can be influenced by equipment etc, which influences the likelihood of the bluff succeeding.  I guess the main question is: is there a response the player could give that would significantly (i.e. not just slight affinity mod) change something re: Shimmerin in the story going forward?  Eh, I suppose so: maybe Shimmerin decides that the player must be as good-hearted and earnest as a mole and the aff takes a big jump up AND we add &#39;mole-level-good&#39; to her inductive bias re: the player, which could well have important consequences later (e.g. she assumes something that can&#39;t hurt the pure of heart can&#39;t hurt the player, and so doesn&#39;t warn them...)*/
 		
 		[[There was this mole...-&gt;Shimmerin_Chase_Crystal_Gardens_Tiara_Mole]]
 		[[I had no problem digging up the tiara.  Bit of a tingly sensation while I worked, but that was it.-&gt;Shimmerin_Chase_Crystal_Gardens_Tiara_Self]]
@@ -2882,7 +2881,7 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 &lt;&lt;/if&gt;&gt;
 
 [[Furs grow and feathers blow...-&gt;Shimmerin_Chase_Transition_Bejeweled_Pines]]
-</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!</tw-passagedata><tw-passagedata pid="44" name="Bush" tags="room" position="0,1139" size="100,100">As you exit the treeline of the snow-frosted forest, a wave of heat slaps you in the face so tangibly that you actually stumble.  Though snow falls visibly, almost mockingly, not 100 yards to the South, the temperature in the savannah feels closer to boiling.
+</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!  Please hit &#39;restart&#39; and try again.</tw-passagedata><tw-passagedata pid="44" name="Bush" tags="room" position="0,1139" size="100,100">As you exit the treeline of the snow-frosted forest, a wave of heat slaps you in the face so tangibly that you actually stumble.  Though snow falls visibly, almost mockingly, not 100 yards to the South, the temperature in the savannah feels closer to boiling.
 
 &quot;Ecosystems work pretty differently here,&quot; Nuvi explains, prompted by your stunned expression.  &quot;They depend more on our collective conception of what a place should be like rather than weather patterns and physics and all that fluff humans are always going on about.&quot;  Despite the heat, your thick-furred companion glides along as serenely as ever.  He hums [[a tune you&#39;re unfamiliar with-&gt;Bush_Tune]].
 
