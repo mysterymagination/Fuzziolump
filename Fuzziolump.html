@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="30" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="55" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -263,6 +263,17 @@ State.variables.findCharacterIndex = function(characterArray,characterID){
 	return characterArray.findIndex(function (character){
 		return character.id === characterID;
 	});	
+}
+
+/**
+Adds this character to the $party iff they are not already a member
+@param character Character object to be added
+*/
+State.variables.addUniqueCharacterToParty = function(character){
+	var party = State.variables.party;
+	if(!party.some(characterUnderTest => character.id === characterUnderTest.id)){
+		party.push(character);
+	}
 }
 
 /**
@@ -1946,6 +1957,8 @@ function init(){
 						puckChar.stats[costElement] -= chosenAbility.cost[costElement];	
 					}
 				}// end if no targets left after flag processing, so only abl cost is applied
+				
+				alert("Puck's chosen abl is "+chosenAbility.name+" targeting "+targets[0].name);
 			}// if role is enemy
 		}// if role is defined
 	}//end Puck AI def
@@ -2605,8 +2618,8 @@ Each faery&#39;s wings are different colors, like intricate stained glass.
 &lt;&lt;if !$isCharacterWithIdInArray(&quot;shimmerin&quot;,$party)&gt;&gt;\
 As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].
 &lt;&lt;else&gt;&gt;\
-Shimmerin gazes at their carefree play with a heartbroken expression, and looks away when they meet her eyes.
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="164,901" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
+Shimmerin gazes at their carefree play with a wistful expression, and looks away when they meet her eyes.  &quot;Can we get on with exploring [[the forest-&gt;Bejeweled_Pines]], please?&quot; she asks, her voice uncharacteristically meek.
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="164,901" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferociously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
 
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as [[their trees-&gt;Bejeweled_Pines]].&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="567,1089" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
@@ -2934,9 +2947,10 @@ Shimmerin&#39;s eyes brighten and a broad grin lights up her face.  &quot;You we
 &lt;&lt;/if&gt;&gt;
 
 [[Furs grow and feathers blow...-&gt;Shimmerin_Chase_Transition_Bejeweled_Pines]]
-</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!  Please hit &#39;restart&#39; and try again.</tw-passagedata><tw-passagedata pid="44" name="Bush" tags="room" position="0,1139" size="100,100">As you exit the treeline of the snow-frosted forest, a wave of heat slaps you in the face so tangibly that you actually stumble.  Though snow falls visibly, almost mockingly, not 100 yards to the South, the temperature in the savannah feels closer to boiling.
+</tw-passagedata><tw-passagedata pid="42" name="Shimmerin_Chase_Transition_Bejeweled_Pines" tags="transition" position="1085,1193" size="100,100">&lt;&lt;run $addUniqueCharacterToParty($characters[&quot;shimmerin&quot;])&gt;&gt;\
+With a decisive pat of her shapely flank and casual wave of one miniscule ivory arm, Shimmerin leads you [[back to the festive trees and Nuvi-&gt;Bejeweled_Pines]]</tw-passagedata><tw-passagedata pid="43" name="player_death" tags="death game_over" position="1240,1421" size="100,100">It&#39;s a sad thing that your adventures have ended here!  Please hit &#39;restart&#39; and try again.</tw-passagedata><tw-passagedata pid="44" name="Bush" tags="room" position="0,1139" size="100,100">As you exit the treeline of the snow-frosted forest, a wave of heat slaps you in the face so tangibly that you actually stumble.  Though snow falls visibly, almost mockingly, not 100 yards to the South, the temperature in the savannah feels closer to boiling.
 
-&quot;Ecosystems work pretty differently here,&quot; Nuvi explains, prompted by your stunned expression.  &quot;They depend more on our collective conception of what a place should be like rather than weather patterns and physics and all that fluff humans are always going on about.&quot;  Despite the heat, your thick-furred companion glides along as serenely as ever.  He hums [[a tune you&#39;re unfamiliar with-&gt;Bush_Tune]].
+&quot;Ecosystems work pretty differently here,&quot; Nuvi explains, prompted by your stunned expression.  &quot;They depend more on our collective conception of what a place should be like rather than weather patterns and physics and all that fluff humans are always going on about.&quot;  Despite the heat, your thick-furred companion glides along as serenely as ever.  He hums /*[[*/a tune you&#39;re unfamiliar with/*-&gt;Bush_Tune]]*/.
 
 &quot;We&#39;re coming up on the wombats,&quot; Nuvi intones conspiratorially.  &quot;Now the thing to know about wombats is that they&#39;re diggers through and through.&quot;  He watches you, clearly expecting a nod of understanding or similar sign to indicate that this means something to you.  When none is forthcoming, he elaborates, &quot;Digging creatures have gotta be determined and patient, tough but fair and above all smart and calm, or they won&#39;t make it through their first cave-in.  Keep that in mind when talking with them.&quot;
 
@@ -2944,7 +2958,7 @@ Innumerable holes dot the landscape like spots on a giraffe, which, incidentally
 
 To the West, the Savannah opens up into a vast sea of grasses and roaming wildlife.  A distant craggy mountain range looms in the East.  Several curious whiskered faces are poking up out of the nearest [[hole directly North-&gt;Bush_Wombat_Burrow_1]]. 
 
-</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1289" size="100,100">&lt;&lt;script&gt;&gt;alert(State.variables.wombuddy_score);&lt;&lt;/script&gt;&gt;
+</tw-passagedata><tw-passagedata pid="45" name="Bush_Tune" tags="conversation" position="171,1167" size="100,100">todo: silly marching tune with poem lyrics which the otter all-too-gladly expounds upon</tw-passagedata><tw-passagedata pid="46" name="Bush_Wombat_Burrow_1" tags="room" position="0,1288" size="100,100">&lt;&lt;script&gt;&gt;console.log(State.variables.wombuddy_score);&lt;&lt;/script&gt;&gt;
 /*
 todo: the puzzle here is to find the item or perform the service of one of the wombat families to gain passage through their burrow to the warren proper.  The moon logic here is that wombats trust deeply but require that trust to be earned, so the tribute stuff should be more practical than flattering.  Now the tricky part here is that it doesn&#39;t make any damn sense for the wombats to be cryptic about what they need, but at the same time nobody likes a fetch quest.  Probably a fair compromise is to have the wombats simply present a problem they need help with and finding a solution in the world is up to the player.  However, that sounds like a job for after demo, when the world is more expansive.  Maybe for now simply have each present a situation that requires the player to spend resources?
 
@@ -2977,7 +2991,7 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 		Sheila the wombat&#39;s expression of stoic vigilance breaks into a smile as warm as being enveloped in wombat fur as she recognizes you as a wombuddy.
 		
 		&quot;[[Come on in-&gt;Bush_Warren]], wombuddy!&quot;
-	&lt;&lt;else&gt;&gt;// if player is not a wombuddy
+	&lt;&lt;else&gt;&gt;/* if player is not a wombuddy*/
 		&lt;&lt;if $wombuddy_trials == 0&gt;&gt;
 			The stout little wombat turns to you and puffs herself up.  &quot;Are you ready, human, to be [[tested-&gt;Bush_Wombuddy_Test_Quest]]?&quot;
 		&lt;&lt;elseif $wombuddy_trials &lt; 3&gt;&gt;
@@ -2986,23 +3000,23 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 			&lt;&lt;/silently&gt;&gt;
 			&lt;&lt;set $wombuddy_score = 0&gt;&gt;
 			Sheila taps her foot impatiently.  &quot;No, that won&#39;t do.  I&#39;ll give you [[another shot-&gt;Bush_Wombuddy_Test_Quest]].&quot;
-		&lt;&lt;else&gt;&gt; // if player has exhausted their trials
+		&lt;&lt;else&gt;&gt; /* if player has exhausted their trials*/
 			&lt;&lt;run $characters[&quot;player&quot;].titles.push(&quot;unwombatty&quot;)&gt;&gt;
 			&lt;&lt;if !$characters[&quot;sheila&quot;].inductive_bias.includes($inductive_bias_crush)&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
-					//todo: hmmm... she&#39;s a little psycho here.  Maybe have the default failure dialogue be a little toned down and more disappointed than, like, crazy?  On the other hand, &#39;rabid wombat&#39; was a great Magic card.
+					/*todo: hmmm... she&#39;s a little psycho here.  Maybe have the default failure dialogue be a little toned down and more disappointed than, like, crazy?  On the other hand, &#39;rabid wombat&#39; was a great Magic card.*/
 					The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;Enough!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
 					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to.&quot;
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
-				&lt;&lt;/if&gt;&gt; // end if player&#39;s wombuddy score is one of the segments that should be unwombatty
+				&lt;&lt;/if&gt;&gt; /* end if player&#39;s wombuddy score is one of the segments that should be unwombatty*/
 			 
 			&lt;&lt;silently&gt;&gt;
 				If Sheila has a crush on the player, her rebukes are a lot softer
 			&lt;&lt;//silently&gt;&gt;
 			&lt;&lt;else&gt;&gt;
-				&lt;&lt;script&gt;&gt;alert(State.variables.characters[&quot;sheila&quot;].inductive_bias);&lt;&lt;/script&gt;&gt;
+				&lt;&lt;script&gt;&gt;console.log(State.variables.characters[&quot;sheila&quot;].inductive_bias);&lt;&lt;/script&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
 					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need.&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
@@ -3011,10 +3025,10 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
 				&lt;&lt;/if&gt;&gt;
-			&lt;&lt;/if&gt;&gt;// end sheila crush processing
-		&lt;&lt;/if&gt;&gt;// end player trial count processing
-	&lt;&lt;/if&gt;&gt;// end player title wombuddy processing
-&lt;&lt;/if&gt;&gt;// end visited() processing
+			&lt;&lt;/if&gt;&gt;/* end sheila crush processing*/
+		&lt;&lt;/if&gt;&gt;/* end player trial count processing*/
+	&lt;&lt;/if&gt;&gt;/* end player title wombuddy processing*/
+&lt;&lt;/if&gt;&gt;/* end visited() processing*/
 </tw-passagedata><tw-passagedata pid="47" name="Bush_Warren" tags="room" position="0,1439" size="100,100">The bare earth of the tunnel walls is smooth and lovingly sculpted, somehow achieving a state of being both literally dirt and yet also clean.  You&#39;re forced to travel at a hunch due to the usual denizens&#39; small stature, but the curious fuzzy faces peering out at you from myriad offshoot tunnels more than make up for the discomfort.  That said, you could do without bopping your head repeatedly on the irregularly shaped luminous fungi that grow along the tunnel ceiling providing light to traveling tunnelers.  
 
 Now you can see why Sheila was so adamant about your wombatitude -- people&#39;s dens are built off of the main tunnel passage with no obvious doors or other separators.  Wombats are evidently a very integrated people and not very shy about their personal space.  That seems prudent for a tunneling culture.
@@ -3074,9 +3088,7 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 scenario about honesty and humility
 &lt;&lt;/silently&gt;&gt;
 &quot;On to the next scenario, then.  You&#39;ve been tasked by your forebeast to survey a completed tunnel using a trendy new architecture for safety.  The forebeast in question is known to cut corners: case in point, he came to you, a novice surveyor, rather than one of the senior surveyors as per protocol.  Despite this reputation, he is also influential in the community and a good relationship with him could help skyrocket your career.  Similarly, a black mark from him could cripple your ambitions for years.  As for your skill level, you&#39;re good but you don&#39;t feel confident that you can perform such a complex survey adaquately without much more experience.  What do you do?&quot;
-
-//todo: the assessment of all scenarios should take inductive bias into account, and conflicting biases should lead to suspicion.
-
+/*todo: the assessment of all scenarios should take inductive bias into account, and conflicting biases should lead to suspicion.*/
 &lt;&lt;silently&gt;&gt;
 	Honest and humble case where player confesses situation to senior surveyor and risks ire of forebeasty because it&#39;s the safe and responsible thing to do
 	
@@ -3108,19 +3120,17 @@ scenario about honesty and humility
 &lt;&lt;link [[&quot;I&#39;m just a novice, I can&#39;t be responsible for that!  I wouldn&#39;t want my name anywhere near such a slipshod operation; I&#39;d refuse the forebeast&#39;s request and try to wash my hands of the whole situation, going over his head if necessary.&quot;-&gt;Bush_Wombuddy_Test_Quest_3]]&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
 	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_selfish,$inductive_bias_honest])&gt;&gt;
-&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_3" tags="conversation" position="166,1600" size="100,100">&lt;&lt;silently&gt;&gt;
+&lt;&lt;/link&gt;&gt;</tw-passagedata><tw-passagedata pid="50" name="Bush_Wombuddy_Test_Quest_3" tags="conversation" position="166,1600" size="100,100">&lt;&lt;silently&gt;&gt;\
 scenario about work ethic and community focus
-&lt;&lt;/silently&gt;&gt;
-
+&lt;&lt;/silently&gt;&gt;\
 &quot;All right, final scenario.  Your forebeast is thrilled with the progress you and your team have been making, and has given you the day off!  How do you spend it?&quot;
-
-&lt;&lt;silently&gt;&gt;
+&lt;&lt;silently&gt;&gt;\
 	Chill but lazy answer
 	Secret bonus: you&#39;ve picked Sheila&#39;s favorite guilty pleasure and made her blush as she begins to crush on you just a tad
 	
 	Wombuddy +1
 	Inductive Bias: chill, lazy, crush
-&lt;&lt;/silently&gt;&gt;
+&lt;&lt;/silently&gt;&gt;\
 &lt;&lt;link [[&quot;Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
@@ -3129,13 +3139,12 @@ scenario about work ethic and community focus
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/link&gt;&gt;
-
-&lt;&lt;silently&gt;&gt;
+&lt;&lt;silently&gt;&gt;\
 	Comradery-y but not abundantly constructive answer.  Also a little pushy for wombat tastes.
 	
 	Wombuddy +2
 	Inductive bias: friendly, pushy, hypersocial
-&lt;&lt;/silently&gt;&gt;
+&lt;&lt;/silently&gt;&gt;\
 &lt;&lt;link [[&quot;I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
@@ -3144,13 +3153,12 @@ scenario about work ethic and community focus
 		&lt;&lt;run $characters[&quot;player&quot;].titles.push($title_wombuddy)&gt;&gt;
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/link&gt;&gt;
-
-&lt;&lt;silently&gt;&gt;
+&lt;&lt;silently&gt;&gt;\
 	Studious and ambitious
 	
 	Wombuddy +5
 	Inductive bias: studious, ambitious
-&lt;&lt;/silently&gt;&gt;
+&lt;&lt;/silently&gt;&gt;\
 &lt;&lt;link [[&quot;I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
@@ -3524,12 +3532,13 @@ $combatArena.combatLogContent
 			&lt;&lt;silently&gt;&gt;
 			If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 			&lt;&lt;/silently&gt;&gt;
-			&lt;&lt;if $characters[$combatArena.turnOwner].name is $combatArena.playerParty[$combatArena.playerParty.length-1].name&gt;&gt;
+			&lt;&lt;if $combatArena.turnOwner === $combatArena.playerParty[$combatArena.playerParty.length-1].id&gt;&gt;
 				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 				&lt;&lt;silently&gt;&gt;
 				TODO: in order to process an enemy party with more than one monster, we&#39;d need something closer to the player party proc in enemy side.  For now this shortcut will work.
 				&lt;&lt;/silently&gt;&gt;
-				&lt;&lt;run $combatArena.enemyParty[0].runAI()&gt;&gt;
+				&lt;&lt;run $combatArena.enemyParty[0].runAI($combatArena,&quot;enemy&quot;)&gt;&gt;
+				&lt;&lt;run console.log(&quot;ran enemy AI for &quot;+$combatArena.enemyParty[0].name)&gt;&gt;
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 				&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
