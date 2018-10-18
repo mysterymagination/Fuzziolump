@@ -164,6 +164,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -262,6 +263,20 @@ State.variables.findCharacterIndex = function(characterArray,characterID){
 	return characterArray.findIndex(function (character){
 		return character.id === characterID;
 	});	
+}
+
+/**
+Returns a Character object from the array whose id matches the given id
+*/
+State.variables.findCharacterInArrayById = function(characterId,array){
+	return array.find(characterUnderTest => characterId === characterUnderTest.id);
+}
+
+/**
+Returns true if any Character object from the array has an id that matches the given id
+*/
+State.variables.isCharacterWithIdInArray = function(characterId,array){
+	return array.some(characterUnderTest => characterId === characterUnderTest.id);
 }
 
 /**
@@ -2310,7 +2325,8 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///
+</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
@@ -2570,13 +2586,13 @@ We didn&#39;t have any at first.  The fully mortal lumpkins are quite complex en
 Now, this might be cause for celebration -- a whole new category of sapient life, more deeply sapient than any of us can fathom!  Unfortunately, power and depth of mind do not equate to wisdom.  The young gods of Fuzziolump are all very different, but their common trait is an understandable lack of experience combined with an unprecedented ability to influence the world around them.  Some have even learned to syphon off the creative energy Fuzziolump thrives on, and threaten to collapse this world in on itself.  It isn&#39;t clear what would happen the gods if this world perished, but I and my loved ones and millions more like us would surely be snuffed out like the humble little candle flames we are.  I cannot allow that to happen.
 /*todo: refresh page on click here?  I don&#39;t necessarily want a new passage, but I don&#39;t want the text wall to go on forever either*/
 
-What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  At least, I think that&#39;s why we&#39;ve summoned you.  The Council of Animals made it a top secret matter, so little folk like me can only guess.  But yeah, you create every day -- [[you must know-&gt;Wombat_Warren_Reveal]] how to turn that power off, or keep it under control?&quot;</tw-passagedata><tw-passagedata pid="29" name="Wombat_Warren_Reveal" tags="quest main_quest" position="2,823" size="100,100">&quot;Is that not really a thing you humans do?  Well, I&#39;m sure you&#39;ll figure something out!  Anyways, we need to present you to the Animal Council and discuss with them how to proceed.  We&#39;ll find them [[North-&gt;Bejeweled_Pines]] of the Frosted Forest (in which you stand currently), in the sandy savannah of the Wombat Warren.&quot;</tw-passagedata><tw-passagedata pid="30" name="Bejeweled_Pines" tags="room frosty_forest" position="2,973" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;
+What to do though?  Every lumpkin knows that Earth and humanity are our progenitors, specifically your creativity.  So, it only seemed reasonable to bring a human creative here to help untanlge this little knot of divinity.  At least, I think that&#39;s why we&#39;ve summoned you.  The Council of Animals made it a top secret matter, so little folk like me can only guess.  But yeah, you create every day -- [[you must know-&gt;Wombat_Warren_Reveal]] how to turn that power off, or keep it under control?&quot;</tw-passagedata><tw-passagedata pid="29" name="Wombat_Warren_Reveal" tags="quest main_quest" position="2,823" size="100,100">&quot;Is that not really a thing you humans do?  Well, I&#39;m sure you&#39;ll figure something out!  Anyways, we need to present you to the Animal Council and discuss with them how to proceed.  We&#39;ll find them [[North-&gt;Bejeweled_Pines]] of the Frosted Forest (in which you stand currently), in the sandy savannah of the Wombat Warren.&quot;</tw-passagedata><tw-passagedata pid="30" name="Bejeweled_Pines" tags="room frosty_forest" position="2,973" size="100,100">&lt;&lt;if visited() == 1&gt;&gt;\
 Nuvi flaps off northward a short span, then pauses as he notes you are not beside him.  Looking back and flashing a reassuring and whiskery grin, he proffers a fuzzy little paw to you.  Squaring your shoulders with purpose, you gently take the soft paw and allow the otter to lead you through the hidden paths in the thick snow-blanketed verge.  
 
 After some stumbling and a small labyrinth of green and whit, he leads you to
-&lt;&lt;else&gt;&gt;
+&lt;&lt;else&gt;&gt;\
 You stand amongst
-&lt;&lt;/if&gt;&gt;
+&lt;&lt;/if&gt;&gt;\
 a dazzling array of colors: the trees here are no less dusted with snow than their fellows you just pushed through, but they have also been festooned with crystal and glass baubles of every conceivable hue.  [[Little soft-glowing lights-&gt;Faery_Desc]] flit from ornament to ornament, keeping the emphasis and shading dynamic.
 
 &quot;A small tree effigy fell into this forest long ago, decorated in a similar manner. The trees here were so smitten by the style they demanded to be honored with comparable shinies and lights.  The [[dryads-&gt;Dryad_Desc]] felt abashed that trees elsewhere were so honored, and strove to worship their charges fittingly.  Unluckily for the glass-blowers and enterprising faeries, the trend did not catch on elsewhere in the forest.&quot;
@@ -2585,7 +2601,12 @@ Nuvi flaps down close your ear, his whiskers tickling, and he whispers,  &quot;T
 
 &quot;Those are faeries,&quot; Nuvi informs you, &quot;whimsical little beauties with insatiable curiosity.  They trade their light for secrets, whispered by the woods; little goes on anywhere nearby that isn&#39;t witnessed by the trees.&quot;
 
-Each faery&#39;s wings are different colors, like intricate stained glass.  As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="164,901" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
+Each faery&#39;s wings are different colors, like intricate stained glass.  
+&lt;&lt;if !$isCharacterWithIdInArray(&quot;shimmerin&quot;,$party)&gt;&gt;\
+As you watch, a faery winks at you and performs a graceful series of barrel rolls while the colors of her wings shift and the soft lilac light pulsing off her skin twinkles to produce a mesmerizing chromatic metamorphosis.  She giggles at your awed expression, and [[zooms off out of sight-&gt;Faery_Friend]].
+&lt;&lt;else&gt;&gt;\
+Shimmerin gazes at their carefree play with a heartbroken expression, and looks away when they meet her eyes.
+&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="32" name="Dryad_Desc" tags="description lumpkin creature" position="164,901" size="100,100">&quot;Dryads are the keepers of the woods.  They tend the trees, guide their growth, and defend them ferosciously.&quot;  Nuvi points a small claw toward a strange pattern along the bark of a nearby willow, and you realize a feminine face is looking back at you!  Wood creaks softly as she leans out from the tree to watch you passing.  Now that she has separated herself from the bark somewhat, you can see that a large assortment of the glitz you had taken for light cast by the tree&#39;s copious ornaments is actually jewelry.  A gleaming tiara adorns the mane of gossamer vines, leaves, and spider silk that form her waist-length hair.
 
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as [[their trees-&gt;Bejeweled_Pines]].&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="567,1089" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
@@ -2797,21 +2818,25 @@ You see no sign of your fairy friend here; seems she didn&#39;t wish to linger.
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
 		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding, that fits in the palm of your hand.  
 	&lt;&lt;if not $characters[&quot;player&quot;].inventory.includes(State.variables.summer_court_tiara)&gt;&gt;
-		The main point of interest, however, is the &lt;&lt;click 
-	&quot;tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.&quot;&gt;&gt;
-		&lt;&lt;script&gt;&gt;State.variables.characters[&quot;player&quot;].inventory.push(State.variables.summer_court_tiara); state.display(state.active.title, null, &quot;back&quot;);&lt;&lt;/script&gt;&gt;
-		&lt;&lt;/click&gt;&gt;
-		
-		&lt;&lt;/if&gt;&gt;
+	&lt;span id=&quot;tiara&quot;&gt;
+		The main point of interest, however, is the tiny jewel-encrusted tiara which seems to be calling to you with a sensual humming.  You find yourself longing more than anything to &lt;&lt;link 
+	&quot;pick it up...&quot;&gt;&gt;
+		&lt;&lt;script&gt;&gt;
+		State.variables.characters[&quot;player&quot;].inventory.push(State.variables.summer_court_tiara); 
+		//state.display(state.active.title, null, &quot;back&quot;);
+		&lt;&lt;/script&gt;&gt;
+		&lt;&lt;replace &quot;#tiara&quot;&gt;&gt;&lt;&lt;/replace&gt;&gt;
+		&lt;&lt;/link&gt;&gt;
+		&lt;/span&gt;
+	 &lt;&lt;/if&gt;&gt;
 	&lt;&lt;else&gt;&gt;
 		In addition to all the loose treasure, you can see faint glimmering from within the ice; you note that there may be yet more wonders held prisoner in its frosty grip.
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;
 
-// todo: add options for the player to steal surface treasure or enact other mischief and receive a mild rebuke for it (magical shock or similar for mischief, maybe death for stealing... maybe first a shock as warning then death if player doesn&#39;t reverse action) to establish precedent for why faeries couldn&#39;t actively startle the mole and manipulate him into burrowing the tiara out.
-
+/* todo: add options for the player to steal surface treasure or enact other mischief and receive a mild rebuke for it (magical shock or similar for mischief, maybe death for stealing... maybe first a shock as warning then death if player doesn&#39;t reverse action) to establish precedent for why faeries couldn&#39;t actively startle the mole and manipulate him into burrowing the tiara out.
+*/
 Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]
-
 &lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest room" position="565,1281" size="100,100">&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;

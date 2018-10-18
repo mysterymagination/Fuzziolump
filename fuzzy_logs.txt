@@ -1,5 +1,11 @@
+Re: Combat
+--out of sync Character objects
 1. not multiple Player instances afaics (alert w/ global instance counter in ctor).
 2. not a matter of Player vs. Character -- switching player to a Character("player","The Bland Human") led to same situation of correctly identified object but no incarnations.
 3. Not a matter of reading characters wrongly somehow in combat passages since Marrah gets her info correctly.
 4. could be some bizarre artifact of twinescript and/or order of operations, since adding incarnations to the Player via story javascript works.
-5. _currentTurnOwner is definitely somehow disparate from $characters["player"], as incarnations from former when processing The Human show empty and latter show the expected incarnation from twinescript.
+5. _currentTurnOwner is definitely somehow disparate from $characters["player"], as incarnations from former when processing The Human show empty and latter show the expected incarnation from twinescript. UPDATE: this was the problem, fixed by always referencing from $characters object map.  No idea what caused the disparity, however.
+
+Re: Shimmerin Maze
+--the link that lets the player take the tiara needs to make it clear that its action is taking the tiara.  The way it reads now, it seems like the player should be takene to a new passage with more details on the tiara.
+--after the shimmerin maze is complete and shimmerin is in the party one way or the other, the vector to her quest needs to be removed from Bejeweled Pines
