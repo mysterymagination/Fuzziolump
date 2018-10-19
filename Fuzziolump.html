@@ -165,6 +165,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1685,6 +1686,7 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
+				alert("Puck realizes he is an enemy");
 				var chosenAbility = "";
 				var chosenTarget = "";
 				/* todo: Puck enemy AI behavior	
@@ -1708,7 +1710,7 @@ function init(){
 				
 				/// begin gathering data and potentially exiting to Rapier Wit on any buffed player character ///
 				for(let player of playerParty){
-					
+					alert("gathering data on player "+player.name);
 					// overwrite player with least defense if applicable
 					if(player.stats["def"] < playerLeastDefense.stats["def"]){
 						playerLeastDefense = player;	
@@ -1748,8 +1750,11 @@ function init(){
 				}// end for each player
 				/// end gathering data + maybe buff balancing ///
 				
+				alert("end gathering data for Puck");
+				
 				/// begin story scenario modifier processing ///
 				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
+					alert("processing viral violence godling strat");
 					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
 						// if the player char with least def is bloodied...
 						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
@@ -1774,6 +1779,7 @@ function init(){
 						}
 					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
+					alert("processing surgical systems godling strat");
 					// hit the latest player with a buff with debuff to balance the ol' scales
 					if(playerWithTargetBuff){
 							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
@@ -1797,6 +1803,7 @@ function init(){
 						}
 					}
 				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
+					alert("processing diplomancy godling strat");
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							
@@ -1804,12 +1811,15 @@ function init(){
 						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 						return;
 						*/
+						alert("Puck choosing to rain radiance upon full health party");
 						chosenAbility = puckChar.incarnations["rain_of_radiance"];
 						chosenTarget = combat.playerParty;
 					}
 				}
 				
 				/// end story scenario mod proc ///
+				
+				alert("passed Puck proc of godling strats");
 				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
 			if(chosenAbility === "" && chosenTarget === ""){
@@ -2339,6 +2349,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -3384,6 +3395,9 @@ You&#39;ll want to head towards one of Holly&#39;s outermost nodes to get to kno
 Together with a now perpetually delighted Nuvi (his earlier neuroses apparently shed at the warren), you trek North through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight a copse of errant willows that seem to be swaying in time with a faint whisper of rhythm on the wind, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
 
 &quot;You would dare to threaten the power of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, and then the body of an emaciated little man materializes in the air to join them.  He bobs up and down in a reclined position, carefully carefree, and studies you appraisingly.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.
+
+&lt;&lt;run alert(&quot;please remove debug set of diplomancy&quot;)&gt;&gt;
+&lt;&lt;set $godling_strat to $godling_strat_diplomancy&gt;&gt;
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1081,379" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;

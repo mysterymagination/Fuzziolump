@@ -1,0 +1,2194 @@
+<html>
+<head>
+<script>
+var Config = {history:{maxStates:0}};
+var State = {variables:{}};
+
+Config.history.maxStates = 0;   // no history limit
+//alert("config ctor: "+Config.constructor);
+var known_id_nuvi = false;
+var test = 0;
+
+/** attempts to parse a given function's signature to determine expected params
+
+ex.
+function myCustomFn(arg1, arg2,arg3) {
+  
+}
+console.log(getParams(myCustomFn)); // returns ["arg1", "arg2", "arg3"]
+*/
+State.variables.getParams = function(func) {
+  // First match everything inside the function argument parens.
+  var args = func.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+ 
+  // Split the arguments string into an array comma delimited.
+  return args.split(',').map(function(arg) {
+    // Ensure no inline comments are parsed and trim the whitespace.
+    return arg.replace(/\/\*.*\*\//, '').trim();
+  }).filter(function(arg) {
+    // Ensure no undefined values are added.
+    return arg;
+  });
+}
+
+State.variables.addUniqueToArray = function(array,element){
+	if(!array.includes(element)){
+		array.push(element);	
+	}
+}
+
+State.variables.addUniqueToArray = function(array,element,filterFn){
+	if(!array.some(filterFn)){
+		array.push(element);	
+	}
+}
+
+/**
+Applies the combat status effect to the given character, adding it to their list of statuses and triggering its effect fn
+@param character the recipient of the effect
+@param effect the status effect to apply
+*/
+State.variables.addUniqueStatusEffect = function(character,effect){
+	var statuses = character.statusEffects;
+	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		statuses.push(effect);
+		effect.effect(character);
+	}
+}
+
+/**
+Applies the combat status effect to the given target character, adding it to their list of statuses and triggering its effect fn.
+The source character is the one who inflicted the status; this function should be used when a status effect's effect depends on the inflicting character.
+@param sourceCharacter the one who inflicted the status
+@param targetCharacter the recipient of the effect
+@param effect the status effect to apply
+*/
+State.variables.addUniqueStatusEffectWithSource = function(sourceCharacter, targetCharacter,effect){
+	var statuses = targetCharacter.statusEffects;
+	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		statuses.push(effect);
+		effect.effect(sourceCharacter,targetCharacter);
+	}
+}
+
+/**
+Checks a given character for a given statyus effect
+@param character the Character under test
+@param effect the StatusEffect we're looking for
+@return true if the status effect is found, false otherwise
+*/
+State.variables.hasStatusEffect = function(character,effect){
+	var statuses = character.statusEffects;
+	if(statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
+		return true;
+	}else{
+		return false;	
+	}
+}
+
+/**
+Checks a given character for a given status effect and returns the discovered status effect instance
+@param character the Character under test
+@param effectId the ID of the StatusEffect we're looking for
+@return the status effect instance if found, otherwise undefined
+*/
+State.variables.getStatusEffect = function(character,effectId){
+	var statuses = character.statusEffects;
+	return statuses.find(effectUnderTest => effectId === effectUnderTest.id);
+}
+
+// find index of a particular character id in a character array
+State.variables.findCharacterIndex = function(characterArray,characterID){
+	return characterArray.findIndex(function (character){
+		return character.id === characterID;
+	});	
+}
+
+/**
+Adds this character to the $party iff they are not already a member
+@param character Character object to be added
+*/
+State.variables.addUniqueCharacterToParty = function(character){
+	var party = State.variables.party;
+	if(!party.some(characterUnderTest => character.id === characterUnderTest.id)){
+		party.push(character);
+	}
+}
+
+/**
+Returns a Character object from the array whose id matches the given id
+*/
+State.variables.findCharacterInArrayById = function(characterId,array){
+	return array.find(characterUnderTest => characterId === characterUnderTest.id);
+}
+
+/**
+Returns true if any Character object from the array has an id that matches the given id
+*/
+State.variables.isCharacterWithIdInArray = function(characterId,array){
+	return array.some(characterUnderTest => characterId === characterUnderTest.id);
+}
+
+/**
+Removes a Character from an array of Characters using splice()
+@parm character the Character to be removed from the array
+@param characterArray the array of Characters
+*/
+State.variables.removeCharacterFromArray = function(character,characterArray){
+	// find the index of the target character in the array
+	var index = State.variables.findCharacterIndex(characterArray,character.id);
+	// splice the character out of the array; this modified the given array
+	characterArray.splice(index,1); 
+}
+/* // not very space friendly
+State.variables.removeCharacterFromArray = function(character,characterArray){
+	return characterArray.filter(characterUnderTest =>
+		characterUnderTest.id != character.id
+	);	
+}
+*/
+																	
+State.variables.findCurrentPlayerCharacterIndex = function(){
+	return State.variables.combatArena.playerParty.findIndex(function (character){
+		return character.id === State.variables.combatArena.turnOwner;
+	});	
+}
+
+// simulate a d20 roll
+State.variables.rollD20 = function(){
+	return Math.floor(Math.random() * 20) + 1;
+}
+
+// simulate a dN roll, where N is given by sides param
+State.variables.rollDie = function(sides){
+	return Math.floor(Math.random() * sides) + 1;
+}
+
+// simulate a d% roll
+State.variables.rollPercentage = function(){
+	return Math.floor(Math.random() * 100) + 1;
+}
+
+// calculate the ability modifier per Pathfinder rules
+State.variables.calcMod = function(characterObject,attributeString){
+	return Math.floor((characterObject.attributes[attributeString]-10)/2);
+}
+
+// perform an ability score check
+State.variables.checkAbility = function(characterObject, attributeString){
+	return State.variables.rollD20() + State.variables.calcMod(characterObject,attributeString);	
+}
+
+State.variables.addToInductiveBias = function(inductiveBiasArray, args){
+	for(var biasitem of args){
+		if(!inductiveBiasArray.includes(biasitem)){
+			inductiveBiasArray.push(biasitem);
+		}
+	}
+}
+
+State.variables.deleteTitle = function(title){
+	var playerTitleArray = State.variables.characters["player"].titles;
+	var titleIndex = playerTitleArray.indexOf(title);
+	if(titleIndex > -1){
+			// remove one element from the array, starting at the target index
+			playerTitleArray.splice(titleIndex,1);
+	}
+}
+
+State.variables.addTitle = function(title){
+	var playerTitleArray = State.variables.characters["player"].titles;
+	if(!playerTitleArray.includes(title)){
+			playerTitleArray.push(title);
+	}
+}
+
+/// begin main quest vars ///
+// wipe out the godlings and anybody nearby
+State.variables.godling_strat_viral_violence = "viral_violence";
+// disrupt the godlings' godlingness in the hopes this might check them or even restore them to their former selves
+State.variables.godling_strat_surgical_system = "surgical_system";
+// friendship for everyone!  Trying to use Incarnation to get through to each godling
+State.variables.godling_strat_diplomancy = "diplomancy";
+State.variables.godling_strat_chosen = "";
+/// end main quest vars ///
+
+State.variables.removeStatusEffect = function(character,effect){
+		var effectIndex = character.statusEffects.findIndex(function(element){
+			return element.id === effect.id;
+		});
+		character.statusEffects.splice(effectIndex,1);
+}
+
+State.variables.StatusEffect = function StatusEffect(id,name,duration){
+	this.id = id;
+	this.name = name;
+	/** 
+	boon or bane would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
+	*/
+	this.buffity = "buffins";
+	this.duration = duration;
+	this.ticks = duration;
+	this.tickDown = function(){
+		this.ticks--;	
+	}
+	this.effect = function(afflictedChar){
+		console.log("status effect unset");	
+	}
+	this.reverseEffect = function(afflictedChar){
+		console.log("status effect reversal unset");	
+	}
+}
+
+State.variables.Ability = function Ability(id,name){
+	this.TargetTypesEnum = Object.freeze (
+		{ 
+			singleEnemy: 1, 
+			allEnemies: 2,
+			singleAlly: 3,
+			allAllies: 4
+		});
+	this.id = id;
+	this.name = name;
+	
+	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
+	this.targetType = this.TargetTypesEnum.singleEnemy; 
+	
+	/**
+	The friendly property describes whether an ability is considered hostile or beneficial to its target
+	*/
+	this.friendly = false;
+	
+	// cached value of last calculated dmg
+	this.dmg = 0;
+	
+	/**
+	The cost of using using the ability to the user.  It is given as
+	an object map with keys that correspond to mutable resource stats associated with integer values.  The given value should be subtracted from the corresponding stat resource pool.
+	*/
+	this.cost = {"mp":0};
+	
+	/**
+	Formats the total cost as a string and returns it
+	*/
+	this.printCost = function(){
+		var costString = "";
+		var costKeys = Object.keys(this.cost);
+		for(let index=0;index<costKeys.length-1;index++){
+			// for all but the last element...
+			costString +=	costKeys[index]+" : "+this.cost[costKeys[index]];
+			costString += ", "
+		}
+		// final cost element, no comma needed
+		costString += costKeys[costKeys.length-1]+" : "+this.cost[costKeys[costKeys.length-1]];
+		return costString;
+	}
+	
+	/**
+	Process the cost of the ability, parsing the cost object map
+	*/
+	this.processCost = function(character){
+		for(let statCost in this.cost){
+			character.stats[statCost] -= this.cost[statCost];	
+		}
+	}
+	
+	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
+	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
+	this.calcDC = function(user,modifyingAttr){
+		if(user.level && modifyingAttr){
+			return user.level/2 + State.variables.calcMod(user,modifyingAttr) + 10;
+		}else{
+			return 10;	
+		}
+	}// end calcDC()
+	// lambda stub - dmg formula will be defined when Ability instance is defined
+	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
+	this.generateFlavorText = function(sourceChar,targetChar){console.log("flavor text undefined for "+this.name)}
+	
+} // end Ability def
+
+State.variables.Incarnation = function Incarnation(id,name){
+	// Incarnation inherits from Ability
+	State.variables.Ability.call(this,id,name);
+	
+}
+function Entity(name){
+	this.name = name;
+	
+	/**
+	An array of strings representing domains of thought, emotion, imagination, and creativity associated with this Entity.  e.g. Foxfire entity associated with ["whimsy","illusion","seduction","manipulation","domination"]
+	*/
+	this.associatedDomains = [];
+	
+	/**
+	A multi-dimensional array of Incarnations learned by wielders of this Entity at a level equivalent to the index of the Incarnation array.
+	e.g. [[fire blast, ice blast],[],[rock tomb]] would indicate the wielder leanrs fire blast and ice blast at level 1, and rock tomb at level 3.
+	*/
+	this.associatedIncarnationsByLevel = [];
+}
+
+// Character object definition
+State.variables.Character = function Character(id,name){
+	this.CombatFlags = Object.freeze (
+		{ 
+			FLAG_SKIP_TURN: 1,
+			FLAG_WONDER_WALLED: 2
+		});
+	this.id = id;
+	this.name = name;
+	this.gender = "";
+	this.level = 10;
+	
+	this.getPronoun_gen = function(){
+		if(this.gender==="female"){
+			return "her";
+		}
+		else if(this.gender==="male"){
+			return "his";
+		}
+		else{
+			return "their";
+		}
+	}
+	this.getPronoun_nom = function(){
+		if(this.gender==="female"){
+			return "she";
+		}
+		else if(this.gender==="male"){
+			return "he";
+		}
+		else{
+			return "they";	
+		}
+	}
+	this.getPronoun_obj = function(){
+		if(this.gender==="female"){
+			return "her";
+		}
+		else if(this.gender==="male"){
+			return "him";
+		}
+		else{
+			return "them";	
+		}
+	}
+	
+	// simple object map of categorical descriptor arrays,
+	// e.g. descriptors.body = ["fur","curvacious"]
+	this.descriptors = {
+		body : {
+		 hair : [],
+		 appendages : {
+			arms: {
+				name : "arms"
+			},
+			hands : {
+			 name : "hands"	
+			}
+		 }
+		}
+	}
+	
+	// attribute scores reflect the character's capabilities.
+	// we'll use Pathfinder style scores, where 10 is sort of neutral
+	// and any modifier needed is calculated as (score-10)/2
+	this.attributes = {
+		"charisma":10,
+		"intelligence":10,
+		"wisdom":10,
+		"strength":10,
+		"dexterity":10,
+		"constitution":10
+	}
+	
+	// just like Pathfinder saving throws, these represent a character's
+	// defenses against various effects
+	this.saves = {
+		"fortitude" : 5,
+		"reflex" : 5,
+		"will" : 5
+	}
+	
+	this.ac = {
+		"armored" : 10,
+		"touch" : 10
+	}
+
+	this.getMagicAttributeScore = function(){
+		if(this.attributes["charisma"] >= this.attributes["intelligence"]){
+			return this.attributes["charisma"];	
+		}else{
+			return this.attributes["intelligence"];	
+		}
+	}
+	
+	// basic stats, representing character vitality as resources.
+	// In the absence of clear classes, went with ~ avg d10s for level 10
+	// TODO: at least some of these and other consumeable resources should show in a HUD drawer
+	this.stats = {
+		"hp":50,
+		"maxHP":50,
+		"mp":50,
+		"maxMP":50,
+		// standard jRPG stuff; I'm thinking these will be used as modifiers in dmg formulae, and will be modified by inherent attributes plus equipment
+		"atk":this.attributes["strength"],
+		"def":this.attributes["constitution"],
+		"pwr":this.getMagicAttributeScore(),
+		"res":this.getMagicAttributeScore()
+	}
+	
+	// a character's incarnations is an object-map of 'magic' ability names to Incarnation objects that define their effects/cost etc. The available incarnations are based
+	// on inherent Entity, or that have been learned by the human
+	this.incarnations = {};
+	
+	// a character's Entity is their inherent set of talents re: Incarnation.  Only the human can learn Incarnations from any Entity.
+	this.entity = new Entity("unset");
+	
+	/**
+	Check whether the resource stat pools are in sufficient supply to feed a given ability
+	*/
+	this.canAffordCost = function(ability){
+		for(let costElement in ability.cost){
+			if(this.stats[costElement] < ability.cost[costElement]){
+				// found a cost that cannot be satisfied, so return false
+				return false;
+			}
+		}
+		
+		// if we made it here without hitting any costs we couldn't cover
+		// we're good!
+		return true;
+	}
+	
+	this.abilities = {
+		"attack" : new State.variables.Ability("attack","Attack"),
+		"defend" : new State.variables.Ability("defend","Defend"),
+		"run" : new State.variables.Ability("run","Run") 
+	}
+	this.abilities["attack"].calcDmg = function(sourceCharacter,targetCharacter){
+		// favor the STR since the attacker is the leading participant
+		// todo: yeesh, balance.  I've mixed inspiration from D&D and jRPGs in the stat blocks, and it's starting to shoooow.  Well anyway, CON is a fair stand-in for a DQ style DEF stat.
+		// todo: atk is essentially useless against Puck b/c he has 500 HP and will be taking 5 damage from someone with average STR simply because his CON is average.  Recall that our STR etc. atrributes are based on D&D numbers, and D&D does NOT use same for determining base damage (only modifier).  Base damage D&D-style is a whole other thing I don't wanna get into for this demo.  For demo porpoises, I'd say fudge factors of 2 for STR and 0.25 for CON should be okay.  That way we're looking at 17-ish damage to Puck and 13-ish from him. 
+		/*
+		return sourceCharacter.attributes["strength"]*2 - targetCharacter.attributes["constitution"]/4;
+		*/
+		return sourceCharacter.stats["atk"]*2 - targetCharacter.stats["def"]/4 + Math.random()*10;
+	};
+	this.abilities["attack"].effect = function(sourceCharacter,targetCharacter){
+		this.dmg = this.calcDmg(sourceCharacter,targetCharacter);
+		// todo: AC? Any other miss chance?
+		targetCharacter.hp -= this.dmg; // what's multithreading, anyway? lol
+	};
+	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
+		// todo: clearing cached dmg after it is read to flavor text? 
+			return sourceCharacter.name+" strikes "+targetCharacter.name+" a mighty blow, dealing "+this.dmg+" damages!";
+	};
+	this.abilities["defend"].effect = function(sourceCharacter,targetCharacter){
+		/*
+		TODO: obviously this is borken af, but since Defend is traditionally useless and this is a demo, I like the irony of making it an OP move.  A better impl would be a status buff like Defended or similar that can only be added once instead of stacking endlessly.
+		*/
+		targetCharacter.stats["def"] += sourceCharacter.stats["def"];
+	};
+	this.abilities["defend"].generateFlavorText = function(sourceCharacter,targetCharacter){
+		return sourceCharacter.name+" hops in front of "+targetCharacter.name+", valiantly using "+sourceCharacter.getPronoun_gen()+" own flesh to protect "+targetCharacter.getPronoun_obj()+"!";	
+	};
+	this.abilities["defend"].targetType = this.abilities["defend"].TargetTypesEnum.singleAlly;
+	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
+	this.abilities["run"].generateFlavorText = function(playerParty){
+		console.log("run::generateFlavorText -- The player party consists of "+playerParty);
+		var flavorText = "";
+		for(let i=0;i<playerParty.length;i++){
+			if(i<playerParty.length-1){
+				flavorText += playerParty[i].name+", ";
+			}else{
+				flavorText += "and "+playerParty[i].name;
+			}
+		}
+		return flavorText+" bravely attempt to turn tail and flee, but they cannot escape!";
+	};
+	
+	// affinities will be a simple String character name key -> integer affinity value mapping
+	// that reflects how a given character feels about this character.
+	// 0 is defined as totally neutral, negative values are bad and
+	// positive values are good.  
+	this.affinities = new Map();
+	
+	// a character's inventory reflects the items in the world that it is
+	// currently carrying and can access.
+	this.inventory = [];
+	
+	// a character's equipment represents weapons, armor, etc. that they are actively wearing
+	this.equipment = [];
+	
+	// combat status effects; these are temporary and only relevant to combat
+	this.statusEffects = [];
+	
+	/**
+	Boolean flag indicating whether or not the character is alive for the purposes of combat
+	*/
+	this.living = true;
+	
+	// arbitrary PoT bitfield used to raise/lower various combat-related flags for this Character
+	this.combatFlags = 0;
+	
+	// a simple array of keyword/phrases that indicate behavior mod in certain contexts, e.g. targetCharacter.name+"_is_digger_good"
+	// to indicate that targetCharacter is as good as mole, wombats, and
+	// other simple lovely creatures that happily burrow and build all their
+	// lives, peaceful, passionate, and productive.
+	this.inductive_bias = [];
+	/**
+	Adds a unique inductive bias string to the inductive bias array
+	@param bias the bias to add; if it is already present, nothing happens
+	*/
+	this.addUniqueInductiveBias = function(bias){
+		if(!this.inductive_bias.includes(bias)){
+			this.inductive_bias.push(bias);
+		}
+	}
+	
+	// todo: can a Map retrieve values using non-primitive keys (e.g. Character object)?
+	this.updateAffinity = function(characterObject,modifier){
+		if(this.affinities.has(characterObject)){
+this.affinities.set(characterObject,this.affinities.get(characterObject)+modifier);	
+		}
+		else{
+			this.affinities.set(characterObject,modifier);
+		}
+	}
+	
+	/**
+	Makes the character act autonomously according to its role
+	@param combat: the current combat context
+	@param role: could be as simple as player or enemy, but could be configurable to something like player:assist if a guided auto-battle system gets implemented someday
+	*/
+	this.runAI = function(combat,role){
+			console.log("AI behavior unset");
+	}
+}
+State.variables.playerCount = 0;
+// Player object definition; should not need to be a story variable since it will only be defined once, later on in the characters dict (no multiplayer in the demo)
+function Player(){
+	// inherit from Character
+	State.variables.Character.call(this,"player","The Human");
+	
+	// the player can remain in full cold for 25 room moves
+	// before becoming hypothermic
+	this.cold_max_count = Infinity; // this was a dumb idea for the demo
+	
+	// the count of turns a player has been out in the cold
+	this.cold_count = 0;
+	
+	// human dies of hypothermia
+	this.afflication_hypothermia = "hypothermia";
+	
+	// an array of string status ailments the player might have
+	this.afflictions = [];
+	
+	// an array of string titles the player may obtain for outstanding deeds
+	this.titles = [];
+	
+	
+}
+
+
+/**
+Combat object takes two arrays of Character objects, the player's
+party and the enemy's party.
+@param playerParty: an array of Characters representing the player's party
+@param enemyParty: an array of Characters representing the enemy's party
+@param destPassageName: the name of the passage to which the player should be sent if they survive
+*/
+State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName){
+	this.PlayerTurnState = Object.freeze (
+		{ 
+			selectTarget: 1, 
+			selectAbility: 2,
+			displayResults: 3,
+			selectEnemyTarget: 4,
+			selectAllyTarget: 5
+		});
+	this.EnemyTurnState = Object.freeze (
+		{ 
+			runAI: 1, 
+			displayResults: 2
+		});
+	this.CombatResultEnum = Object.freeze (
+		{ 
+			pending: 0,
+			playerVictory: 1, 
+			enemyVictory: 2
+		});
+	
+	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
+	this.playerTurnState = this.PlayerTurnState.selectAbility;
+	this.enemyTurnState = this.EnemyTurnState.runAI;
+	this.playerParty = playerParty;
+	this.enemyParty = enemyParty;
+	this.destPassageName = destPassageName;
+	this.combatResult = this.CombatResultEnum.pending;
+	
+	// tracks the currently selected player ability
+	this.currentSelectedAbility = new State.variables.Ability("unset");
+	
+	// tracks the turn as either player or enemy group
+	this.turnGroup = "player";
+	
+	// tracks the actual character id whose turn it is
+	this.turnOwner = "player";
+	
+	// tracks the currently selected ability for the current turn owner
+	this.abilityName = "";
+	
+	// tracks the target of the current ability
+	this.currentTargetCharacter = new State.variables.Character("unset");
+	
+	// the text feedback to the user re: the state of combat
+	this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
+	
+	this.randoCombatantExcept = function(exceptCharacter){
+		var combatants = this.enemyParty.concat(this.playerParty);
+		var eligibleCombatants = this.combatants.filter(combatant => combatant.id != exceptCharacter.id);
+		var unluckyIndex = Math.floor(Math.random() * eligibleCombatants.length);
+		return eligibleCombatants[unluckyIndex];
+		
+	}
+	
+	/**
+	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
+	*/
+	this.processRoundTop = function(){
+	// tick down status effects
+	for(let enemyChar of this.enemyParty){
+			for(let effect of enemyChar.statusEffects){
+				// process top of stateffects with variable or triggered effects per round
+				if(effect.id === "terror"){
+					// terror's effect will roll percentage, with 35% to skip this turn
+					if(effect.effect()){
+						enemyChar.combatFlags |= enemyChar.CombatFlags.FLAG_SKIP_TURN;	
+					}
+				}
+				else if(effect.id === "poison"){
+					enemyChar.stats["hp"] -= enemyChar.stats["maxHP"]*0.1; 	
+				}
+				else if(effect.id === "regen"){
+					State.variables.statusEffectsDict["regen"].effect(enemyChar);	
+				}
+				
+				
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(enemyChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(enemyChar,effect);
+				}
+			}
+	}
+	for(let playerChar of this.playerParty){
+			for(let effect of playerChar.statusEffects){
+				// process top of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// terror's effect will roll percentage, with 35% to skip this turn
+					if(effect.effect()){
+						playerChar.combatFlags |= playerChar.CombatFlags.FLAG_SKIP_TURN;	
+					}
+				}
+				else if(effect.id === "regen"){
+					State.variables.statusEffectsDict["regen"].effect(playerChar);	
+				}
+				
+				effect.tickDown();
+				if(effect.ticks <= 0){
+					// reverse the effect now that it is over
+					effect.reverseEffect(playerChar);	
+					// reset the ticks count to duration in case we
+					// want to re-use this statuseffect instance
+					effect.ticks = effect.duration;
+					// remove the status effect from the character
+					State.variables.removeStatusEffect(playerChar,effect);
+				}
+			}
+	}
+ }// end processRoundTop fn
+	
+	/**
+	Process the bottom of a combat round.  
+	*/
+	this.processRoundBottom = function(){
+		var dedEnemies = 0;
+		var dedPlayers = 0;
+		for(let enemyChar of this.enemyParty){
+			for(let effect of enemyChar.statusEffects){
+				// process bottom of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// clear the FLAG_SKIP_TURN flag
+		enemyChar.combatFlags &= ~enemyChar.CombatFlags.FLAG_SKIP_TURN;
+				}
+			}
+			
+			// check for death
+			if(enemyChar.stats.hp <= 0){
+				dedEnemies++;	
+			}
+		}
+		for(let playerChar of this.playerParty){
+			for(let effect of playerChar.statusEffects){
+				// process bottom of stateffects with variable effects per round
+				if(effect.id === "terror"){
+					// clear the FLAG_SKIP_TURN flag
+		playerChar.combatFlags &= ~playerChar.CombatFlags.FLAG_SKIP_TURN;
+				}
+			}
+			
+			// check for death
+			if(playerChar.stats.hp <= 0){
+				dedPlayers++;	
+			}
+		}
+		
+		// check victory conditions -- if one is met, we do not need another turn so return false.  Else, combat continues so we return true.
+		// todo: need a way to clear conditions and/or reset stats as desired at end of combat
+		if(dedEnemies >= this.enemyParty.length){
+			this.combatResult = this.CombatResultEnum.playerVictory;
+			return false;	
+		}else if(dedPlayers >= this.playerParty.length){
+			this.combatResult = this.CombatResultEnum.enemyVictory;
+			return false;	
+		}else{
+			return true;	
+		}
+		
+	}// end processRoundBottom()
+}// end Combat
+
+State.variables.combatArena = undefined;
+
+function Room(){
+	
+	// array of field mods that have occurred in this room
+	this.field_mods = [];
+	
+}
+
+/*//moved into Character object, of which Player is an instance
+function Affinities(){
+	this.nuvi_affinity = 0;
+}
+
+var playerAffinities = new Affinities();
+*/
+
+/**
+An Item is an object that the player can use and/or equip
+*/
+State.variables.Item = function Item(id,name){
+	this.id = id;
+	this.name = name;
+	this.useEffect = function(){console.log("Using the "+this.name+" accomplishes little, but you do look silly.");}
+	// todo: instead of having a simple one-way equip effect, we need something more structured that can be queried later, e.g. in stat recompute fn (where we want to recompute atk as STR + weapon modifier).  Something that has properties tracking the modifications to attrs or stats.
+	this.equipEffect = function(){console.log("You equip the "+this.name+" and now boast an eccentric stylish look.");}
+	this.description = this.name+" is uncannily nondescript -- you've already forgotten its details and you're still looking at it!";
+	// todo: some sort of on-hit effect for weapons?
+}
+
+/// begin global story state dicts ///
+
+// Global Object mapping of prefab Characters
+State.variables.characters = {
+	"player" : new Player(),
+	"nuvi" : new State.variables.Character("nuvi","Nuvi"),
+	"shimmerin" : new State.variables.Character("shimmerin","Shimmerin"),
+	"sheila" : new State.variables.Character("sheila","Sheila"),
+	"council" : new State.variables.Character("council","Council Of Animals"),
+	"marrah" : new State.variables.Character("marrah","Marrah"),
+	"drbeakman" : new State.variables.Character("drbeakman","Dr. Beakman"),
+	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
+	"puck" : new State.variables.Character("puck","Puck")
+}
+
+// Global Object mapping of prefab StatusEffects
+State.variables.statusEffectsDict = {
+	/**
+	Bloodlust raises STR at the expense of all mental attributes
+	*/
+	"bloodlust" : new State.variables.StatusEffect("bloodlust","Bloodlust",3),
+	/**
+	Doubt halves all confidence based attributes (STR and CHA)
+	*/
+	"doubt" : new State.variables.StatusEffect("doubt","Doubt",3),
+	/**
+	Terror gives a 35% chance to do nothing but shiver in fear
+	*/
+	"terror" : new State.variables.StatusEffect("terror","Terror",5),
+	/**
+	Poison inflicts 5% health dmg each turn, and helaves atk/def
+	*/
+	"poison" : new State.variables.StatusEffect("poison","Poison",3),
+	/**
+	Shadow makes the affected character immune to physical dmg
+	*/
+	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3),
+	/**
+	Regen heals each turn
+	*/
+	"regen" : new State.variables.StatusEffect("regen","Regen",3),
+	/**
+	Confuse causes the AI to 50% redirct its chosen abl at itself
+	*/
+	"confuse" : new State.variables.StatusEffect("confuse","Confusion",3),
+	/**
+	Charm causes the afflicted character to be unable to target the character who charmed them with harmful abilities
+	*/
+	"charm" : new State.variables.StatusEffect("charm","Charm",3),
+	/**
+	Temper doubles physical attack power for 3 turns
+	*/
+	"temper" : new State.variables.StatusEffect("temper","Temper",3),
+	/**
+	Focus doubles magic attack power for 3 turns
+	*/
+	"focus" : new State.variables.StatusEffect("focus","Focus",3),
+	/**
+	Third Eye quadruples magic attack power for 3 turns at the expense of halved physical attack and defense
+	*/
+	"third_eye" : new State.variables.StatusEffect("third_eye","Third Eye",3),
+	/**
+	Defenseless reduces the target's defensive stats by half for 3 turns
+	*/
+	"defenseless" : new State.variables.StatusEffect("defenseless","Defenseless",3)
+}
+
+/* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
+State.variables.rooms = {
+	"Shimmerin_Chase_Ghostly_Greeting_Chamber" : new Room(...) 	// defined here?  With all details or boilerplate that's modified later?
+}
+*/
+
+/* // is this delegate inheritance?  MDN suggests that delegation proto inheritance can allow state to creep between instances somehow with common fields being changed for all instances, but I don't understand what they mean.  This works as expected.
+var characters = State.variables.characters;
+alert("player is "+characters["player"].name+", nuvi is "+characters["nuvi"].name+", and shimmerin is "+characters["shimmerin"].name);
+*/
+
+/**
+Global dictionary object of public incarnations.  Since The Human can learn any Incarnation, all the Incarnations should be indexed here
+TODO: move the inline definitions of Incarnations from within Character configs to here, and then reference this dict in said configs.
+*/
+State.variables.incarnationsDict = {
+	// from Splinter of Serpentarius
+	"debilitate" : new State.variables.Incarnation("debilitate","Debilitate"),
+	"pierce" : new State.variables.Incarnation("pierce","Pierce"),
+	"toxin" : new State.variables.Incarnation("toxin","Toxin"),
+	// from Splinter of Violet
+	"shadowform" : new State.variables.Incarnation("shadowform","Shadowform"),
+	"perfect_stillness" : new State.variables.Incarnation("perfect_stillness","Perfect Stillness"),
+	"savage_sympathy" : new State.variables.Incarnation("savage_sympathy","Savage Sympathy"),
+	// from Splinter of Snugg-lor
+	"warmest_hug" : new State.variables.Incarnation("warmest_hug","Warmest Hug"),
+	"woolly_shield" : new State.variables.Incarnation("woolly_shield","Woolly Shield"),
+	"maenad_frenzy" : new State.variables.Incarnation("maenad_frenzy","Maenad Frenzy"),
+}
+
+State.variables.itemsDict = {
+	"wicked_axe" : new State.variables.Item("wicked_axe","Wickedly Curved Axe"),
+	"cold_mace" : new State.variables.Item("cold_mace","Inexplicably Cold Mace"),
+	"sawtooth_star_dagger" : new State.variables.Item("sawtooth_star_dagger","Starlight Sawtooth Dagger")
+}
+
+/// end global story state dicts ///
+	
+// establish Player party
+State.variables.party = [State.variables.characters["player"]];
+
+/*// moved to Character object, from which Player inherits 
+// establish Player inventory
+State.variables.inventory = [];
+*/
+
+// inductive biases characters may have toward the Player
+
+// fuzzy biases
+State.variables.inductive_bias_digger_good = "digger_good";
+State.variables.inductive_bias_clever = "clever";
+State.variables.inductive_bias_animal_handler = "animal_handler";
+State.variables.inductive_bias_crush = "crush";
+
+// unfortunate biases
+State.variables.inductive_bias_liar = "liar";
+State.variables.inductive_bias_manipulative = "manipulative";
+State.variables.inductive_bias_lacks_confidence = "lacks_confidence";
+State.variables.inductive_bias_humble = "humble";
+State.variables.inductive_bias_knows_limitations = "knows_limitations";
+
+// titles the player can have
+State.variables.title_wombuddy = "wombuddy";
+
+/// begin Shimmerin acq///
+State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
+
+function AnIceMole(){
+	this.path_index = 0;
+	// the path an ice mole can take
+	this.ice_mole_path = ["Shimmerin_Chase_Frozen_Stair","Shimmerin_Chase_Diamond_Throneroom","Shimmerin_Chase_Treasure_Of_Stillness","Shimmerin_Chase_Crystal_Gardens"];
+	// the ice mole's current position
+	this.ice_mole_room = this.ice_mole_path[this.path_index];
+	
+	/**
+	Advances anicemole along his path
+	*/
+	this.advance = function(){
+			// advance the path index, accounting for wraparound
+		  this.path_index++;
+			if(this.path_index == this.ice_mole_path.length){
+				this.path_index = 0;
+			}
+			
+			// set the current room to the room along the path
+			// at the new index
+			this.ice_mole_room = this.ice_mole_path[this.path_index];
+		  //alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
+	} // end advance function
+	/**
+	Retreats anicemole along his path
+	*/
+	this.retreat = function(){
+			// retreat the path index, accounting for wraparound
+		  this.path_index--;
+			if(this.path_index == -1){
+				this.path_index = this.ice_mole_path.length-1;
+			}
+			
+			// set the current room to the room along the path
+			// at the new index
+			this.ice_mole_room = this.ice_mole_path[this.path_index];
+		  //alert("path index is "+this.path_index+", which resolves to "+this.ice_mole_path[this.path_index]);
+	} // end retreat function
+	
+	/**
+	Anicemole burrows hastily away!  This will modify the current room and also advance the mole.
+	*/
+	this.burrow = function(){
+		// add the current passage to list of rooms the mole has burrowed through.  This isn't quite ideal since not all passages are a discrete room, but in the case of the shimmerin maze where the mole will be, they are.  Better might be to check the passage tags for 'room' before making this mod?  Of course, the mole shouldn't be burrowing outside a room passage anyway, so...
+		//State.variables.mole_burrowed_array.push(passage());
+		
+		// add anicmole burrowed to the mods array for the current room
+		var currentModsArray = State.variables.field_mods_map.get(passage());
+		
+		// need to check for null return of field mods at given passage and init currentModsArray to an empty new array in that case
+		if (typeof currentModsArray == 'undefined'){
+			currentModsArray = [State.variables.field_mod_anicemole_burrowed];
+			State.variables.field_mods_map.set(passage(),currentModsArray);	
+		}else if(!currentModsArray.includes(State.variables.field_mod_anicemole_burrowed)){
+
+						 // field mods exist for this passage, but they do not yet include anicemole's burrowing.  Add burrowing to it.
+						 currentModsArray.push(State.variables.field_mod_anicemole_burrowed);
+		
+	 }
+		
+		
+		this.advance();
+	}
+	
+	// flag indicating that the ice mole is present in the room when the player enters and there needs to be text detailing how he burrows away
+	//this.ice_mole_burrow_flag = false;
+}
+
+// grant access to anicemole instance in the story
+State.variables.anicemole = new AnIceMole();
+
+/// end Shimmerin acq ///
+
+/// begin wombat test quest ///
+
+// number of times the player has attempted the wombats' wombuddy test 
+State.variables.wombuddy_trials = 0;
+State.variables.wombuddy_score = 0;
+
+/// end wombat test quest ///
+
+/**
+A map of room names to arrays of modification descriptor strings that can be used to look up rooms that have runtime modification, e.g. anicemole burrowed and changed something in rooms x, y, and z so if room z checks this map's return value array for 'anicemole_burrowed' it will return true and know that burrowing mods need to be handled.  Interested rooms can check at the top of their passage with field_mods_map.get(passage())
+*/
+State.variables.field_mods_map = new Map();
+
+// todo: at the top of every room in the shimmerin maze, the mole will move his position to the room at the next index in his path.  If the mole position matches the current passage title, the mole description will be part of the passage and the mole will burrow to escape the player.  The burrow flag will be raised, indicating that at the top of the next passage we do not need to auto-move the mole again.  Once the burrow flag is read as true, it will be lowered.  If the mole burrows away in the Treasure of Stillness room, the Tiny Tiara will be freed for acq.
+
+/// end Shimmerin ///
+
+/*
+Config.constructor.prototype.combat = function Combat(){
+	this.name = "";
+	this.actors = {};
+	this.getName = function(){
+		return this.name;	
+	}
+}
+*/
+
+/**
+Main program init function.  Configures and fleshes out global objects
+*/
+function init(){
+	
+	// todo: add costs to all abilities!
+	
+	//items
+	
+	var wickedlyCurvedAxe = State.variables.itemsDict["wicked_axe"];
+	wickedlyCurvedAxe.equipEffect = function(targetChar){
+		targetChar.stats["atk"] += 20;
+	}	
+	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that \'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them\'... it's probably nothing.";
+	// todo: bleed status effect on-hit?
+	var coldMace = State.variables.itemsDict["cold_mace"];
+	coldMace.equipEffect = function(targetChar){
+		targetChar.stats["atk"] += 5;
+		targetChar.attributes["charisma"] -= 10;
+		targetChar.attributes["intelligence"] += 10;
+		// todo: recompute the pwr/res based on new mental stats
+		targetChar.stats.mp += 10;
+	}
+	coldMace.description = "The very chill that grips the heart of a snowstorm flashes through you as you gingerly touch the haft of this hefty mace.  You feel your concern for other living things dull notably, as an insidiously gentle numbness flows through your soul; in a moment, everything is a simple equation as clear and coldly beautiful as the corpse of a flower entombed within ice.  Your breath mists despite the temperate weather.";
+	var sawtoothDagger = State.variables.itemsDict["sawtooth_star_dagger"];
+	sawtoothDagger.equipEffect = function(targetChar){
+		targetChar.stats["atk"] = 0;
+		targetChar.attributes["charisma"] += 10;
+		targetChar.attributes["intelligence"] += 10;
+		targetChar.attributes["wisdom"] += 10;
+		// todo: recompute the pwr/res based on new mental stats
+		targetChar.stats.mp += 20;
+	}
+	sawtoothDagger.description = "Starlight glitters from within this jagged dagger, as if it is a little fragment of a fallen star.  Darkness practically flees from its surface, and in the instant before light fills the void you think you catch a glimpse of something staring back at you from the other side of an unfathomable gulf... and winking.";
+	
+	// status effects
+	/**
+	Defenseless halves a character's defensive attributes 
+	*/
+	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
+	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
+	defenselessStatusEffect.effect = function(targetChar){
+		targetChar.stats["def"] *= 0.5;
+		targetChar.stats["res"] *= 0.5;
+	}
+	defenselessStatusEffect.reverseEffect = function(targetChar){
+		// todo: this should get a recompute call that sources attrs and equipment rather than doing a direct reversal like this; otherwise defenseless + any defense buff + ~defenseless -> gt intended buff increase to defenses
+		targetChar.stats["def"] *= 2;
+		targetChar.stats["res"] *= 2;
+	}
+	
+	/**
+	Temper provides a simple ATK*2 for 3 turns
+	*/
+	var temperStatusEffect = State.variables.statusEffectsDict["temper"];
+	temperStatusEffect.effect = function(targetChar){
+		targetChar.stats["atk"] *= 2;
+	}
+	temperStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["atk"] *= 0.5;
+	}
+	
+	/**
+	Focus provides a simple PWR*2 for 3 turns
+	*/
+	var focusStatusEffect = State.variables.statusEffectsDict["focus"];
+	focusStatusEffect.effect = function(targetChar){
+		targetChar.stats["pwr"] *= 2;
+	}
+	focusStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["pwr"] *= 0.5;
+	}
+	
+	/**
+	Third Eye provides a PWR*4 at cost of ATK/2 and DEF/2 for 3 turns
+	*/
+	var thirdEyeStatusEffect = State.variables.statusEffectsDict["third_eye"];
+	thirdEyeStatusEffect.effect = function(targetChar){
+		targetChar.stats["pwr"] *= 4;
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["def"] *= 0.5;
+	}
+	thirdEyeStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["pwr"] *= 0.25;
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["def"] *= 2;
+	}
+	
+	/**
+	Regen heals a character by their RES each turn
+	*/
+	var regenStatusEffect = State.variables.statusEffectsDict["regen"];
+	regenStatusEffect.effect = function(targetChar){
+		targetChar.stats["hp"] += targetChar.stats["res"];
+	}
+	regenStatusEffect.reverseEffect = function(targetChar){}
+	
+	/**
+	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
+	*/
+	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
+	doubtStatusEffect.effect = function(targetChar){
+		/*
+		targetChar.attributes["strength"] *= 0.5;
+		targetChar.attributes["charisma"] *= 0.5;
+		*/
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["pwr"] *= 0.5;
+	}
+	doubtStatusEffect.reverseEffect = function(targetChar){
+		/*
+		targetChar.attributes["strength"] *= 2;
+		targetChar.attributes["charisma"] *= 2;
+		*/
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["pwr"] *= 2;
+	}
+	
+	/**
+	Bloodlust quadruples STR in exchange for halving all mental attributes
+	*/
+	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
+	bloodlustStatusEffect.effect = function(targetChar){
+		/*
+		targetChar.attributes["strength"] *= 4;
+		targetChar.attributes["charisma"] *= 0.5;
+		targetChar.attributes["intelligence"] *= 0.5;
+		targetChar.attributes["wisdom"] *= 0.5;
+		*/
+		targetChar.stats["atk"] *= 4;
+		targetChar.stats["pwr"] *= 0.5;
+		targetChar.stats["res"] *= 0.5;
+	}
+	bloodlustStatusEffect.reverseEffect = function(targetChar){
+		/*
+		targetChar.attributes["strength"] *= 0.25;
+		targetChar.attributes["charisma"] *= 2;
+		targetChar.attributes["intelligence"] *= 2;
+		targetChar.attributes["wisdom"] *= 2;
+		*/
+		targetChar.stats["atk"] *= 0.25;
+		targetChar.stats["pwr"] *= 2;
+		targetChar.stats["res"] *= 2;
+		
+		
+	}
+	
+	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
+	terrorStatusEffect.effect = function(targetChar){
+		// I can think of two ways for the terror rando turn skip thing to work:
+		// 1. We remove the afflicted character from the relevant party array of the combat instance when terror strikes and then add them back in a round post proc
+		// 2. We add a bitfield to Character that can receive abitrary PoT flags like {FLAG_SKIP_TURN = 1} and when the character's turn comes up (or elsewhere, as needed) we check this bitfield for relevant raised flags.  In the case of FLAG_SKIP_TURN, we'd need to process the randomness and decide whether or not to raise the flag in round pre proc and then lower the flag in each round post proc since the character is not necessarily terrorized each round.
+		
+		// raise flag
+		//targetChar.combatFlags |= targetChar.CombatFlags.FLAG_SKIP_TURN; // flag needs to be raised in round pre proc.  The pre proc block should check for this status effect and then call its effect(), which will return true if some status-effect-specific percentage range is hit.
+		
+		// 35% chance
+		return State.variables.rollPercentage() <= 35;
+	}
+	terrorStatusEffect.reverseEffect = function(targetChar){}
+	
+	/**
+	Poison deals dmg each turn and halves atk/def stats
+	*/
+	var poisonStatusEffect = State.variables.statusEffectsDict["poison"];
+	poisonStatusEffect.effect = function(targetChar){
+		targetChar.stats["atk"] *= 0.5;
+		targetChar.stats["def"] *= 0.5;
+	}
+	poisonStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["atk"] *= 2;
+		targetChar.stats["def"] *= 2;
+	}
+	
+	var shadowStatusEffect = State.variables.statusEffectsDict["shadow"];
+	shadowStatusEffect.effect = function(targetChar){
+		this.cachedDef = targetChar.stats["def"];
+		targetChar.stats["def"] = Infinity;
+	}
+	shadowStatusEffect.reverseEffect = function(targetChar){
+		targetChar.stats["def"] = this.cachedDef;
+	}
+	
+	var confuseStatusEffect = State.variables.statusEffectsDict["confuse"];
+	confuseStatusEffect.effect = function(targetChar){
+		return State.variables.rollPercentage() > 50;
+	}
+	confuseStatusEffect.reverseEffect = function(targetChar){}
+	
+	var charmStatusEffect = State.variables.statusEffectsDict["charm"];
+	charmStatusEffect.effect = function(sourceChar,targetChar){
+		// set the id of the forbidden target for this effect instance
+		this.sourceCharacterId = sourceChar.id;
+	}
+	charmStatusEffect.reverseEffect = function(targetChar){
+		this.sourceCharacterId = undefined;
+	}
+	
+	// public incarnations
+	
+	// from Splinter of Serpentarius
+	/**
+	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
+	*/
+	var debilitate = State.variables.incarnationsDict["debilitate"];
+	debilitate.targetType = debilitate.TargetTypesEnum.singleEnemy;
+	debilitate.cost = {"mp":25};
+	debilitate.calcDmg = function(sourceChar,targetChar){
+		return targetChar.stats.hp*0.1;	
+	}
+	debilitate.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	debilitate.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" narrows "+sourceChar.getPronoun_gen()+" eyes, shining with cruel malice, at "+targetChar.name+".  Space distorts mildly, constricting around and through "+targetChar.name+", and "+targetChar.getPronoun_gen()+" presence seems to diminish substantially!";	
+	}
+	/**
+	Pierce is a physical strike for which atk bypasses def
+	*/
+	var pierceIncarnation = State.variables.incarnationsDict["pierce"];
+	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
+	pierceIncarnation.cost = {"hp":10};
+	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["atk"];		
+	}
+	pierceIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		
+		// HP cost
+		this.processCost(sourceChar);
+	}
+	pierceIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" smoothly reaches directly into "+targetChar.name+"'s soul, and just kinda... fiddles around a little.  "+targetChar.name+" does not appreciate this, emphatically, to the tune of "+this.dmg+" delicious damages!";	
+	}
+	
+	var toxinIncarnation = State.variables.incarnationsDict["toxin"];
+	toxinIncarnation.targetType = toxinIncarnation.TargetTypesEnum.singleEnemy;
+	toxinIncarnation.cost = {"mp":15};
+	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["pwr"]-targetChar.stats["res"];		
+	}
+	toxinIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		State.variables.addUniqueStatusEffect(targetChar,poisonStatusEffect);
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	toxinIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return "An aura of gleaming electric purple light, striated with the cheerily deadly greenish glow of radioactivity, surrounds "+sourceChar.name+" as "+sourceChar.getPronoun_gen()+" fevered will infects "+targetChar.name+".";	
+	}
+	
+	// from Splinter of Violet
+	/**
+	Shadowform makes the character immune to physical damage.  
+	TODO: add a physical/magic damage typing system.  For now, we'll just make def infinite.
+	*/
+	var shadowFormIncarnation = State.variables.incarnationsDict["shadowform"];
+	shadowFormIncarnation.targetType = shadowFormIncarnation.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
+	shadowFormIncarnation.cost = {"mp":30};
+	shadowFormIncarnation.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	shadowFormIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return "Shadows dance free of their source lights, and embrace "+sourceChar.name+" warmly.  Velvet darkness spreads over "+sourceChar.getPronoun_gen()+" body, and "+sourceChar.getPronoun_nom()+" relaxes into oneness with the infinite possibilities of undefinition; "+sourceChar.getPronoun_nom()+" seems almost ethereal now.";	
+	}
+	
+	/**
+	Perfect Stillness deals mild cold damage to the wielder and massive cold damage to the target
+	*/
+	var perfectStillnessIncarnation = State.variables.incarnationsDict["perfect_stillness"];
+	perfectStillnessIncarnation.targetType = perfectStillnessIncarnation.TargetTypesEnum.singleEnemy;
+	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
+	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
+	perfectStillnessIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["pwr"] - targetChar.stats["res"]/2;		
+	}
+	perfectStillnessIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		this.selfDmg = this.calcDmg(sourceChar,sourceChar);
+		targetChar.stats["hp"] -= this.dmg;
+		sourceChar.stats["hp"] -= this.selfDmg; // todo: move to cost so that it is transparent to user via UI display of abl costs; make sure calcDmg() can peek at the dmg from that point
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	perfectStillnessIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" extends "+sourceChar.getPronoun_gen()+" arms slowly towards "+targetChar.name+", almost as if inviting a hug.  Suddenly, a rolling torrent of absolute serenity and silence, so profoundly vaccuous that it forces all in attendance to take a step back as from an overwhelming physical force, explodes forth from "+sourceChar.getPronoun_obj()+".  Both folks are rocked by the violence of the peace, and "+targetChar.name+" is driven to "+targetChar.getPronoun_nom()+" knees";	
+	}
+	
+	/**
+	Savage Sympathy deals more damage the greater the difference between the wielder and the target's ATK, and heals the wielder
+	*/
+	var savageSympathyIncarnation = State.variables.incarnationsDict["savage_sympathy"];
+	savageSympathyIncarnation.targetType = savageSympathyIncarnation.TargetTypesEnum.singleEnemy;
+	savageSympathyIncarnation.cost = {"mp":20};
+	savageSympathyIncarnation.calcDmg = function(sourceChar,targetChar){
+		return Math.abs(targetChar.stats["atk"] - sourceChar.stats["atk"])*2;		
+	}
+	savageSympathyIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		sourceChar.stats["hp"] += this.dmg/2;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	savageSympathyIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" is no fan of natural privilege.  In fact, "+sourceChar.getPronoun_nom()+" takes ecstatic pleasure in balancing the old scales, with blood if necessary.  To wit, blood from "+targetChar.name+"'s orificeses begins slowly spiraling through the air and into "+sourceChar.name+"'s snarling mouth.";	
+	} 
+	
+	// from Splinter of Snugg-lor
+	/**
+	Warmest hug heals self and other with ATK
+	*/
+	var warmestHugIncarnation = State.variables.incarnationsDict["warmest_hug"];
+	warmestHugIncarnation.targetType = warmestHugIncarnation.TargetTypesEnum.singleAlly;
+	warmestHugIncarnation.cost = {"mp":20};
+	warmestHugIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["atk"];		
+	}
+	warmestHugIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] += this.dmg;
+		sourceChar.stats["hp"] += this.dmg;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	warmestHugIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" embraces "+sourceChar.getPronoun_gen()+" friend "+targetChar.name+" fondly, a soft golden glow surrounding them both.";	
+	} 
+	
+	/**
+	Woolly Shield raises target's DEF by wielder's RES+DEF
+	*/
+	var woollyShieldIncarnation = State.variables.incarnationsDict["woolly_shield"];
+	woollyShieldIncarnation.targetType = woollyShieldIncarnation.TargetTypesEnum.singleAlly;
+	woollyShieldIncarnation.cost = {"mp":30};
+	woollyShieldIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["def"] + sourceChar.stats["res"];		
+	}
+	woollyShieldIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["def"] += this.dmg;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	woollyShieldIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" puffs out "+sourceChar.getPronoun_gen()+" hair, approximating thick wool as best "+sourceChar.getPronoun_nom()+" can, and jumps in front of "+targetChar.name+", intent on protecting "+targetChar.getPronoun_obj()+" with "+sourceChar.getPronoun_gen()+" woolly life!";	
+	} 
+	
+	/**
+	Maenad Frenzy deals ATK+CHA to self and (ATK+CHA)*2 to target
+	*/
+	var maenadFrenzyIncarnation = State.variables.incarnationsDict["maenad_frenzy"];
+	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
+	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
+	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
+		return sourceChar.stats["atk"]+sourceChar.attributes["charisma"];		
+	}
+	maenadFrenzyIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		sourceChar.stats["hp"] -= this.dmg/2;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	maenadFrenzyIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return "A manic gleam shines in "+sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.";	
+	} 
+	
+	var puckChar = State.variables.characters["puck"];
+	puckChar.gender = "male";
+	puckChar.attributes["strength"] = 8;
+	puckChar.attributes["dexterity"] = 20;
+	puckChar.attributes["constitution"] = 10;
+	puckChar.attributes["intelligence"] = 22;
+	puckChar.attributes["wisdom"] = 6;
+	puckChar.attributes["charisma"] = 20;
+	puckChar.stats["hp"] = 500;
+	puckChar.stats["mp"] = Infinity;
+	puckChar.stats["maxHP"] = 500;
+	puckChar.stats["maxMP"] = Infinity;
+	// todo: these assignments could be replaced with a recompute fn
+	puckChar.stats["atk"] = puckChar.attributes["strength"];
+	puckChar.stats["def"] = puckChar.attributes["constitution"];
+	puckChar.stats["pwr"] = puckChar.getMagicAttributeScore();
+	puckChar.stats["res"] = puckChar.getMagicAttributeScore();
+	// todo: equip Puck?
+	puckChar.entity = new Entity("Vicious Mockery");
+	var rapierWit = new State.variables.Incarnation("Rapier Wit");
+	rapierWit.cost = {"mp":15};
+	rapierWit.generateFlavorText = function(sourceChar,targetChar){
+		if(targetChar){
+			// todo: randomly selected insults based on descriptor tags
+			
+				var percentage = State.variables.rollPercentage();
+				if(targetChar.gender === "female"){
+					if(percentage <= 20){
+						var hairWord = "hair";
+						if(targetChar.descriptors.body.hair.includes("fur")){
+							hairWord = "fur";
+						}
+						return sourceChar.name+" accuses "+targetChar.name+" of having "+hairWord+" extensions!  She blushes and bristles with unnatural incapacitating rage, the engineered emotion practically coruscating with Incarnation.";
+					}// end 1-20%
+					else if(percentage > 20 && percentage <= 70){
+						return "Looking down "+(sourceChar.gender==="female"?"her":"his")+" nose at "+targetChar.name+", "+sourceChar.name+" sniffs and conjectures that the once-sinuous curves of her body have become somewhat oblong... and lumpy!  She reels in bizarre anguish as the taunt burrows into her psyche.";
+					}//end 21-70%
+					else if(percentage > 70 && percentage <= 100){
+						return sourceChar.name+" sniffs the air and then wrinkles "+(sourceChar.gender==="female"?"her":"his")+" nose in disgust, accusing "+targetChar.name+" of stinking like a bog.  Incarnate self-consciousness floods her neurons and she can't be sure of herself!" 
+					}//end 71-100%
+				}else if(targetChar.gender === "male"){
+					if(percentage <= 50){
+						return sourceChar.name+" sizes up "+targetChar.name+" and smirks, informing "+targetChar.name+" that his musculature is reminiscent of a doddering and decrepit elder.  His eyes burn cherry-red as Incarnate rage strangles his mind.";
+					}else{
+						return sourceChar.name+" takes a long hard look below "+targetChar.name+"'s belt and then scoffs, clearly underwhelmed.  Venemous doubt Incarnate seeps into the cracks of his self-image and harden there, shattering it!";	
+					}
+				}
+			
+		}// end if a targetChar is given
+		else{
+			return sourceChar.name+" points and laughs in a literally cutting fashion!"
+		}
+	}
+	rapierWit.targetType = rapierWit.TargetTypesEnum.singleEnemy;
+	rapierWit.calcDmg = function(sourceChar,targetChar){
+		// highly variable damage sourced from source CHA and resisted slightly by target CHA
+		return State.variables.rollDie(6) *State.variables.calcMod(sourceChar.attributes["charisma"]) - State.variables.calcMod(targetChar.attributes["charisma"]);	
+	}
+	rapierWit.effect = function(sourceChar,targetChar){
+		targetChar.stats.hp -= rapierWit.calcDmg(sourceChar,targetChar);
+		State.variables.addUniqueStatusEffect(targetChar,doubtStatusEffect);
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	puckChar.incarnations["rapier_wit"] = rapierWit;
+	
+	var rainOfRadiance = new State.variables.Incarnation("Rain of Radiance");
+	rainOfRadiance.cost = {"mp":50};
+	rainOfRadiance.generateFlavorText = function(sourceChar,targetChars){
+			return sourceChar.name+" thrusts a hand towards the heavens, muscles quivering with equal parts strain and anticipation.  The first few glittering droplets of liquid blue-white starlight are beautiful, but their virtue is quickly eclipsed by a tide of agony that grips the entire party as their flesh/fur is scorched/singed by celestial fire!";	
+	}
+	rainOfRadiance.targetType = rainOfRadiance.TargetTypesEnum.allEnemies;
+	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
+		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
+		return 5*State.variables.calcMod(sourceChar.stats["pwr"])
+	}
+	/**
+	Rain of Radiance expects an array of target chars since it hits all enemies
+	*/
+	rainOfRadiance.effect = function(sourceChar,targetChars){
+		for(let target of targetChars){
+			target.stats.hp -= rainOfRadiance.calcDmg(sourceChar,target);	
+		}
+		
+		// mp cost
+		this.processCost(sourceChar);
+	}
+	puckChar.incarnations["rain_of_radiance"] = rainOfRadiance;
+	
+	var swordsDance = new State.variables.Incarnation("Swords Dance");
+	swordsDance.cost = {"mp":15};
+	swordsDance.generateFlavorText = function(sourceChar,targetChar){
+		var flavorString = "Cruel cold light gleams in "+targetChar+"'s eyes as warrior spirits torn directly from the savagery of the Wild Hunt meld with "+(targetChar.gender === "female"?"her":"his")+" spirit!";
+		if(targetChar.descriptors.body.includes("fun_sized")){
+			flavorString += "  You didn't think such a petite individual could strike terror in your heart with mere physical presence, but it seems you were wrong."	
+		}else if(targetChar.descriptors.body.includes("party_sized")){
+			flavorString += "  You didn't think "+(targetChar.gender === "female"?"her":"his")+" physical presence could loom any larger, but it seems you were wrong."
+		}
+		
+		return flavorString;
+	}
+	swordsDance.targetType = swordsDance.TargetTypesEnum.singleAlly;
+	swordsDance.effect = function(sourceChar,targetChar){
+		State.variables.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
+		
+		// mp cost
+		this.processCost(sourceChar);
+	}
+	puckChar.incarnations["swords_dance"] = swordsDance;
+	
+	puckChar.runAI = function(combat,role){
+		if(role){
+			if(role === "enemy"){
+				var chosenAbility = "";
+				var chosenTarget = "";
+				/* todo: Puck enemy AI behavior	
+					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
+					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
+					 x2. If Puck's HP is less than 50% and he does not have any mental debuffs (including those imposed by Bloodlust), spam Rain of Radiance.
+					 x2. [Dimplomancy Scenario] If anyone has just been healed, use Rain of Radiance. UPDATE: actually, this might be OP.  Also, so far I've avoided building stateful infrastructure with combat history intel, and I'd prefer to continue avoiding that for the demo!
+					 x3. [Viral Violence] If a physically frail character is under 50% hp and Puck is Bloodlusted, he Attacks that character.
+					 x4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't already have Doubt.  If all offensively buffed characters already have Doubt, nuke w/ Rain of Radiance.
+				*/
+				// todo: Since I don't particularly want to toss more abilities onto him to handle the various godling strat paths, it might be best to just modify the AI to be differently aggressive based on the player's chosen path.  That makes more sense with the Entity thing anyhow.
+				var playerParty = combat.playerParty;
+				var enemyParty = combat.enemyParty;
+				
+				// outliers and statistical points of interest
+				var playerLeastDefense = State.variables.characters["player"];
+				var playerLeastHP = State.variables.characters["player"];
+				var playerWithTargetBuff = "undefined";
+				var anyPlayerOffenseBuffed = false;
+				var maxHealth = true; // assume true and let contradiction flip it
+				
+				/// begin gathering data and potentially exiting to Rapier Wit on any buffed player character ///
+				for(let player of playerParty){
+					
+					// overwrite player with least defense if applicable
+					if(player.stats["def"] < playerLeastDefense.stats["def"]){
+						playerLeastDefense = player;	
+					}
+					
+					// overwrite player with least HP if applicable
+					if(player.stats.hp < playerLeastHP.stats.hp){
+						playerLeastHP = player;	
+					}
+					
+					if(player.statusEffects.length > 0){
+						var statuses = player.statusEffects;
+						for(let status of statuses){
+							if(status.buffity === "buffins"){
+								// buff discovered on this player!  Get 'im!
+								// todo: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
+								/*
+								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
+								return;
+								*/
+								
+								if(status.descriptors.includes("offensive")){
+									 anyPlayerOffenseBuffed = true;
+									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
+									playerWithTargetBuff = player;	
+								}
+							 }
+							}
+						}// end for each status on current player char
+					}// end if current player has statuses
+					
+					// check for max health scenario flip
+					if(player.stats.hp < player.stats.maxHP){
+						maxHealth = false;	
+					}
+					
+				}// end for each player
+				/// end gathering data + maybe buff balancing ///
+				
+				/// begin story scenario modifier processing ///
+				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
+					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
+						// if the player char with least def is bloodied...
+						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
+							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
+							/*
+							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+							combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+							return;
+							*/
+							chosenAbility = puckChar.abilities["attack"];
+							chosenTarget = playerLeastDefense;
+						}else{
+							// Puck doesn't have bloodlust yet, so get it!
+								/*
+								puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);
+							combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
+							
+							return;
+							*/
+							chosenAbility = puckChar.incarnations["swords_dance"];
+							chosenTarget = puckChar;
+						}
+					}
+				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
+					// hit the latest player with a buff with debuff to balance the ol' scales
+					if(playerWithTargetBuff){
+							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
+							
+/*								puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
+								combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
+								return;
+								*/
+								chosenAbility = puckChar.incarnations["rapier_wit"];
+								chosenTarget = playerWithTargetBuff;
+						}// end if player with target buff does not already have doubt
+						else if(anyPlayerOffenseBuffed){
+							// presumably in this case every character with an offensive buff already has doubt.  With our scale balancing work done, just fry 'em with Rain of Radiance!
+							
+/*							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+							combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+							return;
+							*/
+							chosenAbility = puckChar.incarnations["rain_of_radiance"];
+							chosenTarget = combat.playerParty;
+						}
+					}
+				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
+					// if everyone is at max HP, use Rain of Radiance to fix that little problem
+					if(maxHealth){
+							
+/*						puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+						return;
+						*/
+						chosenAbility = puckChar.incarnations["rain_of_radiance"];
+						chosenTarget = combat.playerParty;
+					}
+				}
+				
+				/// end story scenario mod proc ///
+				
+				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
+			if(chosenAbility === "" && chosenTarget === ""){
+				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
+					// rando time!
+				var percentageRandoAbl = State.variables.rollPercentage();
+				
+				// establish a random percentage which will be used to select a player party member
+				var randoAtkTargetRange = State.variables.rollPercentage();
+				// the mapping between percentage and player party indices, e.g. 4 player chars -> 100/4 = 25 -> every 25% we figure the index needs to increment
+				var playerPartyRangeChunk = 100/combat.playerParty.length;
+				var playerRandoTarget = combat.playerParty[randoAtkTargetRange/playerPartyRangeChunk];
+				
+				if(percentageRandoAbl <= 35){
+					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
+			
+/*					puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
+					combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+					return;
+					*/
+					chosenAbility = puckChar.abilities["attack"];
+					chosenTarget = playerLeastDefense;
+				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
+					
+/*					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
+					combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
+					return;
+					*/
+					chosenAbility = puckChar.incarnations["rapier_wit"];
+					chosenTarget = playerRandoTarget;
+				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
+					
+					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					
+/*						puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
+																																																				combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
+																																																				return;
+																																																				*/
+						chosenAbility = puckChar.incarnations["swords_dance"];
+						chosenTarget = puckChar;
+																																								}else{
+
+						// Puck already has Bloodlust, so do the atk strat
+																																									
+																																			/*						puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
+																																									combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+																																								return;
+																																									*/
+																																									chosenAbility = puckChar.abilities["attack"];
+																																									chosenTarget = playerLeastDefense;
+																																								}
+				}else{
+					
+/*					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
+					combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+					return;
+					*/
+					chosenAbility = puckChar.incarnations["rain_of_radiance"];
+					chosenTarget = combat.playerParty;
+				}// end rando time
+			 }// end Puck HP > 50%
+			 else{
+			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
+				 
+/*				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
+				 combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+				 return;
+				 */
+				 chosenAbility = puckChar.incarnations["rain_of_radiance"];
+				 chosenTarget = combat.playerParty;
+			 }
+			} // end if abl and target are not yet chosen, landing us in defaults
+			/// end defaults block ///
+				
+				// todo: consider finding a way to wrap specific AI in common AI handling, such that confusion/charm etc. handling like this can be common to all characters' AI scripts.
+		
+// todo: if confused, reassign chosenTarget with 50% self-target and 50% original target(s)
+				// todo: this reassignment would ideally take ability target types into account
+				if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["confuse"])){
+					
+// confuse's effect is to roll percentage and return true if value is > 50
+					if(State.variables.getStatusEffect(puckChar,"confuse").effect()){
+						chosenTarget = puckChar;	
+					}
+			}
+			else if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["charm"])){
+				var charmStatusInstance = State.variables.getStatusEffect(puckChar,"charm");
+				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
+					if(chosenTarget.id === charmingCharacterId){
+						 // rando reassign to someone other than charming character
+						chosenTarget = combat.randoCombatantExcept(charmingCharacterId);
+					}
+			}
+				
+				 // todo: how should individual potential target combat flags work together with abilities whose effect API expects an entire party of targets?  One target with wonder wall should not stop the abl from hitting others on the one hand, and on the other the walled character needs to not have the abl effect applied to them and should proc the wall of wonder reprisal.
+				// UPDATE: create a set of chosen targets, even if only one.  Then step through and check for wall of wonder protection.  If found, remove the walled character from the set of targets and apply wall reprisal.  After iteration is complete, send the remaining target set into the chosen ability.
+				// since chosen target could be one or more, create an array if there is only one and then we can still just iterate over it
+			var targets = undefined;	
+			if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+				targets = chosenTarget;
+			}else{
+				// in this case there is only one target, but by wrapping it in an array we can proceed with equivalent loop code below
+				targets = [chosenTarget];	
+			}
+				
+				// process combat flags on the chosen target(s)
+				for(let target of targets){
+					if(target.combatFlags & target.CombatFlags.FLAG_WONDER_WALLED === target.CombatFlags.FLAG_WONDER_WALLED){
+				// lower the wonder wall flag
+				target.combatFlags &= ~target.CombatFlags.FLAG_WONDER_WALLED;
+				
+				// the combat log content should reflect the bounce off the wall and any and all reprisals concatenated
+				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
+						
+				// remove the walled character from the chosenTarget array
+						State.variables.removeCharacterFromArray(target,targets);
+				
+				// generate a random effect, dmg or status, to direct back at Puck
+						var incarnationKeys = Object.keys(State.variables.incarnationsDict);
+						var randoIncarnationIndex = Math.floor(Math.random() * incarnationKeys.length);
+				
+				// apply the effect to Puck
+				var randoReprisalAbility = State.variables.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
+						randoReprisalAbility.effect(puckChar);
+						// todo: need support for abilities going off without a caster/target.  For the demo, simply saying Miss Fortune for wielder and Puck for target of rando wall of wonder effect is fine.
+						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character("miss_fortune","Miss Fortune"),puckChar);
+				
+				}// end wall of wonder flag processing
+			}// end combat flag processing loop for target(s)
+				
+				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
+				if(targets.length > 0){
+					// there are still targets, so go forward with them as per usual
+					if(targets.length == 1){
+						// single target attack, expects only single character as target
+						chosenAbility.effect(puckChar,targets[0]);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets[0]);
+					}else{
+					// multi-target attack, expects an array of chars as target	
+					chosenAbility.effect(puckChar,targets);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+					}
+				}else{
+					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
+					for(costElement in chosenAbility.cost){
+						puckChar.stats[costElement] -= chosenAbility.cost[costElement];	
+					}
+				}// end if no targets left after flag processing, so only abl cost is applied
+				
+				alert("Puck's chosen abl is "+chosenAbility.name+" targeting "+targets[0].name);
+			}// if role is enemy
+		}// if role is defined
+	}//end Puck AI def
+	
+	
+	var marrahChar = State.variables.characters["marrah"];
+	marrahChar.gender = "female";
+	marrahChar.stats["hp"] = 40;
+	marrahChar.stats["mp"] = 70;
+	marrahChar.stats["maxHP"] = 40;
+	marrahChar.stats["maxMP"] = 70;
+	marrahChar.attributes["strength"] = 12;
+	marrahChar.attributes["dexterity"] = 18;
+	marrahChar.attributes["constitution"] = 10;
+	marrahChar.attributes["intelligence"] = 14;
+	marrahChar.attributes["wisdom"] = 8;
+	marrahChar.attributes["charisma"] = 20;
+	marrahChar.entity = new Entity("Kitsune");
+	
+	
+	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
+	var hauntedFey = new State.variables.Incarnation("haunted_fey","Haunted Fey");
+	marrahChar.incarnations["haunted_fey"] = hauntedFey;
+	console.log("Marrah's first incarnation is "+Object.keys(marrahChar.incarnations)[0].name);
+	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
+	hauntedFey.cost = {"mp":20};
+	hauntedFey.effect = function(sourceChar,targetChar){
+		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		// effect will be called on the Incarnation instance, so this should be bound to same
+		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
+		}
+		
+		// cost
+		this.processCost(sourceChar);
+	}// end defining effect of haunted_fey
+	hauntedFey.generateFlavorText = function(sourceChar,targetChar){
+		// todo: this is a perfect opportunity for "generative text"; nothing too fancy, basically randomized madlibs sort of thing is what I was thinking, but maybe with some slight inductive bias/target and source character descriptor consideration weighing the randomness used in populating the blanks.
+		return sourceChar.name+"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
+	}
+	
+	var foxFire = new State.variables.Incarnation("fox_fire","Fox Fire");
+	marrahChar.incarnations["fox_fire"] = foxFire;
+	foxFire.targetType = foxFire.TargetTypesEnum.singleEnemy;
+	foxFire.cost = {"mp":15};
+	foxFire.calcDmg = function(sourceChar,targetChar){
+		// dmg based on source's cur:max MP ratio
+		var magicRat = sourceChar.stats.mp/sourceChar.stats.maxMP;
+		
+		// the max damage possible is based on MP and will be reduced by any magicRat less than 1
+		return magicRat*(sourceChar.stats.maxMP); //so Marrah will start at max 70 damage, which is a little over triple the normal attack damage.
+		
+	}
+	foxFire.effect = function(sourceChar,targetChar){
+		
+		// apply status effect, doubt
+		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		// effect will be called on the Incarnation instance, so this should be bound to same
+		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
+			
+			// set dmg
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			
+			// deal dmg
+			targetChar.stats.hp -= this.dmg;
+		}
+		
+		// cost
+		this.processCost(sourceChar);
+	}
+	foxFire.generateFlavorText = function(sourceChar,targetChar){
+		// todo: generic version
+		return "Marrah's brilliant scarlet fur stands on end as static electricity fills the air, along with a menacing hum.  Her yellow eyes flash electric blue for a moment and she puts both paws over her heart.  Closing her eyes, she inhales deeply, her chest puffing out proud and strong, as she allows her awareness to cascade inward.  The world waits on her discovery for a few moments, and then her eyes fly wide open -- they are glowing a painfully bright ruby with a molten gold corona.  Eight tails forged from fires of every imaginable hue, from ghostly green to putrescent purple, join her only slightly less magical normal one. She turns tail and flicks all nine dismissively towards "+targetChar.name+".  The technicolor flames leap from Marrah with gleeful fervor, and engulf "+targetChar.getPronoun_obj()+" for "+this.dmg+" damage!";	
+	}
+		
+	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
+	marrahChar.incarnations["ghost_whip"] = ghostWhip;
+	ghostWhip.targetType = ghostWhip.TargetTypesEnum.singleEnemy;
+	ghostWhip.cost = {"mp":15};
+	ghostWhip.calcDmg = function(sourceChar,targetChar,aspect){
+		if(aspect === "meat"){
+			// CHA vs. CON to damage HP and give half to source
+			return 10+sourceChar.attributes["charisma"]-targetChar.attributes["constitution"];
+			
+		}else if(aspect === "mind"){
+			// CHA vs. CHA to damage MP and give half to source
+			return 10+sourceChar.attributes["charisma"]-targetChar.attributes["charisma"];
+		
+		}
+	}
+	ghostWhip.effect = function(sourceChar,targetChar){
+		this.hpDmg = this.calcDmg(sourceChar,targetChar,"meat");
+		this.mpDmg = this.calcDmg(sourceChar,targetChar,"mind");
+		targetChar.stats.hp -= this.hpDmg;
+		targetChar.stats.mp -= this.mpDmg;
+		sourceChar.stats.hp += this.hpDmg/2;
+		sourceChar.stats.mp += this.mpDmg/2;
+		
+		// cost
+		this.processCost(sourceChar);
+	}
+	ghostWhip.generateFlavorText = function(sourceChar,targetChar){
+		// todo: reference hpDmg and mpDmg instead of dmg!
+		return "A whip of pale iridescent light appears in "+sourceChar.name+"'s paw, and "+sourceChar.getPronoun_nom()+" cracks it with a liquid flourish, shattering stillness.  "+targetChar.name+" recoils in horror as the whip passes through "+targetChar.getPronoun_gen()+" body and appears to wrap directly around "+targetChar.getPronoun_gen()+" heart.  A goofy grin crawls across "+sourceChar.name+"'s face as the light of will and life pulses back along the whip to "+sourceChar.getPronoun_obj()+" like blood through a glutted leech.  "+sourceChar.getPronoun_gen()+" eyelids flutter and "+sourceChar.getPronoun_gen()+" eyes roll in a mild ecstasy as pilfered personhood flows into "+sourceChar.getPronoun_obj()+"...  That'll be "+this.hpDmg+" damage to "+targetChar.getPronoun_gen()+" body and "+this.mpDmg+" to "+targetChar.getPronoun_gen()+" mind!";
+	}
+	
+	/**
+	Fire Claw combines Incarnation power with physical attack power to inflict heavy damage
+	*/
+	var fireClawIncarnation = new State.variables.Incarnation("fire_claw","Fire Claw");
+		marrahChar.incarnations["fire_claw"] = fireClawIncarnation;
+		fireClawIncarnation.targetType = fireClawIncarnation.TargetTypesEnum.singleEnemy;
+	fireClawIncarnation.cost = {"mp":5,"hp":5};
+		fireClawIncarnation.calcDmg = function(sourceChar,targetChar){
+				return sourceChar.stats["pwr"]+sourceChar.stats["atk"];
+		}
+		fireClawIncarnation.effect = function(sourceChar,targetChar){
+				this.dmg = this.calcDmg(sourceChar,targetChar);
+				targetChar.stats["hp"] -= this.dmg;
+			
+			// cost
+			this.processCost(sourceChar);
+		}
+		fireClawIncarnation.generateFlavorText = function(sourceChar,targetChar){
+			// todo: add randomness to abl text, modified by wielder and maybe target descriptor tags
+			// todo: add non-Marrah text
+			
+			// Marrah specific text
+			return "Marrah spins in a blur of scarlet and as the sheer frenzy of her motion whips up wind around her, a bonfire of pure passion erupts from nowhere and wraps her in a gorgeously deadly veil.  In the midst of a blinding nova through which only the sleek curves of her silhouette can be seen, she halts with a flourish of her bushy tail and extends a slender paw flirtatiously towards "+targetChar.name+", crooking a finger in all-too-warm invitation.  The wild nova gathers itself into tongues that lick their languid way over her body to coalesce around her arm.  Before "+targetChar.getPronoun_nom()+" can flee, she darts forward and slashes "+targetChar.getPronoun_obj()+" with flaming claws that dig out grisly-deep tracks of sizzling flesh!";
+		}
+		
+	var mootyChar = State.variables.characters["mooty"];
+	mootyChar.gender = "male";
+	mootyChar.stats["hp"] = 65;
+	mootyChar.stats["mp"] = 50;
+	mootyChar.stats["maxHP"] = 65;
+	mootyChar.stats["maxMP"] = 50;
+	mootyChar.attributes["strength"] = 18;
+	mootyChar.attributes["dexterity"] = 8;
+	mootyChar.attributes["constitution"] = 14;
+	mootyChar.attributes["intelligence"] = 12;
+	mootyChar.attributes["wisdom"] = 20;
+	mootyChar.attributes["charisma"] = 13;
+	mootyChar.entity = new Entity("Burrower");
+	
+	// todo: all these private Incarnations should be moved to the public Incarnations dict, unless there is some reason The Human should not be able to learn them
+		
+		/**
+		Regenerator adds regen to the target
+		*/
+	var regeneratorIncarnation = new State.variables.Incarnation("regenerator","Regenerator");
+		mootyChar.incarnations["regenerator"] = regeneratorIncarnation;
+		regeneratorIncarnation.targetType = regeneratorIncarnation.TargetTypesEnum.singleAlly;
+		regeneratorIncarnation.cost = {"mp":10};
+		regeneratorIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["regen"]);	
+			
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		regeneratorIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" pours "+sourceChar.getPronoun_gen()+" empathy and will to protect into a tangible force, and it forms a gossamer veil that sparkles as if cut from sapphire around "+targetChar.name;
+		}
+		/**
+		Spring Rain heals the entire party
+		*/
+	var springRainIncarnation = new State.variables.Incarnation("spring_rain","Spring Rain");
+		mootyChar.incarnations["spring_rain"] = springRainIncarnation;
+		springRainIncarnation.targetType = springRainIncarnation.TargetTypesEnum.allAllies;
+		springRainIncarnation.cost = {"mp":20};
+		springRainIncarnation.calcDmg = function(sourceChar,targetChar){
+			// healed based on the wielder's pwr and how much the wielder likes the target
+			return sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id];
+		}
+		springRainIncarnation.effect = function(sourceChar,targetChars){
+			for(let targetChar of targetChars){
+				targetChar.stats["hp"] += this.calcDmg(sourceChar,targetChar);
+			}
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		springRainIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return "A friendly little cloud whose only stormy spots seem to form a smiling expression gathers over the party as "+sourceChar.name+" extols "+sourceChar.getPronoun_gen()+" love for them.  Warm revitalizing rain washes over the party, closing wounds and raising spirits all around!";
+		}
+		
+		/**
+		Grief Howl returns a deceased ally to life  
+		*/
+	var griefHowlIncarnation = new State.variables.Incarnation("grief_howl","Grief Howl");
+		mootyChar.incarnations["grief_howl"] = griefHowlIncarnation;
+		griefHowlIncarnation.targetType = griefHowlIncarnation.TargetTypesEnum.singleAlly;
+		griefHowlIncarnation.cost = {"mp":30};
+		griefHowlIncarnation.calcDmg = function(sourceChar,targetChar){
+			// healed for maxHP/2 plus how much the wielder likes the target
+			return targetChar.stats["maxHP"]/2+targetChar.affinities[sourceChar.id];
+		}
+		griefHowlIncarnation.effect = function(sourceChar,targetChar){
+			// remove dead status and heal for calcDmg()
+			targetChar.living = true;
+			
+			// first return HP to 0 baseline
+			targetChar.stats["hp"] = 0;
+			
+			// then heal based on calcDmg()
+			targetChar.stats["hp"] += this.calcDmg(sourceChar,targetChar);
+			
+			// todo: check living status during combat and when heals/dmg/targeting occurs (specifically for the demo with only a single enemy relative to the player: allAllies abilities should not hit nonliving party members, singleAlly abilities should not be able to target them, runAI()::singleEnemy should not choose them as target, and runAI()::allEnemies should not hit nonliving targets).
+			
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		griefHowlIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" tosses back "+sourceChar.getPronoun_gen()+" head and howls at the sky, mourning the loss of "+targetChar.name+".  The weight of "+sourceChar.getPronoun_gen()+" grief is so overwhelming that reality staggers beneath it, and buckles just enough that "+targetChar.name+"'s spirit can escape the jaws of Death!";
+		}
+		
+	var drbeakmanChar = State.variables.characters["drbeakman"];
+	drbeakmanChar.gender = "male";
+	drbeakmanChar.stats["hp"] = 45;
+	drbeakmanChar.stats["mp"] = 65;
+	drbeakmanChar.stats["maxHP"] = 45;
+	drbeakmanChar.stats["maxMP"] = 65;
+	drbeakmanChar.attributes["strength"] = 8;
+	drbeakmanChar.attributes["dexterity"] = 10;
+	drbeakmanChar.attributes["constitution"] = 10;
+	drbeakmanChar.attributes["intelligence"] = 24;
+	drbeakmanChar.attributes["wisdom"] = 10;
+	drbeakmanChar.attributes["charisma"] = 10;
+	drbeakmanChar.entity = new Entity("Tactitian");
+	
+	/**
+		Vibroblade adds a chainsaw-like kinetic force to the target's weapon! (gives temper status effect)
+		*/
+	var vibrobladeIncarnation = new State.variables.Incarnation("vibroblade","Vibroblade");
+		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
+		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
+		vibrobladeIncarnation.cost = {"mp":10};
+		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["temper"]);	
+			
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		vibrobladeIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: need a 'get appendages' method that checks the descriptor array for tags that might hint at appendages.  Could even go into more detail with descriptors that are categorized to different details like the character's morphology, and have a subsection for appendages
+			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+(sourceChar.descriptors.includes("bird")?"wings":"paws")+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
+		} 
+		
+	/**
+		Laser Sight adds Focus status effect
+		*/
+	var laserSightIncarnation = new State.variables.Incarnation("laser_sight","Laser Sight");
+		drbeakmanChar.incarnations["laser_sight"] = laserSightIncarnation;
+		laserSightIncarnation.targetType = laserSightIncarnation.TargetTypesEnum.singleAlly;
+		laserSightIncarnation.cost = {"mp":10};
+		laserSightIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["focus"]);	
+			
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		laserSightIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: focus on ether in the surrounding env
+			return "Time slows down for "+targetChar.name+" as "+sourceChar.name+" shows "+targetChar.getPronoun_obj()+" how to pull back the veil of our reality and see what lies behind.  The secrets of the universe fell somewhat closer!";
+		}
+		
+	/**
+		Fey Touch adds Third Eye status effect
+		*/
+	var feyTouchIncarnation = new State.variables.Incarnation("fey_touch","Fey Touch");
+		drbeakmanChar.incarnations["fey_touch"] = feyTouchIncarnation;
+		feyTouchIncarnation.targetType = feyTouchIncarnation.TargetTypesEnum.singleAlly;
+		feyTouchIncarnation.cost = {"mp":15};
+		feyTouchIncarnation.effect = function(sourceChar,targetChar){
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["third_eye"]);	
+			
+			// mp cost
+			this.processCost(sourceChar);
+		}
+		feyTouchIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			// todo: fey granting understanding of multiverse
+			return "As "+sourceChar.name+"'s eyes gleam in the direction of "+targetChar.name+", a portal to some place primordial, intense, and above all WILD rends reality in front of "+targetChar.getPronoun_obj()+".  A storm of beings emerge, each shimmering and distorted as a sort of veil of impossibility makes it difficult to focus on them.  The wind of whimsy weaves its way around "+targetChar.name+" for a few moments, then abruptly vanishes along with the portal it (they?) came through.  "+targetChar.name+" looks mostly unaffected, though a feral hunger lurks behind "+targetChar.getPronoun_nom()+" eyes.";
+		}
+		
+	/* this appears to stick in the player retrieved in combat passages	
+	var playerChar = State.variables.characters["player"];
+	playerChar.incarnations["fey_touch"] = feyTouchIncarnation;
+	*/
+		
+	var shimmerinChar = State.variables.characters["shimmerin"];
+	shimmerinChar.gender = "female";
+	shimmerinChar.stats["hp"] = 30;
+	shimmerinChar.stats["mp"] = 80;
+	shimmerinChar.stats["maxHP"] = 30;
+	shimmerinChar.stats["maxMP"] = 80;
+	shimmerinChar.attributes["strength"] = 6;
+	shimmerinChar.attributes["dexterity"] = 20;
+	shimmerinChar.attributes["constitution"] = 6;
+	shimmerinChar.attributes["intelligence"] = 18;
+	shimmerinChar.attributes["wisdom"] = 10;
+	shimmerinChar.attributes["charisma"] = 24;
+	shimmerinChar.entity = new Entity("Whimsy of Wind");
+	
+	/**
+		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation (using the character who cast the Wall Incarnation as the sourceChar). 
+		*/
+	var wallOfWonderIncarnation = new State.variables.Incarnation("wall_of_wonder","Wall of Wonder");
+		shimmerinChar.incarnations["wall_of_wonder"] = wallOfWonderIncarnation;
+		wallOfWonderIncarnation.cost = {"mp":35}
+		wallOfWonderIncarnation.targetType = wallOfWonderIncarnation.TargetTypesEnum.allAllies;
+		wallOfWonderIncarnation.effect = function(sourceChar,targetChars){
+			// raise the wall of wonder flag for each allied party member
+			for(let target of targetChars){
+				target.combatFlags |= target.CombatFlags.FLAG_WONDER_WALLED;	
+			}
+			
+			this.processCost(sourceChar);
+		}
+		wallOfWonderIncarnation.generateFlavorText = function(sourceChar, targetChars){
+			return sourceChar.name+" grins broadly and begins dancing about in the air in impossibly complex patterns.  A faint trail of light lingers where "+sourceChar.getPronoun_nom()+" passes, giving the impression that "+sourceChar.name+" is painting a glorious tableau with extreme haste.  Soon, the tableau becomes a tableau vivant: lights pull together into vague and curious forms, and then beginning to move of their own volition.  By the time "+sourceChar.getPronoun_nom()+"'s finished, there is a small world of magnificent and terrible things zooming about in front of the party.  Their attention, one and all, is locked upon "+sourceChar.name+"'s foes!";
+		} 
+		
+	/**
+	Phantasmagoria: whimsical breath full of wonder and horror inextricably merged washes over the foebeasts, damaging and confusing them! (Confused status effect causes 50% chance that whatever abl the confused character chooses to use will be targeted at themselves instead of the original target)	
+	*/
+		var phantasmagoriaIncarnation = new State.variables.Incarnation("phantasmagoria","Phantasmagoria");
+		shimmerinChar.incarnations["phantasmagoria"] = phantasmagoriaIncarnation;
+		phantasmagoriaIncarnation.cost = {"mp":20}
+		phantasmagoriaIncarnation.targetType = phantasmagoriaIncarnation.TargetTypesEnum.singleEnemy;
+		phantasmagoriaIncarnation.calcDmg = function(sourceChar,targetChar){
+			return sourceChar.stats["pwr"]*2 - targetChar.stats["res"];
+		}
+		phantasmagoriaIncarnation.effect = function(sourceChar,targetChar){
+			// apply dmg + Confuse to target
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			targetChar.stats["hp"] -= this.dmg;
+			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["confuse"]);
+			
+			// handle cost to user
+			this.processCost(sourceChar);
+		}
+		phantasmagoriaIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" locks eyes with "+targetChar.name+" and draws in a deep breath.  Gossamer, multi-hued tendrils sway and dance their way through the air from "+targetChar.getPronoun_gen()+" temple to "+sourceChar.getPronoun_gen()+" lips, and a wild, fey gleam steals over her eyes.  "+sourceChar.getPronoun_nom()+" puffs out "+sourceChar.getPronoun_gen()+" cheeks and blows out a capering, dancing, laughing, killing, screaming teeming cloud of phantasmal forms, its shape and color constantly in flux.  These encompass, eclipse, and overwhelm "+targetChar.name+", who hops about madly while variably slashing and grasping longingly at the ephemeral entities.  "+targetChar.name+"'s body seems to wither and decay wherever the beings touch "+targetChar.getPronoun_obj()+", resulting in a lovely "+this.dmg+" damage!";
+		}
+		
+	/**
+	Caress of the Zephyr: teases, titillates, and slashes a target.  Deals dmg equal to pwr*2 - def/2 and charms the target (charm makes it so that the target cannot harm the charming character)
+	*/
+		var caressOfZephyrIncarnation = new State.variables.Incarnation("caress_of_zephyr","Caress of the Zephyr");
+		shimmerinChar.incarnations["caress_of_zephyr"] = caressOfZephyrIncarnation;
+		caressOfZephyrIncarnation.cost = {"mp":25}
+		caressOfZephyrIncarnation.targetType = caressOfZephyrIncarnation.TargetTypesEnum.singleEnemy;
+		caressOfZephyrIncarnation.calcDmg = function(sourceChar,targetChar){
+			return sourceChar.stats["pwr"]*2 - targetChar.stats["def"]/2;	
+		}
+		caressOfZephyrIncarnation.effect = function(sourceChar,targetChar){
+			// todo: dmg + Charm
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			targetChar.stats["hp"] -= this.dmg;
+			State.variables.addUniqueStatusEffectWithSource(sourceChar,targetChar,State.variables.statusEffectsDict["charm"]);
+			
+			// handle cost to user
+			this.processCost(sourceChar);
+		}
+		caressOfZephyrIncarnation.generateFlavorText = function(sourceChar, targetChar){
+			return sourceChar.name+" bends low toward "+targetChar.name+", as if "+sourceChar.getPronoun_nom()+" is genuflecting.  As "+sourceChar.getPronoun_nom()+" does, "+sourceChar.name+" gracefully moves "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors.body.appendages.hands.name+" to "+sourceChar.getPronoun_gen()+" lips and blows a teasingly gentle kiss.  The process of lowering "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors.body.appendages.arms.name+" from the kiss is a fascinating display: it seems to occur in sensual slow motion, and follows the contours of "+targetChar.name+"'s body so perfectly that all in attendance can practically feel "+sourceChar.getPronoun_gen()+" caress.  Needless to say, "+targetChar.name+" is entranced!";
+		}
+	
+	/* // todo: consider adding Nuvi as a combat character post-demo
+	var nuviChar = State.variables.characters["nuvi"];
+	
+	*/
+	
+	
+	
+}// end defining init()
+
+/// begin init ///
+init();
+/// end init ///
+
+var test = {a:1};
+</script>
+</head>
+<body>
+<script>
+var playerParty = [new State.variables.Character("test","Test")];
+var enemyParty = [State.variables.characters['puck']];
+var combat = new State.variables.Combat(playerParty,enemyParty,"");
+
+</script>
+<button onclick="State.variables.characters['puck'].runAI(combat,'enemy')">Test</button>
+</body>
+</html>
