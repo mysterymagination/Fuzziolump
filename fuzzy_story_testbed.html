@@ -170,8 +170,8 @@ State.variables.rollPercentage = function(){
 }
 
 // calculate the ability modifier per Pathfinder rules
-State.variables.calcMod = function(characterObject,attributeString){
-	return Math.floor((characterObject.attributes[attributeString]-10)/2);
+State.variables.calcMod = function(ablScore){
+	return Math.floor((ablScore-10)/2);
 }
 
 // perform an ability score check
@@ -224,11 +224,12 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	this.id = id;
 	this.name = name;
 	/** 
-	boon or bane would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
+	boon or bane (or y'know the industry standard buff and debuff) would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
 	*/
 	this.buffity = "buffins";
 	this.duration = duration;
 	this.ticks = duration;
+	this.descriptors = [];
 	this.tickDown = function(){
 		this.ticks--;	
 	}
@@ -296,11 +297,7 @@ State.variables.Ability = function Ability(id,name){
 	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
 	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
 	this.calcDC = function(user,modifyingAttr){
-		if(user.level && modifyingAttr){
-			return user.level/2 + State.variables.calcMod(user,modifyingAttr) + 10;
-		}else{
-			return 10;	
-		}
+		return 10;	
 	}// end calcDC()
 	// lambda stub - dmg formula will be defined when Ability instance is defined
 	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
@@ -1069,6 +1066,8 @@ function init(){
 	*/
 	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
 	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
+	defenselessStatusEffect.buffity = "bluffins";
+	defenselessStatusEffect.descriptors.push("debuff","defense");
 	defenselessStatusEffect.effect = function(targetChar){
 		targetChar.stats["def"] *= 0.5;
 		targetChar.stats["res"] *= 0.5;
@@ -1083,6 +1082,8 @@ function init(){
 	Temper provides a simple ATK*2 for 3 turns
 	*/
 	var temperStatusEffect = State.variables.statusEffectsDict["temper"];
+	temperStatusEffect.buffity = "buffins";
+	temperStatusEffect.descriptors.push("buff","offense");
 	temperStatusEffect.effect = function(targetChar){
 		targetChar.stats["atk"] *= 2;
 	}
@@ -1094,6 +1095,8 @@ function init(){
 	Focus provides a simple PWR*2 for 3 turns
 	*/
 	var focusStatusEffect = State.variables.statusEffectsDict["focus"];
+	focusStatusEffect.buffity = "buffins";
+	focusStatusEffect.descriptors.push("buff","offense");
 	focusStatusEffect.effect = function(targetChar){
 		targetChar.stats["pwr"] *= 2;
 	}
@@ -1105,6 +1108,8 @@ function init(){
 	Third Eye provides a PWR*4 at cost of ATK/2 and DEF/2 for 3 turns
 	*/
 	var thirdEyeStatusEffect = State.variables.statusEffectsDict["third_eye"];
+	thirdEyeStatusEffect.buffity = "buffins";
+	thirdEyeStatusEffect.descriptors.push("buff","offense");
 	thirdEyeStatusEffect.effect = function(targetChar){
 		targetChar.stats["pwr"] *= 4;
 		targetChar.stats["atk"] *= 0.5;
@@ -1120,6 +1125,8 @@ function init(){
 	Regen heals a character by their RES each turn
 	*/
 	var regenStatusEffect = State.variables.statusEffectsDict["regen"];
+	regenStatusEffect.buffity = "buffins";
+	regenStatusEffect.descriptors.push("buff","health");
 	regenStatusEffect.effect = function(targetChar){
 		targetChar.stats["hp"] += targetChar.stats["res"];
 	}
@@ -1129,6 +1136,8 @@ function init(){
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
 	*/
 	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
+	doubtStatusEffect.buffity = "bluffins";
+	doubtStatusEffect.descriptors.push("debuff","offense");
 	doubtStatusEffect.effect = function(targetChar){
 		/*
 		targetChar.attributes["strength"] *= 0.5;
@@ -1150,6 +1159,8 @@ function init(){
 	Bloodlust quadruples STR in exchange for halving all mental attributes
 	*/
 	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
+	bloodlustStatusEffect.buffity = "buffins";
+	bloodlustStatusEffect.descriptors.push("buff","offense");
 	bloodlustStatusEffect.effect = function(targetChar){
 		/*
 		targetChar.attributes["strength"] *= 4;
@@ -1176,6 +1187,8 @@ function init(){
 	}
 	
 	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
+	terrorStatusEffect.buffity = "bluffins";
+	terrorStatusEffect.descriptors.push("debuff","turn");
 	terrorStatusEffect.effect = function(targetChar){
 		// I can think of two ways for the terror rando turn skip thing to work:
 		// 1. We remove the afflicted character from the relevant party array of the combat instance when terror strikes and then add them back in a round post proc
@@ -1193,6 +1206,8 @@ function init(){
 	Poison deals dmg each turn and halves atk/def stats
 	*/
 	var poisonStatusEffect = State.variables.statusEffectsDict["poison"];
+	poisonStatusEffect.buffity = "bluffins";
+	poisonStatusEffect.descriptors.push("debuff","health");
 	poisonStatusEffect.effect = function(targetChar){
 		targetChar.stats["atk"] *= 0.5;
 		targetChar.stats["def"] *= 0.5;
@@ -1203,6 +1218,8 @@ function init(){
 	}
 	
 	var shadowStatusEffect = State.variables.statusEffectsDict["shadow"];
+	shadowStatusEffect.buffity = "buffins";
+	shadowStatusEffect.descriptors.push("buff","defense");
 	shadowStatusEffect.effect = function(targetChar){
 		this.cachedDef = targetChar.stats["def"];
 		targetChar.stats["def"] = Infinity;
@@ -1212,12 +1229,16 @@ function init(){
 	}
 	
 	var confuseStatusEffect = State.variables.statusEffectsDict["confuse"];
+	confuseStatusEffect.buffity = "bluffins";
+	confuseStatusEffect.descriptors.push("debuff","turn","ai","abilities");
 	confuseStatusEffect.effect = function(targetChar){
 		return State.variables.rollPercentage() > 50;
 	}
 	confuseStatusEffect.reverseEffect = function(targetChar){}
 	
 	var charmStatusEffect = State.variables.statusEffectsDict["charm"];
+	charmStatusEffect.buffity = "bluffins";
+	charmStatusEffect.descriptors.push("debuff","turn","ai","targeting");
 	charmStatusEffect.effect = function(sourceChar,targetChar){
 		// set the id of the forbidden target for this effect instance
 		this.sourceCharacterId = sourceChar.id;
@@ -1541,7 +1562,7 @@ function init(){
 				// outliers and statistical points of interest
 				var playerLeastDefense = State.variables.characters["player"];
 				var playerLeastHP = State.variables.characters["player"];
-				var playerWithTargetBuff = "undefined";
+				var playerWithTargetBuff = undefined;
 				var anyPlayerOffenseBuffed = false;
 				var maxHealth = true; // assume true and let contradiction flip it
 				
@@ -1563,13 +1584,13 @@ function init(){
 						for(let status of statuses){
 							if(status.buffity === "buffins"){
 								// buff discovered on this player!  Get 'im!
-								// todo: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
+								// todox: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
 								/*
 								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
 								return;
 								*/
 								
-								if(status.descriptors.includes("offensive")){
+								if(status.descriptors.includes("offense")){
 									 anyPlayerOffenseBuffed = true;
 									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
 									playerWithTargetBuff = player;	
@@ -1588,7 +1609,7 @@ function init(){
 				/// end gathering data + maybe buff balancing ///
 				
 				/// begin story scenario modifier processing ///
-				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
+				if(State.variables.godling_strat_chosen === State.variables.godling_strat_viral_violence){
 					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
 						// if the player char with least def is bloodied...
 						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
@@ -1612,7 +1633,7 @@ function init(){
 							chosenTarget = puckChar;
 						}
 					}
-				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
+				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_surgical_system){
 					// hit the latest player with a buff with debuff to balance the ol' scales
 					if(playerWithTargetBuff){
 							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
@@ -1635,7 +1656,7 @@ function init(){
 							chosenTarget = combat.playerParty;
 						}
 					}
-				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
+				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_diplomancy){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							
@@ -1655,12 +1676,20 @@ function init(){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
-				
+				/* wtf
 				// establish a random percentage which will be used to select a player party member
 				var randoAtkTargetRange = State.variables.rollPercentage();
 				// the mapping between percentage and player party indices, e.g. 4 player chars -> 100/4 = 25 -> every 25% we figure the index needs to increment
 				var playerPartyRangeChunk = 100/combat.playerParty.length;
-				var playerRandoTarget = combat.playerParty[randoAtkTargetRange/playerPartyRangeChunk];
+				// todo: this does not result in a reasonable index -- if party length is 1,
+				// we end up with a percentage like 66/100, which gives us an index of 0.66
+				// and playerRandoTarget winds up undefined.
+				// The thing you'd need to do is round playerAtkTargetRange to the nearest multiple of 
+				// playerPartyRangeChunk.  Then divide by playerPartyRangeChunk and subtract 1 for zero indexing.
+				// But why?  All we want here is a random integer from 0 to player party length-1
+				*/
+				// choose a player party index randomly and pull the poor person from it for targeting
+				var playerRandoTarget = combat.playerParty[Math.floor(Math.random()*combat.playerParty.length)];
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
@@ -1781,14 +1810,16 @@ function init(){
 				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
 				if(targets.length > 0){
 					// there are still targets, so go forward with them as per usual
-					if(targets.length == 1){
+					if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+
+						// multi-target attack, expects an array of chars as target	
+					chosenAbility.effect(puckChar,targets);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+						
+					}else{
 						// single target attack, expects only single character as target
 						chosenAbility.effect(puckChar,targets[0]);
 					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets[0]);
-					}else{
-					// multi-target attack, expects an array of chars as target	
-					chosenAbility.effect(puckChar,targets);
-					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
 					}
 				}else{
 					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
@@ -2184,7 +2215,7 @@ var test = {a:1};
 </head>
 <body>
 <script>
-var playerParty = [new State.variables.Character("test","Test")];
+var playerParty = [State.variables.characters['player']];
 var enemyParty = [State.variables.characters['puck']];
 var combat = new State.variables.Combat(playerParty,enemyParty,"");
 

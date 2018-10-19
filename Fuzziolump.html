@@ -166,6 +166,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -332,8 +333,8 @@ State.variables.rollPercentage = function(){
 }
 
 // calculate the ability modifier per Pathfinder rules
-State.variables.calcMod = function(characterObject,attributeString){
-	return Math.floor((characterObject.attributes[attributeString]-10)/2);
+State.variables.calcMod = function(ablScore){
+	return Math.floor((ablScore-10)/2);
 }
 
 // perform an ability score check
@@ -386,11 +387,12 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 	this.id = id;
 	this.name = name;
 	/** 
-	boon or bane would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
+	boon or bane (or y'know the industry standard buff and debuff) would have made more sense, but I was tired and now I like buffins/bluffins.  Anyway, this property identifies a StatusEffect as positive or negative for the afflicted Character where buffins is good and bluffins is bad.  Fight me codereview SE.
 	*/
 	this.buffity = "buffins";
 	this.duration = duration;
 	this.ticks = duration;
+	this.descriptors = [];
 	this.tickDown = function(){
 		this.ticks--;	
 	}
@@ -458,11 +460,7 @@ State.variables.Ability = function Ability(id,name){
 	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
 	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
 	this.calcDC = function(user,modifyingAttr){
-		if(user.level && modifyingAttr){
-			return user.level/2 + State.variables.calcMod(user,modifyingAttr) + 10;
-		}else{
-			return 10;	
-		}
+		return 10;	
 	}// end calcDC()
 	// lambda stub - dmg formula will be defined when Ability instance is defined
 	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
@@ -1231,6 +1229,8 @@ function init(){
 	*/
 	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
 	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
+	defenselessStatusEffect.buffity = "bluffins";
+	defenselessStatusEffect.descriptors.push("debuff","defense");
 	defenselessStatusEffect.effect = function(targetChar){
 		targetChar.stats["def"] *= 0.5;
 		targetChar.stats["res"] *= 0.5;
@@ -1245,6 +1245,8 @@ function init(){
 	Temper provides a simple ATK*2 for 3 turns
 	*/
 	var temperStatusEffect = State.variables.statusEffectsDict["temper"];
+	temperStatusEffect.buffity = "buffins";
+	temperStatusEffect.descriptors.push("buff","offense");
 	temperStatusEffect.effect = function(targetChar){
 		targetChar.stats["atk"] *= 2;
 	}
@@ -1256,6 +1258,8 @@ function init(){
 	Focus provides a simple PWR*2 for 3 turns
 	*/
 	var focusStatusEffect = State.variables.statusEffectsDict["focus"];
+	focusStatusEffect.buffity = "buffins";
+	focusStatusEffect.descriptors.push("buff","offense");
 	focusStatusEffect.effect = function(targetChar){
 		targetChar.stats["pwr"] *= 2;
 	}
@@ -1267,6 +1271,8 @@ function init(){
 	Third Eye provides a PWR*4 at cost of ATK/2 and DEF/2 for 3 turns
 	*/
 	var thirdEyeStatusEffect = State.variables.statusEffectsDict["third_eye"];
+	thirdEyeStatusEffect.buffity = "buffins";
+	thirdEyeStatusEffect.descriptors.push("buff","offense");
 	thirdEyeStatusEffect.effect = function(targetChar){
 		targetChar.stats["pwr"] *= 4;
 		targetChar.stats["atk"] *= 0.5;
@@ -1282,6 +1288,8 @@ function init(){
 	Regen heals a character by their RES each turn
 	*/
 	var regenStatusEffect = State.variables.statusEffectsDict["regen"];
+	regenStatusEffect.buffity = "buffins";
+	regenStatusEffect.descriptors.push("buff","health");
 	regenStatusEffect.effect = function(targetChar){
 		targetChar.stats["hp"] += targetChar.stats["res"];
 	}
@@ -1291,6 +1299,8 @@ function init(){
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
 	*/
 	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
+	doubtStatusEffect.buffity = "bluffins";
+	doubtStatusEffect.descriptors.push("debuff","offense");
 	doubtStatusEffect.effect = function(targetChar){
 		/*
 		targetChar.attributes["strength"] *= 0.5;
@@ -1312,6 +1322,8 @@ function init(){
 	Bloodlust quadruples STR in exchange for halving all mental attributes
 	*/
 	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
+	bloodlustStatusEffect.buffity = "buffins";
+	bloodlustStatusEffect.descriptors.push("buff","offense");
 	bloodlustStatusEffect.effect = function(targetChar){
 		/*
 		targetChar.attributes["strength"] *= 4;
@@ -1338,6 +1350,8 @@ function init(){
 	}
 	
 	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
+	terrorStatusEffect.buffity = "bluffins";
+	terrorStatusEffect.descriptors.push("debuff","turn");
 	terrorStatusEffect.effect = function(targetChar){
 		// I can think of two ways for the terror rando turn skip thing to work:
 		// 1. We remove the afflicted character from the relevant party array of the combat instance when terror strikes and then add them back in a round post proc
@@ -1355,6 +1369,8 @@ function init(){
 	Poison deals dmg each turn and halves atk/def stats
 	*/
 	var poisonStatusEffect = State.variables.statusEffectsDict["poison"];
+	poisonStatusEffect.buffity = "bluffins";
+	poisonStatusEffect.descriptors.push("debuff","health");
 	poisonStatusEffect.effect = function(targetChar){
 		targetChar.stats["atk"] *= 0.5;
 		targetChar.stats["def"] *= 0.5;
@@ -1365,6 +1381,8 @@ function init(){
 	}
 	
 	var shadowStatusEffect = State.variables.statusEffectsDict["shadow"];
+	shadowStatusEffect.buffity = "buffins";
+	shadowStatusEffect.descriptors.push("buff","defense");
 	shadowStatusEffect.effect = function(targetChar){
 		this.cachedDef = targetChar.stats["def"];
 		targetChar.stats["def"] = Infinity;
@@ -1374,12 +1392,16 @@ function init(){
 	}
 	
 	var confuseStatusEffect = State.variables.statusEffectsDict["confuse"];
+	confuseStatusEffect.buffity = "bluffins";
+	confuseStatusEffect.descriptors.push("debuff","turn","ai","abilities");
 	confuseStatusEffect.effect = function(targetChar){
 		return State.variables.rollPercentage() > 50;
 	}
 	confuseStatusEffect.reverseEffect = function(targetChar){}
 	
 	var charmStatusEffect = State.variables.statusEffectsDict["charm"];
+	charmStatusEffect.buffity = "bluffins";
+	charmStatusEffect.descriptors.push("debuff","turn","ai","targeting");
 	charmStatusEffect.effect = function(sourceChar,targetChar){
 		// set the id of the forbidden target for this effect instance
 		this.sourceCharacterId = sourceChar.id;
@@ -1686,7 +1708,6 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
-				alert("Puck realizes he is an enemy");
 				var chosenAbility = "";
 				var chosenTarget = "";
 				/* todo: Puck enemy AI behavior	
@@ -1704,13 +1725,13 @@ function init(){
 				// outliers and statistical points of interest
 				var playerLeastDefense = State.variables.characters["player"];
 				var playerLeastHP = State.variables.characters["player"];
-				var playerWithTargetBuff = "undefined";
+				var playerWithTargetBuff = undefined;
 				var anyPlayerOffenseBuffed = false;
 				var maxHealth = true; // assume true and let contradiction flip it
 				
 				/// begin gathering data and potentially exiting to Rapier Wit on any buffed player character ///
 				for(let player of playerParty){
-					alert("gathering data on player "+player.name);
+					
 					// overwrite player with least defense if applicable
 					if(player.stats["def"] < playerLeastDefense.stats["def"]){
 						playerLeastDefense = player;	
@@ -1726,13 +1747,13 @@ function init(){
 						for(let status of statuses){
 							if(status.buffity === "buffins"){
 								// buff discovered on this player!  Get 'im!
-								// todo: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
+								// todox: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
 								/*
 								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
 								return;
 								*/
 								
-								if(status.descriptors.includes("offensive")){
+								if(status.descriptors.includes("offense")){
 									 anyPlayerOffenseBuffed = true;
 									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
 									playerWithTargetBuff = player;	
@@ -1750,11 +1771,8 @@ function init(){
 				}// end for each player
 				/// end gathering data + maybe buff balancing ///
 				
-				alert("end gathering data for Puck");
-				
 				/// begin story scenario modifier processing ///
-				if(State.variables.godling_strat === State.variables.godling_strat_viral_violence){
-					alert("processing viral violence godling strat");
+				if(State.variables.godling_strat_chosen === State.variables.godling_strat_viral_violence){
 					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
 						// if the player char with least def is bloodied...
 						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
@@ -1778,8 +1796,7 @@ function init(){
 							chosenTarget = puckChar;
 						}
 					}
-				}else if(State.variables.godling_strat === State.variables.godling_strat_surgical_systems){
-					alert("processing surgical systems godling strat");
+				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_surgical_system){
 					// hit the latest player with a buff with debuff to balance the ol' scales
 					if(playerWithTargetBuff){
 							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
@@ -1802,8 +1819,7 @@ function init(){
 							chosenTarget = combat.playerParty;
 						}
 					}
-				}else if(State.variables.godling_strat === State.variables.godling_strat_diplomancy){
-					alert("processing diplomancy godling strat");
+				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_diplomancy){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							
@@ -1811,7 +1827,6 @@ function init(){
 						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
 						return;
 						*/
-						alert("Puck choosing to rain radiance upon full health party");
 						chosenAbility = puckChar.incarnations["rain_of_radiance"];
 						chosenTarget = combat.playerParty;
 					}
@@ -1819,19 +1834,25 @@ function init(){
 				
 				/// end story scenario mod proc ///
 				
-				alert("passed Puck proc of godling strats");
-				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
 			if(chosenAbility === "" && chosenTarget === ""){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
-				
+				/* wtf
 				// establish a random percentage which will be used to select a player party member
 				var randoAtkTargetRange = State.variables.rollPercentage();
 				// the mapping between percentage and player party indices, e.g. 4 player chars -> 100/4 = 25 -> every 25% we figure the index needs to increment
 				var playerPartyRangeChunk = 100/combat.playerParty.length;
-				var playerRandoTarget = combat.playerParty[randoAtkTargetRange/playerPartyRangeChunk];
+				// todo: this does not result in a reasonable index -- if party length is 1,
+				// we end up with a percentage like 66/100, which gives us an index of 0.66
+				// and playerRandoTarget winds up undefined.
+				// The thing you'd need to do is round playerAtkTargetRange to the nearest multiple of 
+				// playerPartyRangeChunk.  Then divide by playerPartyRangeChunk and subtract 1 for zero indexing.
+				// But why?  All we want here is a random integer from 0 to player party length-1
+				*/
+				// choose a player party index randomly and pull the poor person from it for targeting
+				var playerRandoTarget = combat.playerParty[Math.floor(Math.random()*combat.playerParty.length)];
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
@@ -1952,14 +1973,16 @@ function init(){
 				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
 				if(targets.length > 0){
 					// there are still targets, so go forward with them as per usual
-					if(targets.length == 1){
+					if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+
+						// multi-target attack, expects an array of chars as target	
+					chosenAbility.effect(puckChar,targets);
+					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+						
+					}else{
 						// single target attack, expects only single character as target
 						chosenAbility.effect(puckChar,targets[0]);
 					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets[0]);
-					}else{
-					// multi-target attack, expects an array of chars as target	
-					chosenAbility.effect(puckChar,targets);
-					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
 					}
 				}else{
 					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
@@ -2348,9 +2371,7 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///
-
-</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
@@ -3378,7 +3399,9 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 &lt;&lt;/if&gt;&gt;\
 You&#39;ll want to visit our foremost expert on Incarnation theory, magistra Molly, for a crash course before trying to poke around at anybody&#39;s imaginative feedback loops.  She moves around a lot, but her tower is a day&#39;s travel West of the Warren.  You can&#39;t miss it -- literally.  Molly&#39;s own Entity is mind control, and she&#39;s a little histrionic so she tends to draw any passersby in whether they were on their way to see her or not.&quot; 
 
-Together with a decidedly distant Nuvi (he keeps eyeing you suspiciously and then ostentatiously fussing with his bowtie when you catch him at it), you trek West through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight the tip of a sparkly electric-purple tower peeking over the horizon, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
+Before you can set out, a whirl of rainbow feathers clouds your vision amidst a flurry of frenzied flapping.  &quot;Wait, please!&quot; Dr. Beakman cries out, landing heavily directly in your path.  &quot;Your idea is intriguing, and I can tell you have a scientific mind -- I would be honored to assist you in this courageously curious endeavor!&quot;
+/*&lt;&lt;run $party.push($characters[&quot;drbeakman&quot;])&gt;&gt;*/
+Together with a decidedly distant Nuvi (he keeps eyeing you suspiciously and then ostentatiously fussing with his bowtie when you catch him at it) and a pensive Dr. Beakman (who hops seemingly for the sheer joy of it every third step), you trek West through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight the tip of a sparkly electric-purple tower peeking over the horizon, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
 
 &quot;You would dare to threaten the life of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, its features contorted with rage.  &quot;As if a limited creature such as you could harm her.  Even the original experiment that allowed her to assume her true form was too complex for a human to grasp, and she has done wonders to her glorious font of imagination in the time since her awakening.&quot;
 
@@ -3392,12 +3415,14 @@ The body of an emaciated little man materializes in the air with a faintly wet p
 &lt;&lt;/if&gt;&gt;\
 You&#39;ll want to head towards one of Holly&#39;s outermost nodes to get to know her a little without venturing too far into her influence,&quot; the little wombat advises stoicly.  &quot;That&#39;ll give you valuable insight into how she thinks, and hopefully help you formulate a way to help her see reason. She starts about a day&#39;s journey due North of here.  You&#39;ll know you&#39;ve reached her when the trees start to sing.&quot;
 
-Together with a now perpetually delighted Nuvi (his earlier neuroses apparently shed at the warren), you trek North through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight a copse of errant willows that seem to be swaying in time with a faint whisper of rhythm on the wind, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
+Before you can set off, a huge shadow eclipses the path ahead and you turn to find the smiling velvety face of Mooty Wort towering over you.  &quot;I really respect how brave you were to speak your heart in front of The Council, especially with Marrah and all her fury before you.  People like you are rare, human, and I want to personally ensure your safety as you walk our beloved but occasionally unlovely lands.&quot;
+/*&lt;&lt;run $party.push($characters[&quot;mooty&quot;])&gt;&gt;*/
+Together with a now perpetually delighted Nuvi (his earlier neuroses apparently shed at the warren) and a humming Mooty Wort, you trek North through the Bush, petting giraffes most of the way.  Is there any other way to travel?  Just as you sight a copse of errant willows that seem to be swaying in time with a faint whisper of rhythm on the wind, the entire world goes dark.  You ask Nuvi what&#39;s happening, and he whimpers in reply.  Before he can elaborate, a pair of poisonous bright green eyes appear out of the abyss in front of you.
 
 &quot;You would dare to threaten the power of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, and then the body of an emaciated little man materializes in the air to join them.  He bobs up and down in a reclined position, carefully carefree, and studies you appraisingly.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.
 
 &lt;&lt;run alert(&quot;please remove debug set of diplomancy&quot;)&gt;&gt;
-&lt;&lt;set $godling_strat to $godling_strat_diplomancy&gt;&gt;
+&lt;&lt;set $godling_strat_chosen to $godling_strat_diplomancy&gt;&gt;
 
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1081,379" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
