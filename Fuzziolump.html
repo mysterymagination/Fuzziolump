@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="55" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="68" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -46,6 +46,7 @@
 	box-shadow: #000 0.5em 0.5em 0;
     transition-property: none;
 }
+
 
 
 
@@ -1498,13 +1499,13 @@ function init(){
 	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
 	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
 	perfectStillnessIncarnation.calcDmg = function(sourceChar,targetChar){
-		return sourceChar.stats["pwr"] - targetChar.stats["res"]/2;		
+		return 5*sourceChar.stats["pwr"] - targetChar.stats["res"]/4;		
 	}
 	perfectStillnessIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		this.selfDmg = this.calcDmg(sourceChar,sourceChar);
 		targetChar.stats["hp"] -= this.dmg;
-		sourceChar.stats["hp"] -= this.selfDmg; // todo: move to cost so that it is transparent to user via UI display of abl costs; make sure calcDmg() can peek at the dmg from that point
+		sourceChar.stats["hp"] -= this.selfDmg/5; // todo: move to cost so that it is transparent to user via UI display of abl costs; make sure calcDmg() can peek at the dmg from that point
 		
 		// MP cost
 		this.processCost(sourceChar);
@@ -1644,6 +1645,8 @@ function init(){
 					}else{
 						flavorText = sourceChar.name+" takes a long hard look below "+targetChar.name+"'s belt and then scoffs, clearly underwhelmed.  Venemous doubt Incarnate seeps into the cracks of his self-image and harden there, shattering it!";	
 					}
+				}else{
+					flavorText = sourceChar.name+" points and laughs in a literally cutting fashion!";
 				}
 				return flavorText + "  The terrible insult leaves tangible scars upon "+targetChar.name+"'s poor soul to the tune of "+this.dmg+" damage!";
 		}// end if a targetChar is given
@@ -1731,8 +1734,16 @@ function init(){
 					 x4. [Surgical Systems] If any player character has an offensive buff (e.g. from Dr. Beakman), focus fire that character with Rapier Wit if they don't already have Doubt.  If all offensively buffed characters already have Doubt, nuke w/ Rain of Radiance.
 				*/
 				// todo: Since I don't particularly want to toss more abilities onto him to handle the various godling strat paths, it might be best to just modify the AI to be differently aggressive based on the player's chosen path.  That makes more sense with the Entity thing anyhow.
-				var playerParty = combat.playerParty;
-				var enemyParty = combat.enemyParty;
+				// todo: where is the disparity between characters character objects and those in other arrays like combat.playerParty coming from?
+				var playerParty = [];
+				for(let playerCharacter of combat.playerParty){
+					playerParty.push(State.variables.characters[playerCharacter.id]);
+				}
+				// playerParty[0] = State.variables.characters["player"]; // draw out the PLayer from Characters dictionary to see if that makes a difference in UI showing damage from Puck abls UPDATE: yup, that did it for some reason.
+				var enemyParty = [];
+				for(let enemyCharacter of combat.enemyParty){
+					enemyParty.push(State.variables.characters[enemyCharacter.id]);
+				}
 				
 				// outliers and statistical points of interest
 				var playerLeastDefense = State.variables.characters["player"];
@@ -3620,7 +3631,7 @@ $combatArena.combatLogContent
 &lt;&lt;elseif $combatArena.turnGroup is &quot;enemy&quot;&gt;&gt;
   &lt;&lt;link [[&quot;Rally!&quot;-&gt;Combat]]&gt;&gt;
   	&lt;&lt;run console.log(&quot;enemy HP is &quot;+$combatArena.enemyParty[0].stats.hp);&gt;&gt;
-	&lt;&lt;run alert(&quot;The Human&#39;s HP is &quot;+$characters[&quot;player&quot;].stats.hp)&gt;&gt;
+	&lt;&lt;run console.log(&quot;The Human&#39;s HP is &quot;+$characters[&quot;player&quot;].stats.hp)&gt;&gt;
   	&lt;&lt;if $combatArena.processRoundBottom()&gt;&gt;
   		&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 		&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
