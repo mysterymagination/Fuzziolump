@@ -1,4 +1,4 @@
-<tw-storydata name="Fuzziolump" startnode="68" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
+<tw-storydata name="Fuzziolump" startnode="51" creator="Twine" creator-version="2.2.1" ifid="810AC854-AE1B-4BAB-8175-BAF552CB931B" zoom="1" format="SugarCube" format-version="2.21.0" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">/*
 .passage {
 	transition-property: none;
 }
@@ -169,6 +169,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -207,6 +208,16 @@ State.variables.addUniqueToArray = function(array,element,filterFn){
 		array.push(element);	
 	}
 }
+
+/**
+Get a random Character object from an array of Character objects that can't have the given Character ID
+*/
+State.variables.randoCharacterFromArrayExceptId = function(characterArray,exceptCharacterId){
+		var eligibleCharacters = characterArray.filter(characterUnderTest => characterUnderTest.id != exceptCharacterId);
+		var unluckyIndex = Math.floor(Math.random() * eligibleCharacters.length);
+		return eligibleCharacters[unluckyIndex];
+		
+	}
 
 /**
 Applies the combat status effect to the given character, adding it to their list of statuses and triggering its effect fn
@@ -317,6 +328,31 @@ State.variables.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
 		return character.id === State.variables.combatArena.turnOwner;
 	});	
+}
+
+State.variables.findLastLivingCharacter = function(characterArray){
+	var index = 0;
+	for(index = characterArray.length-1; index >= 0; index--){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
+}
+State.variables.findFirstLivingCharacter = function(characterArray){
+	var index = 0;
+	for(index = 0; index < characterArray.length; index++){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
+}
+State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
+	var index = 0;
+	for(index = startingIndex; index < characterArray.length; index++){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
 }
 
 // simulate a d20 roll
@@ -817,6 +853,12 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		return eligibleCombatants[unluckyIndex];
 		
 	}
+	/**
+	Concat the enemy and player party arrays, and return result
+	*/
+	this.getAllCombatants = function(){
+		return this.enemyParty.concat(this.playerParty);
+	}
 	
 	/**
 	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
@@ -886,36 +928,40 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		var dedEnemies = 0;
 		var dedPlayers = 0;
 		for(let enemyChar of this.enemyParty){
-			for(let effect of enemyChar.statusEffects){
+			var enemyCharacter = State.variables.characters[enemyChar.id];
+			for(let effect of enemyCharacter.statusEffects){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		enemyChar.combatFlags &= ~enemyChar.CombatFlags.FLAG_SKIP_TURN;
+		enemyCharacter.combatFlags &= ~enemyCharacter.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
 			// check for death
-			if(enemyChar.stats.hp <= 0){
+			if(enemyCharacter.stats.hp <= 0){
 				dedEnemies++;	
 			}
 		}
 		for(let playerChar of this.playerParty){
-			for(let effect of playerChar.statusEffects){
+			// extract Character object from $characters
+			var playerCharacter = State.variables.characters[playerChar.id];
+			for(let effect of playerCharacter.statusEffects){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		playerChar.combatFlags &= ~playerChar.CombatFlags.FLAG_SKIP_TURN;
+		playerCharacter.combatFlags &= ~playerCharacter.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
 			// check for death
-			if(playerChar.stats.hp <= 0){
+			if(playerCharacter.stats.hp <= 0){
 				dedPlayers++;	
 			}
 		}
 		
 		// check victory conditions -- if one is met, we do not need another turn so return false.  Else, combat continues so we return true.
 		// todo: need a way to clear conditions and/or reset stats as desired at end of combat
+		console.log("Dead players: "+dedPlayers+", dead enemies: "+dedEnemies);
 		if(dedEnemies >= this.enemyParty.length){
 			this.combatResult = this.CombatResultEnum.playerVictory;
 			return false;	
@@ -1680,6 +1726,7 @@ function init(){
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
 		var sourcePower = sourceChar.stats["pwr"];
+		alert(sourceChar.name+"'s pwr is "+sourcePower);
 		console.log("Power of "+sourceChar.name+" is "+sourcePower);
 		return 5*State.variables.calcMod(sourcePower);
 	}
@@ -1723,8 +1770,8 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
-				var chosenAbility = "";
-				var chosenTarget = "";
+				var chosenAbility = undefined;
+				var chosenTarget = undefined;
 				/* todo: Puck enemy AI behavior	
 					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
 					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
@@ -1839,7 +1886,7 @@ function init(){
 							return;
 							*/
 							chosenAbility = puckChar.incarnations["rain_of_radiance"];
-							chosenTarget = combat.playerParty;
+							chosenTarget = playerParty;
 						}
 					}
 				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_diplomancy){
@@ -1851,14 +1898,14 @@ function init(){
 						return;
 						*/
 						chosenAbility = puckChar.incarnations["rain_of_radiance"];
-						chosenTarget = combat.playerParty;
+						chosenTarget = playerParty;
 					}
 				}
 				
 				/// end story scenario mod proc ///
 				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
-			if(chosenAbility === "" && chosenTarget === ""){
+			if(chosenAbility === undefined && chosenTarget === undefined){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
@@ -1875,7 +1922,7 @@ function init(){
 				// But why?  All we want here is a random integer from 0 to player party length-1
 				*/
 				// choose a player party index randomly and pull the poor person from it for targeting
-				var playerRandoTarget = combat.playerParty[Math.floor(Math.random()*combat.playerParty.length)];
+				var playerRandoTarget = playerParty[Math.floor(Math.random()*playerParty.length)];
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
@@ -1921,7 +1968,7 @@ function init(){
 					return;
 					*/
 					chosenAbility = puckChar.incarnations["rain_of_radiance"];
-					chosenTarget = combat.playerParty;
+					chosenTarget = playerParty;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
@@ -1932,7 +1979,7 @@ function init(){
 				 return;
 				 */
 				 chosenAbility = puckChar.incarnations["rain_of_radiance"];
-				 chosenTarget = combat.playerParty;
+				 chosenTarget = playerParty;
 			 }
 			} // end if abl and target are not yet chosen, landing us in defaults
 			/// end defaults block ///
@@ -1953,7 +2000,7 @@ function init(){
 				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
 					if(chosenTarget.id === charmingCharacterId){
 						 // rando reassign to someone other than charming character
-						chosenTarget = combat.randoCombatantExcept(charmingCharacterId);
+						chosenTarget = randoCharacterFromArrayExceptId(combat.getAllCombatants(),charmingCharacterId);
 					}
 			}
 				
@@ -3321,7 +3368,7 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat for total war
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;set $godling_strat to $godling_strat_viral_violence&gt;&gt;
+	&lt;&lt;set $godling_strat_chosen to $godling_strat_viral_violence&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
 &lt;&lt;link [[&quot;The feedback loops of creation are the source of their godhood, and of their threat.  I will invent a way to terminate these loops using Incarnation.  With a little luck, we might get your friends back.  It&#39;ll be fascinating to see what happens!&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
@@ -3341,7 +3388,7 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat for circuitous hacking
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;set $godling_strat to $godling_strat_surgical_systems&gt;&gt;
+	&lt;&lt;set $godling_strat_chosen to $godling_strat_surgical_systems&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 
 &lt;&lt;link [[&quot;These creatures were your friends once, and maybe still are -- I won&#39;t risk harming them until I&#39;ve exhausted every peaceful option.  I&#39;ll find a way to reach them with diplomacy and Incarnation.&quot;-&gt;Bush_Warren_Council_Postproc]]&gt;&gt;
@@ -3363,7 +3410,7 @@ Waving her hand from the west continent to the eastern border of central, Marrah
 	&lt;&lt;silently&gt;&gt;
 		set the godling strat to fluffy bunnies and hugs for the hug inclined
 	&lt;&lt;/silently&gt;&gt;
-	&lt;&lt;set $godling_strat to $godling_strat_diplomancy&gt;&gt;
+	&lt;&lt;set $godling_strat_chosen to $godling_strat_diplomancy&gt;&gt;
 &lt;&lt;/link&gt;&gt;
 &lt;&lt;/replace&gt;&gt;
 &lt;&lt;/link&gt;&gt;&quot;   
@@ -3374,18 +3421,18 @@ todo: allow player to choose a council member or Nuvi to get Incarnation &#39;sc
 &lt;&lt;/silently&gt;&gt;
 
 &lt;div id=&quot;council_postproc&quot;&gt;
-&lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;
+&lt;&lt;if $godling_strat_chosen === $godling_strat_viral_violence&gt;&gt;
 Marrah&#39;s eyes gleam with unabashed excitement. &quot;Now that sounds like a plan of action!&quot;  She places a paw on your chest, over your heart, and a hungry sparkle joins the excitement in her intense gaze.  
 
 The rest of the council rises, all that needs be said having apparently been said.  An orangutan looming in the shadows behind Marrah clears her throat meaningfully, and Marrah backs away from you, her blush making her scarlet aesthetic practically blaze.  &quot;Go now, human, for all the hope of Fuzziolump goes with you!&quot;  
-&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;
+&lt;&lt;elseif $godling_strat_chosen === $godling_strat_surgical_system&gt;&gt;
 Dr. Beakman the toucan nods sagely even as Marrah narrows her eyes skeptically.  &quot;How can you be certain that will work?  What if they only stop growing but keep the power they hold currently?  That would be unacceptable!&quot;  Her scarlet fur bristles in agitation as her voice rises to almost the volume of impropriety.
 
 Before you can formulate an answer, Dr. Beakman flaps over to stand beside Marrah.  He wraps a wing about her consolingly and says, &quot;The human speaks wisdom, Marrah.  Only the imaginative feedback loops grant the godlings their immense power, and support it.  Disrupting the loops should bring all that being crashing down, reverting our old friends to their former selves... or killing them.  Most importantly, a surgical approach should minimize collateral damage and casualties.  It&#39;s the best chance for all of us.&quot;
 
 The scarlet fox nods her head slowly, and then ducks out from the toucan&#39;s wing to approach you.  Her golden eyes flashing, she growls, &quot;All right human, we&#39;ll do it your way.  Just remember that millions of lives depend on you -- there&#39;s no room to indulge your curiosity!&quot;  She back away from you, blinking rapidly, and then turns without another word.
-&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;
-Marrah blinks slowly, her molten gold eyes fairly boiling.  &quot;Diplomacy?  Don&#39;t you think we&#39;ve tried that?!  These were our friends!&quot;  She flies at you, raking beautiful lacquered claws across your face and spraying the council table with blood. 
+&lt;&lt;elseif $godling_strat_chosen === $godling_strat_diplomancy&gt;&gt;
+Marrah blinks slowly, her molten gold eyes fairly boiling.  &quot;Diplomacy?  Don&#39;t you think we&#39;ve tried that?  How dare you imply we haven&#39;t done everything possible to rescue our friends?!&quot;  She flies at you, raking beautiful lacquered claws across your face and spraying the council table with blood. 
 
 Nuvi flaps down between you and the angry scarlet fox, and his wings glow azure for an instant before a blinding white light knocks you back on your rump.  When your vision clears, you can see Marrah similarly prone, and seething.  As she struggles to rise, a deep voice booms out and nearly knocks her back on her haunches. &quot;That will do, councilbeast Marrah.&quot;  A giant mole waddles over to you from the far side of the table and extends a shovel-like digging claw.  You place your hand upon it, in the greeting fashion of the council.  A broad smile lights up the mole&#39;s velvety face, and his whiskers twitch knowingly.  &quot;Please forgive our little firebrand, human; she&#39;s young and understandably full of rage.&quot;
 
@@ -3432,7 +3479,7 @@ The body of an emaciated little man materializes in the air with a thunderclap t
 
 /* todo: Hashmalum minion too?  IDK, I don&#39;t think his folk would work with Holly&#39;s
 */
-&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_Systems" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
+&quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  Feeble creatures, [[die!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="54" name="Encounter_Puck_Surgical_System" tags="encounter" position="272,2140" size="100,100">As you leave the warren complex, Sheila the steady wombat eyes you warily. 
 &lt;&lt;if !$characters[&quot;player&quot;].titles.includes($title_wombuddy)&gt;&gt;\
 &quot;I&#39;ve been told the gist of your plan.  I&#39;m no fan of having someone of your dubious wombatitude playing with the lives of two lumpkins, their current crazy godbeast forms notwithstanding.  You be careful!    
 &lt;&lt;else&gt;&gt;\
@@ -3612,7 +3659,8 @@ $combatArena.combatLogContent
 			&lt;&lt;silently&gt;&gt;
 			If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 			&lt;&lt;/silently&gt;&gt;
-			&lt;&lt;if $combatArena.turnOwner === $combatArena.playerParty[$combatArena.playerParty.length-1].id&gt;&gt;
+			/*todo: can&#39;t assume that the last guy in the party is alive and would have been set as turn owner*/
+			&lt;&lt;if $combatArena.turnOwner === $findLastLivingCharacter($combatArena.playerParty).id&gt;&gt;
 				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 				&lt;&lt;silently&gt;&gt;
 				TODO: in order to process an enemy party with more than one monster, we&#39;d need something closer to the player party proc in enemy side.  For now this shortcut will work.
@@ -3620,9 +3668,24 @@ $combatArena.combatLogContent
 				&lt;&lt;run $combatArena.enemyParty[0].runAI($combatArena,&quot;enemy&quot;)&gt;&gt;
 				&lt;&lt;run console.log(&quot;ran enemy AI for &quot;+$combatArena.enemyParty[0].name)&gt;&gt;
 			&lt;&lt;else&gt;&gt;
-				&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
-				&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
-				&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+				&lt;&lt;set _potentialTurnOwnerCharacter = $findNextLivingCharacter($combatArena.playerParty,$findCurrentPlayerCharacterIndex()+1)&gt;&gt;
+				
+				&lt;&lt;if _potentialTurnOwner !== undefined&gt;&gt;
+					&lt;&lt;set $combatArena.turnOwner _potentialTurnOwnerCharacter.id&gt;&gt;
+					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
+					/*
+					&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
+					*/
+					&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
+				&lt;&lt;else&gt;&gt;
+					/*no more living players could be found*/
+					&lt;&lt;set $combatArena.turnGroup = &quot;system&quot;&gt;&gt;
+					&lt;&lt;silently&gt;&gt;
+					Update the combat log text with end of combat results
+					&lt;&lt;/silently&gt;&gt;
+					&lt;&lt;set $combatArena.combatResult = $combatArena.CombatResultEnum.enemyVictory&gt;&gt;
+					&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here -- in the next months, with nothing to meaningfully oppose them, the godlings will grow and grow out of control, and soon swallow up (intentionally or not) the gentle land of Fuzziolump.  Your deaths mark the end for all hopes and dreams!&quot;&gt;&gt;
+				&lt;&lt;/if&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
 		&lt;&lt;/link&gt;&gt;
 	&lt;&lt;else&gt;&gt;
@@ -3634,7 +3697,8 @@ $combatArena.combatLogContent
 	&lt;&lt;run console.log(&quot;The Human&#39;s HP is &quot;+$characters[&quot;player&quot;].stats.hp)&gt;&gt;
   	&lt;&lt;if $combatArena.processRoundBottom()&gt;&gt;
   		&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
-		&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;
+		/*&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;*/
+		&lt;&lt;set $combatArena.turnOwner = $findFirstLivingCharacter($combatArena.playerParty)&gt;&gt;
 		&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 		&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;
@@ -3720,7 +3784,7 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
 		&lt;th&gt;_playerCharStatReadout&lt;/th&gt;
     &lt;&lt;/for&gt;&gt;
   &lt;/tr&gt;
-&lt;/table&gt;</tw-passagedata><tw-passagedata pid="65" name="Bush_Warren_Council_Exit" tags="conversation" position="37,1944" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_Systems]]&lt;&lt;elseif $godling_strat === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata><tw-passagedata pid="66" name="Puck_Bossfight" tags="combat boss puck" position="121,2293" size="100,100">// set combat params and forward (valiantly) to Combat!
+&lt;/table&gt;</tw-passagedata><tw-passagedata pid="65" name="Bush_Warren_Council_Exit" tags="conversation" position="37,1944" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat_chosen === $godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat_chosen === $godling_strat_surgical_system&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat_chosen === $godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat_chosen === $godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat_chosen === $godling_strat_surgical_system&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat_chosen === $godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat_chosen === $godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat_chosen === $godling_strat_surgical_systems&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_System]]&lt;&lt;elseif $godling_strat_chosen === $godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata><tw-passagedata pid="66" name="Puck_Bossfight" tags="combat boss puck" position="121,2293" size="100,100">// set combat params and forward (valiantly) to Combat!
 &lt;&lt;script&gt;&gt;
 /* apparently this is legal JS
 var x1 = {};        // object

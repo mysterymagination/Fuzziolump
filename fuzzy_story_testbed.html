@@ -44,6 +44,16 @@ State.variables.addUniqueToArray = function(array,element,filterFn){
 }
 
 /**
+Get a random Character object from an array of Character objects that can't have the given Character ID
+*/
+State.variables.randoCharacterFromArrayExceptId = function(characterArray,exceptCharacterId){
+		var eligibleCharacters = characterArray.filter(characterUnderTest => characterUnderTest.id != exceptCharacterId);
+		var unluckyIndex = Math.floor(Math.random() * eligibleCharacters.length);
+		return eligibleCharacters[unluckyIndex];
+		
+	}
+
+/**
 Applies the combat status effect to the given character, adding it to their list of statuses and triggering its effect fn
 @param character the recipient of the effect
 @param effect the status effect to apply
@@ -152,6 +162,31 @@ State.variables.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
 		return character.id === State.variables.combatArena.turnOwner;
 	});	
+}
+
+State.variables.findLastLivingCharacter = function(characterArray){
+	var index = 0;
+	for(index = characterArray.length-1; index >= 0; index--){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
+}
+State.variables.findFirstLivingCharacter = function(characterArray){
+	var index = 0;
+	for(index = 0; index < characterArray.length; index++){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
+}
+State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
+	var index = 0;
+	for(index = startingIndex; index < characterArray.length; index++){
+		if(characterArray[index].living){
+			return characterArray[index];
+		}
+	}
 }
 
 // simulate a d20 roll
@@ -652,6 +687,12 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		return eligibleCombatants[unluckyIndex];
 		
 	}
+	/**
+	Concat the enemy and player party arrays, and return result
+	*/
+	this.getAllCombatants = function(){
+		return this.enemyParty.concat(this.playerParty);
+	}
 	
 	/**
 	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
@@ -721,36 +762,40 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		var dedEnemies = 0;
 		var dedPlayers = 0;
 		for(let enemyChar of this.enemyParty){
-			for(let effect of enemyChar.statusEffects){
+			var enemyCharacter = State.variables.characters[enemyChar.id];
+			for(let effect of enemyCharacter.statusEffects){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		enemyChar.combatFlags &= ~enemyChar.CombatFlags.FLAG_SKIP_TURN;
+		enemyCharacter.combatFlags &= ~enemyCharacter.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
 			// check for death
-			if(enemyChar.stats.hp <= 0){
+			if(enemyCharacter.stats.hp <= 0){
 				dedEnemies++;	
 			}
 		}
 		for(let playerChar of this.playerParty){
-			for(let effect of playerChar.statusEffects){
+			// extract Character object from $characters
+			var playerCharacter = State.variables.characters[playerChar.id];
+			for(let effect of playerCharacter.statusEffects){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		playerChar.combatFlags &= ~playerChar.CombatFlags.FLAG_SKIP_TURN;
+		playerCharacter.combatFlags &= ~playerCharacter.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
 			// check for death
-			if(playerChar.stats.hp <= 0){
+			if(playerCharacter.stats.hp <= 0){
 				dedPlayers++;	
 			}
 		}
 		
 		// check victory conditions -- if one is met, we do not need another turn so return false.  Else, combat continues so we return true.
 		// todo: need a way to clear conditions and/or reset stats as desired at end of combat
+		console.log("Dead players: "+dedPlayers+", dead enemies: "+dedEnemies);
 		if(dedEnemies >= this.enemyParty.length){
 			this.combatResult = this.CombatResultEnum.playerVictory;
 			return false;	
@@ -1515,6 +1560,7 @@ function init(){
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
 		var sourcePower = sourceChar.stats["pwr"];
+		alert(sourceChar.name+"'s pwr is "+sourcePower);
 		console.log("Power of "+sourceChar.name+" is "+sourcePower);
 		return 5*State.variables.calcMod(sourcePower);
 	}
@@ -1558,8 +1604,8 @@ function init(){
 	puckChar.runAI = function(combat,role){
 		if(role){
 			if(role === "enemy"){
-				var chosenAbility = "";
-				var chosenTarget = "";
+				var chosenAbility = undefined;
+				var chosenTarget = undefined;
 				/* todo: Puck enemy AI behavior	
 					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
 					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
@@ -1674,7 +1720,7 @@ function init(){
 							return;
 							*/
 							chosenAbility = puckChar.incarnations["rain_of_radiance"];
-							chosenTarget = combat.playerParty;
+							chosenTarget = playerParty;
 						}
 					}
 				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_diplomancy){
@@ -1686,14 +1732,14 @@ function init(){
 						return;
 						*/
 						chosenAbility = puckChar.incarnations["rain_of_radiance"];
-						chosenTarget = combat.playerParty;
+						chosenTarget = playerParty;
 					}
 				}
 				
 				/// end story scenario mod proc ///
 				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
-			if(chosenAbility === "" && chosenTarget === ""){
+			if(chosenAbility === undefined && chosenTarget === undefined){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = State.variables.rollPercentage();
@@ -1710,7 +1756,7 @@ function init(){
 				// But why?  All we want here is a random integer from 0 to player party length-1
 				*/
 				// choose a player party index randomly and pull the poor person from it for targeting
-				var playerRandoTarget = combat.playerParty[Math.floor(Math.random()*combat.playerParty.length)];
+				var playerRandoTarget = playerParty[Math.floor(Math.random()*playerParty.length)];
 				
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
@@ -1756,7 +1802,7 @@ function init(){
 					return;
 					*/
 					chosenAbility = puckChar.incarnations["rain_of_radiance"];
-					chosenTarget = combat.playerParty;
+					chosenTarget = playerParty;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
@@ -1767,7 +1813,7 @@ function init(){
 				 return;
 				 */
 				 chosenAbility = puckChar.incarnations["rain_of_radiance"];
-				 chosenTarget = combat.playerParty;
+				 chosenTarget = playerParty;
 			 }
 			} // end if abl and target are not yet chosen, landing us in defaults
 			/// end defaults block ///
@@ -1788,7 +1834,7 @@ function init(){
 				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
 					if(chosenTarget.id === charmingCharacterId){
 						 // rando reassign to someone other than charming character
-						chosenTarget = combat.randoCombatantExcept(charmingCharacterId);
+						chosenTarget = randoCharacterFromArrayExceptId(combat.getAllCombatants(),charmingCharacterId);
 					}
 			}
 				
