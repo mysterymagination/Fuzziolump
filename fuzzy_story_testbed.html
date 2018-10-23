@@ -168,27 +168,30 @@ State.variables.findCurrentPlayerCharacterIndex = function(){
 State.variables.findLastLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = characterArray.length-1; index >= 0; index--){
-		console.log("findLastLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
-		if(characterArray[index].living){
-			return characterArray[index];
+		var fullCharacter = State.variables.characters[characterArray[index].id];
+		console.log("findLastLivingCharacter; character with id "+characterArray[index].id+" is "+(fullCharacter.living?"living":"dead"));
+		if(fullCharacter.living){
+			return fullCharacter;
 		}
 	}
 }
 State.variables.findFirstLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = 0; index < characterArray.length; index++){
-		console.log("findFirstLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
-		if(characterArray[index].living){
-			return characterArray[index];
+		var fullCharacter = State.variables.characters[characterArray[index].id];
+		console.log("findFirstLivingCharacter; character with id "+characterArray[index].id+" is "+(fullCharacter.living?"living":"dead"));
+		if(fullCharacter.living){
+			return fullCharacter;
 		}
 	}
 }
 State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
 	var index = 0;
 	for(index = startingIndex; index < characterArray.length; index++){
-		console.log("findNextLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
-		if(characterArray[index].living){
-			return characterArray[index];
+		var fullCharacter = State.variables.characters[characterArray[index].id];
+		console.log("findNextLivingCharacter; character with id "+characterArray[index].id+" is "+(fullCharacter.living?"living":"dead"));
+		if(fullCharacter.living){
+			return fullCharacter;
 		}
 	}
 }
@@ -519,6 +522,7 @@ State.variables.Character = function Character(id,name){
 		targetCharacter.stats.hp -= this.dmg; // what's multithreading, anyway? lol
 		// possible player death processing
 		if(targetCharacter.stats.hp <= 0){
+			console.log("Attack killed "+targetCharacter.name);
 			targetCharacter.living = false;
 		}
 	};
@@ -1624,6 +1628,16 @@ function init(){
 			if(role === "enemy"){
 				var chosenAbility = undefined;
 				var chosenTarget = undefined;
+
+				/*
+				// todo: for debug only
+				// just hammer away at the Player to test death detection
+				this.abilities["attack"].effect(this,State.variables.characters["player"]);
+				combat.combatLogContent = this.abilities["attack"].generateFlavorText(this,State.variables.characters["player"]);
+				return;
+				// end for debug only
+				*/
+
 				/* todo: Puck enemy AI behavior	
 					 x1. Primary behavior should be randomly chosen abl, with weights towards the Incarnations (though he won't use Swords Dance if he's already got Bloodlust on).
 					 TODO: need to add checks for hp <= 0 so Puck doesn't wind up obsessively flogging corpses while the player shrugs and stabs him to death.
