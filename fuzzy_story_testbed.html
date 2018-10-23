@@ -1492,15 +1492,15 @@ function init(){
 	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
-	puckChar.attributes["strength"] = 8;
+	puckChar.attributes["strength"] = 4;
 	puckChar.attributes["dexterity"] = 20;
 	puckChar.attributes["constitution"] = 10;
 	puckChar.attributes["intelligence"] = 22;
 	puckChar.attributes["wisdom"] = 6;
 	puckChar.attributes["charisma"] = 20;
-	puckChar.stats["hp"] = 500;
+	puckChar.stats["hp"] = 150;
 	puckChar.stats["mp"] = Infinity;
-	puckChar.stats["maxHP"] = 500;
+	puckChar.stats["maxHP"] = 150;
 	puckChar.stats["maxMP"] = Infinity;
 	// todo: these assignments could be replaced with a recompute fn
 	puckChar.stats["atk"] = puckChar.attributes["strength"];
@@ -1578,7 +1578,7 @@ function init(){
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
 		var sourcePower = sourceChar.stats["pwr"];
-		alert(sourceChar.name+"'s pwr is "+sourcePower);
+		//alert(sourceChar.name+"'s pwr is "+sourcePower);
 		console.log("Power of "+sourceChar.name+" is "+sourcePower);
 		return 5*State.variables.calcMod(sourcePower);
 	}
@@ -1988,7 +1988,7 @@ function init(){
 		
 	}
 	foxFire.effect = function(sourceChar,targetChar){
-		
+		/* // shouldn't be able to save against the whole thing, plus the Puck fight for the demo is a bit on the too hard side
 		// apply status effect, doubt
 		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
 		// effect will be called on the Incarnation instance, so this should be bound to same
@@ -2001,6 +2001,15 @@ function init(){
 			// deal dmg
 			targetChar.stats.hp -= this.dmg;
 		}
+		*/
+
+		State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
+			
+			// set dmg
+			this.dmg = this.calcDmg(sourceChar,targetChar);
+			
+			// deal dmg
+			targetChar.stats.hp -= this.dmg;
 		
 		// cost
 		this.processCost(sourceChar);
@@ -2187,7 +2196,7 @@ function init(){
 		}
 		vibrobladeIncarnation.generateFlavorText = function(sourceChar, targetChar){
 			// todo: need a 'get appendages' method that checks the descriptor array for tags that might hint at appendages.  Could even go into more detail with descriptors that are categorized to different details like the character's morphology, and have a subsection for appendages
-			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+(sourceChar.descriptors.includes("bird")?"wings":"paws")+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
+			return sourceChar.name+" grins wickedly and performs a complicated flourish with "+sourceChar.getPronoun_gen()+" "+sourceChar.descriptors.body.appendages.arms.name+" and "+targetChar.name+"'s weapon begins to vibrate subtley as a razor-swift current of air blows cyclically around its edge.  A soft and supremely satisfying growly purring sound emenates from it; everyone who can backs away slightly.";
 		} 
 		
 	/**
