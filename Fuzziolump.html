@@ -170,6 +170,8 @@
 
 
 
+
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -326,6 +328,7 @@ State.variables.removeCharacterFromArray = function(character,characterArray){
 																	
 State.variables.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
+		console.log("finding current player char index -- checking character "+character.id+" against turn owner "+State.variables.combatArena.turnOwner);
 		return character.id === State.variables.combatArena.turnOwner;
 	});	
 }
@@ -333,6 +336,7 @@ State.variables.findCurrentPlayerCharacterIndex = function(){
 State.variables.findLastLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = characterArray.length-1; index >= 0; index--){
+		console.log("findLastLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -341,6 +345,7 @@ State.variables.findLastLivingCharacter = function(characterArray){
 State.variables.findFirstLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = 0; index < characterArray.length; index++){
+		console.log("findFirstLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -349,6 +354,7 @@ State.variables.findFirstLivingCharacter = function(characterArray){
 State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
 	var index = 0;
 	for(index = startingIndex; index < characterArray.length; index++){
+		console.log("findNextLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -679,6 +685,10 @@ State.variables.Character = function Character(id,name){
 		console.log(this.dmg+" dealt by Attack to "+targetCharacter.name);
 		// todo: AC? Any other miss chance?
 		targetCharacter.stats.hp -= this.dmg; // what's multithreading, anyway? lol
+		// possible player death processing
+		if(targetCharacter.stats.hp <= 0){
+			targetCharacter.living = false;
+		}
 	};
 	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
 		// todo: clearing cached dmg after it is read to flavor text? 
@@ -1712,6 +1722,12 @@ function init(){
 		targetChar.stats.hp -= this.dmg;
 		State.variables.addUniqueStatusEffect(targetChar,doubtStatusEffect);
 		
+		// possible player death processing
+		// todo: move this and similar common abl processes to a common abl I/O
+		if(targetChar.stats.hp <= 0){
+			targetChar.living = false;
+		}
+		
 		// MP cost
 		this.processCost(sourceChar);
 	}
@@ -1739,6 +1755,10 @@ function init(){
 		for(let target of targetChars){
 			target.stats.hp -= 	this.dmg;
 			console.log(this.dmg+" damage dealt to "+target.name);
+			// possible player death processing
+			if(target.stats.hp <= 0){
+				target.living = false;
+			}
 		}
 		
 		// mp cost
@@ -3509,9 +3529,6 @@ Together with a now perpetually delighted Nuvi (his earlier neuroses apparently 
 
 &quot;You would dare to threaten the power of my mistress, goddess of this and all worlds?!&quot; a shrill masculine voice demands, rolling its &#39;R&#39;s in exaggerated primness.  The eyes are joined by a head in which they appear much too large, and then the body of an emaciated little man materializes in the air to join them.  He bobs up and down in a reclined position, carefully carefree, and studies you appraisingly.  His features are pinched and angular, and his ears come to knife-like points.  The skin not covered by his elaborate hodgepodge of earth historic court dress is bone white.  A purple fedora perched at a rakish angle caps off the less-than-intimidating ensemble.
 
-&lt;&lt;run alert(&quot;please remove debug set of diplomancy&quot;)&gt;&gt;
-&lt;&lt;set $godling_strat_chosen to $godling_strat_diplomancy&gt;&gt;
-
 &quot;My name is Puck, knight captain and exalted archmage of her highness Holly, Wild Goddess of All Creation!  You who would bother her, [[en guarde!-&gt;Puck_Bossfight]]&quot;</tw-passagedata><tw-passagedata pid="56" name="Ready" tags="dev" position="1081,379" size="100,100">&lt;&lt;link [[&quot;Fight the Mighty Dragon!&quot;-&gt;Combat]]&gt;&gt;
 	&lt;&lt;set $party[1] to $characters[&quot;marrah&quot;]&gt;&gt;
 	&lt;&lt;set $party[2] to $characters[&quot;shimmerin&quot;]&gt;&gt;
@@ -3659,7 +3676,7 @@ $combatArena.combatLogContent
 			&lt;&lt;silently&gt;&gt;
 			If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 			&lt;&lt;/silently&gt;&gt;
-			/*todo: can&#39;t assume that the last guy in the party is alive and would have been set as turn owner*/
+			/*can&#39;t assume that the last guy in the party is alive and would have been set as turn owner*/
 			&lt;&lt;if $combatArena.turnOwner === $findLastLivingCharacter($combatArena.playerParty).id&gt;&gt;
 				&lt;&lt;set $combatArena.turnGroup = &quot;enemy&quot;&gt;&gt;
 				&lt;&lt;silently&gt;&gt;
@@ -3669,9 +3686,9 @@ $combatArena.combatLogContent
 				&lt;&lt;run console.log(&quot;ran enemy AI for &quot;+$combatArena.enemyParty[0].name)&gt;&gt;
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;set _potentialTurnOwnerCharacter = $findNextLivingCharacter($combatArena.playerParty,$findCurrentPlayerCharacterIndex()+1)&gt;&gt;
-				
-				&lt;&lt;if _potentialTurnOwner !== undefined&gt;&gt;
-					&lt;&lt;set $combatArena.turnOwner _potentialTurnOwnerCharacter.id&gt;&gt;
+				&lt;&lt;run console.log(&quot;potential turn owner is &quot;+_potentialTurnOwnerCharacter.name)&gt;&gt;
+				&lt;&lt;if _potentialTurnOwnerCharacter !== undefined&gt;&gt;
+					&lt;&lt;set $combatArena.turnOwner = _potentialTurnOwnerCharacter.id&gt;&gt;
 					&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 					/*
 					&lt;&lt;set $combatArena.turnOwner = $combatArena.playerParty[$findCurrentPlayerCharacterIndex()+1].id&gt;&gt;
@@ -3698,7 +3715,7 @@ $combatArena.combatLogContent
   	&lt;&lt;if $combatArena.processRoundBottom()&gt;&gt;
   		&lt;&lt;set $combatArena.turnGroup = &quot;player&quot;&gt;&gt;
 		/*&lt;&lt;set $combatArena.turnOwner = &quot;player&quot;&gt;&gt;*/
-		&lt;&lt;set $combatArena.turnOwner = $findFirstLivingCharacter($combatArena.playerParty)&gt;&gt;
+		&lt;&lt;set $combatArena.turnOwner = $findFirstLivingCharacter($combatArena.playerParty).id&gt;&gt;
 		&lt;&lt;set $combatArena.playerTurnState = $combatArena.PlayerTurnState.selectAbility&gt;&gt;
 		&lt;&lt;set $combatArena.combatLogContent = &quot;What will &quot;+$characters[$combatArena.turnOwner].name+&quot; do?&quot;&gt;&gt;
 		&lt;&lt;run $combatArena.processRoundTop()&gt;&gt;

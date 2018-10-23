@@ -160,6 +160,7 @@ State.variables.removeCharacterFromArray = function(character,characterArray){
 																	
 State.variables.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
+		console.log("finding current player char index -- checking character "+character.id+" against turn owner "+State.variables.combatArena.turnOwner);
 		return character.id === State.variables.combatArena.turnOwner;
 	});	
 }
@@ -167,6 +168,7 @@ State.variables.findCurrentPlayerCharacterIndex = function(){
 State.variables.findLastLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = characterArray.length-1; index >= 0; index--){
+		console.log("findLastLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -175,6 +177,7 @@ State.variables.findLastLivingCharacter = function(characterArray){
 State.variables.findFirstLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = 0; index < characterArray.length; index++){
+		console.log("findFirstLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -183,6 +186,7 @@ State.variables.findFirstLivingCharacter = function(characterArray){
 State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
 	var index = 0;
 	for(index = startingIndex; index < characterArray.length; index++){
+		console.log("findNextLivingCharacter; character with id "+characterArray[index].id+" is "+(characterArray[index].living?"living":"dead"));
 		if(characterArray[index].living){
 			return characterArray[index];
 		}
@@ -513,6 +517,10 @@ State.variables.Character = function Character(id,name){
 		console.log(this.dmg+" dealt by Attack to "+targetCharacter.name);
 		// todo: AC? Any other miss chance?
 		targetCharacter.stats.hp -= this.dmg; // what's multithreading, anyway? lol
+		// possible player death processing
+		if(targetCharacter.stats.hp <= 0){
+			targetCharacter.living = false;
+		}
 	};
 	this.abilities["attack"].generateFlavorText = function(sourceCharacter,targetCharacter){
 		// todo: clearing cached dmg after it is read to flavor text? 
@@ -1546,6 +1554,12 @@ function init(){
 		targetChar.stats.hp -= this.dmg;
 		State.variables.addUniqueStatusEffect(targetChar,doubtStatusEffect);
 		
+		// possible player death processing
+		// todo: move this and similar common abl processes to a common abl I/O
+		if(targetChar.stats.hp <= 0){
+			targetChar.living = false;
+		}
+		
 		// MP cost
 		this.processCost(sourceChar);
 	}
@@ -1573,6 +1587,10 @@ function init(){
 		for(let target of targetChars){
 			target.stats.hp -= 	this.dmg;
 			console.log(this.dmg+" damage dealt to "+target.name);
+			// possible player death processing
+			if(target.stats.hp <= 0){
+				target.living = false;
+			}
 		}
 		
 		// mp cost
