@@ -174,6 +174,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -364,6 +365,19 @@ State.variables.findNextLivingCharacter = function(characterArray,startingIndex)
 			return fullCharacter;
 		}
 	}
+}
+
+/**
+This shouldn't be... see github issue #2
+
+Takes id property of the given character array, looks up the character object from $characters based on the id, and adds said character object to a new array.  This new array is returned.
+*/
+State.variables.drawCharacterArrayFromCharactersDict = function(characterArray){
+	var actualChars = [];
+	for(let character of characterArray){
+		actualChars.push(State.variables.characters[character.id]);
+	}
+	return actualChars;
 }
 
 // simulate a d20 roll
@@ -1357,6 +1371,7 @@ function init(){
 	regenStatusEffect.buffity = "buffins";
 	regenStatusEffect.descriptors.push("buff","health");
 	regenStatusEffect.effect = function(targetChar){
+		console.log("Wounds close and gaping wounds knit themselves shut as "+targetChar.name+" regenerates "+targetChar.stats["res"]+" HP!");
 		targetChar.stats["hp"] += targetChar.stats["res"];
 	}
 	regenStatusEffect.reverseEffect = function(targetChar){}
@@ -1646,12 +1661,12 @@ function init(){
 	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
 	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
-		return sourceChar.stats["atk"]+sourceChar.attributes["charisma"];		
+		return 4*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
 	}
 	maenadFrenzyIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats["hp"] -= this.dmg;
-		sourceChar.stats["hp"] -= this.dmg/2;
+		sourceChar.stats["hp"] -= this.dmg/4;
 		
 		// MP cost
 		this.processCost(sourceChar);
@@ -2290,7 +2305,12 @@ function init(){
 		springRainIncarnation.cost = {"mp":20};
 		springRainIncarnation.calcDmg = function(sourceChar,targetChar){
 			// healed based on the wielder's pwr and how much the wielder likes the target
-			return sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id];
+			var likeFactor = targetChar.affinities[sourceChar.id];
+			if(likeFactor !== undefined){
+				return 1.5*(sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id]);
+			}else{
+				return 1.5*sourceChar.stats["pwr"];
+			}
 		}
 		springRainIncarnation.effect = function(sourceChar,targetChars){
 			for(let targetChar of targetChars){
