@@ -196,6 +196,19 @@ State.variables.findNextLivingCharacter = function(characterArray,startingIndex)
 	}
 }
 
+/**
+This shouldn't be... see github issue #2
+
+Takes id property of the given character array, looks up the character object from $characters based on the id, and adds said character object to a new array.  This new array is returned.
+*/
+State.variables.drawCharacterArrayFromCharactersDict = function(characterArray){
+	var actualChars = [];
+	for(let character of characterArray){
+		actualChars.push(State.variables.characters[character.id]);
+	}
+	return actualChars;
+}
+
 // simulate a d20 roll
 State.variables.rollD20 = function(){
 	return Math.floor(Math.random() * 20) + 1;
@@ -712,56 +725,58 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	this.processRoundTop = function(){
 	// tick down status effects
 	for(let enemyChar of this.enemyParty){
-			for(let effect of enemyChar.statusEffects){
+		var enemyCharacter = State.variables.characters[enemyChar.id];
+			for(let effect of enemyCharacter.statusEffects){
 				// process top of stateffects with variable or triggered effects per round
 				if(effect.id === "terror"){
 					// terror's effect will roll percentage, with 35% to skip this turn
 					if(effect.effect()){
-						enemyChar.combatFlags |= enemyChar.CombatFlags.FLAG_SKIP_TURN;	
+						enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
 					}
 				}
 				else if(effect.id === "poison"){
-					enemyChar.stats["hp"] -= enemyChar.stats["maxHP"]*0.1; 	
+					enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
 				}
 				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(enemyChar);	
+					State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
 				}
 				
 				
 				effect.tickDown();
 				if(effect.ticks <= 0){
 					// reverse the effect now that it is over
-					effect.reverseEffect(enemyChar);	
+					effect.reverseEffect(enemyCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
 					effect.ticks = effect.duration;
 					// remove the status effect from the character
-					State.variables.removeStatusEffect(enemyChar,effect);
+					State.variables.removeStatusEffect(enemyCharacter,effect);
 				}
 			}
 	}
 	for(let playerChar of this.playerParty){
-			for(let effect of playerChar.statusEffects){
+		var playerCharacter = State.variables.characters[playerChar.id];
+			for(let effect of playerCharacter.statusEffects){
 				// process top of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// terror's effect will roll percentage, with 35% to skip this turn
 					if(effect.effect()){
-						playerChar.combatFlags |= playerChar.CombatFlags.FLAG_SKIP_TURN;	
+						playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
 					}
 				}
 				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(playerChar);	
+					State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
 				}
 				
 				effect.tickDown();
 				if(effect.ticks <= 0){
 					// reverse the effect now that it is over
-					effect.reverseEffect(playerChar);	
+					effect.reverseEffect(playerCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
 					effect.ticks = effect.duration;
 					// remove the status effect from the character
-					State.variables.removeStatusEffect(playerChar,effect);
+					State.variables.removeStatusEffect(playerCharacter,effect);
 				}
 			}
 	}
@@ -1088,8 +1103,6 @@ Config.constructor.prototype.combat = function Combat(){
 Main program init function.  Configures and fleshes out global objects
 */
 function init(){
-	
-	// todo: add costs to all abilities!
 	
 	//items
 	
