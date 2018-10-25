@@ -727,24 +727,34 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	for(let enemyChar of this.enemyParty){
 		var enemyCharacter = State.variables.characters[enemyChar.id];
 			for(let effect of enemyCharacter.statusEffects){
-				// process top of stateffects with variable or triggered effects per round
-				if(effect.id === "terror"){
-					// terror's effect will roll percentage, with 35% to skip this turn
-					if(effect.effect()){
-						enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
+				if(enemyCharacter.living){
+					// process top of stateffects with variable or triggered effects per round
+					if(effect.id === "terror"){
+						// terror's effect will roll percentage, with 35% to skip this turn
+						if(effect.effect()){
+							enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
+						}
 					}
-				}
-				else if(effect.id === "poison"){
-					enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
-				}
-				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
-				}
-				
-				
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
+					else if(effect.id === "poison"){
+						enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
+					}
+					else if(effect.id === "regen"){
+						State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
+					}
+					
+					
+					effect.tickDown();
+					if(effect.ticks <= 0){
+						// reverse the effect now that it is over
+						effect.reverseEffect(enemyCharacter);	
+						// reset the ticks count to duration in case we
+						// want to re-use this statuseffect instance
+						effect.ticks = effect.duration;
+						// remove the status effect from the character
+						State.variables.removeStatusEffect(enemyCharacter,effect);
+					}
+				}else{
+					// reverse the effect now that char is dead
 					effect.reverseEffect(enemyCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
@@ -757,20 +767,30 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	for(let playerChar of this.playerParty){
 		var playerCharacter = State.variables.characters[playerChar.id];
 			for(let effect of playerCharacter.statusEffects){
-				// process top of stateffects with variable effects per round
-				if(effect.id === "terror"){
-					// terror's effect will roll percentage, with 35% to skip this turn
-					if(effect.effect()){
-						playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
+				if(playerCharacter.living){
+					// process top of stateffects with variable effects per round
+					if(effect.id === "terror"){
+						// terror's effect will roll percentage, with 35% to skip this turn
+						if(effect.effect()){
+							playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
+						}
 					}
-				}
-				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
-				}
-				
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
+					else if(effect.id === "regen"){
+						State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
+					}
+					
+					effect.tickDown();
+					if(effect.ticks <= 0){
+						// reverse the effect now that it is over
+						effect.reverseEffect(playerCharacter);	
+						// reset the ticks count to duration in case we
+						// want to re-use this statuseffect instance
+						effect.ticks = effect.duration;
+						// remove the status effect from the character
+						State.variables.removeStatusEffect(playerCharacter,effect);
+					}
+				}else{
+					// reverse the effect now that character is dead
 					effect.reverseEffect(playerCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
@@ -1348,7 +1368,7 @@ function init(){
 	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
 	pierceIncarnation.cost = {"hp":10};
 	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
-		return sourceChar.stats["atk"];		
+		return sourceChar.stats["atk"]*2+Math.random()*10;		
 	}
 	pierceIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -1490,7 +1510,7 @@ function init(){
 	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
 	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
-		return 4*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
+		return 2*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
 	}
 	maenadFrenzyIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -2136,7 +2156,7 @@ function init(){
 			// healed based on the wielder's pwr and how much the wielder likes the target
 			var likeFactor = targetChar.affinities[sourceChar.id];
 			if(likeFactor !== undefined){
-				return 1.5*(sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id]);
+				return 1.5*(sourceChar.stats["pwr"]+likeFactor);
 			}else{
 				return 1.5*sourceChar.stats["pwr"];
 			}
@@ -2161,7 +2181,12 @@ function init(){
 		griefHowlIncarnation.cost = {"mp":30};
 		griefHowlIncarnation.calcDmg = function(sourceChar,targetChar){
 			// healed for maxHP/2 plus how much the wielder likes the target
-			return targetChar.stats["maxHP"]/2+targetChar.affinities[sourceChar.id];
+			var likeFactor = targetChar.affinities[sourceChar.id];
+			if(likeFactor !== undefined){
+				return targetChar.stats["maxHP"]/2+likeFactor;
+			}else{
+				return targetChar.stats["maxHP"]/2;
+			}
 		}
 		griefHowlIncarnation.effect = function(sourceChar,targetChar){
 			// remove dead status and heal for calcDmg()

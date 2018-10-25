@@ -175,6 +175,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -2524,7 +2525,8 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///
+</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
@@ -3719,6 +3721,8 @@ $combatArena.combatLogContent
 				&lt;&lt;/for&gt;&gt;
 	&lt;&lt;elseif $combatArena.playerTurnState === $combatArena.PlayerTurnState.displayResults&gt;&gt;
 		&lt;&lt;link [[&quot;Press onward!&quot;-&gt;Combat]]&gt;&gt;
+		  /*todo: need more versatile check for combat complete status between each potential turn transition rather than just at rounds*/
+		  &lt;&lt;if $characters[$combatArena.enemyParty[0].id].stats.hp &gt; 0&gt;&gt;
 			&lt;&lt;silently&gt;&gt;
 			If we&#39;ve hit the last char in the player party, we are ready to move on to enemy turn group.  Otherwise, we need to move on to the next player char.
 			&lt;&lt;/silently&gt;&gt;
@@ -3728,6 +3732,7 @@ $combatArena.combatLogContent
 				&lt;&lt;silently&gt;&gt;
 				TODO: in order to process an enemy party with more than one monster, we&#39;d need something closer to the player party proc in enemy side.  For now this shortcut will work.
 				&lt;&lt;/silently&gt;&gt;
+				/*runAI() takes care of setting log content*/
 				&lt;&lt;run $combatArena.enemyParty[0].runAI($combatArena,&quot;enemy&quot;)&gt;&gt;
 				&lt;&lt;run console.log(&quot;ran enemy AI for &quot;+$combatArena.enemyParty[0].name)&gt;&gt;
 			&lt;&lt;else&gt;&gt;
@@ -3750,6 +3755,15 @@ $combatArena.combatLogContent
 					&lt;&lt;set $combatArena.combatLogContent = &quot;It is a sad thing that your adventures have ended here -- in the next months, with nothing to meaningfully oppose them, the godlings will grow and grow out of control, and soon swallow up (intentionally or not) the gentle land of Fuzziolump.  Your deaths mark the end for all hopes and dreams!&quot;&gt;&gt;
 				&lt;&lt;/if&gt;&gt;
 			&lt;&lt;/if&gt;&gt;
+		  &lt;&lt;else&gt;&gt;
+			/*only enemy for the demo is dead, so players win!*/
+			&lt;&lt;set $combatArena.turnGroup = &quot;system&quot;&gt;&gt;
+			&lt;&lt;silently&gt;&gt;
+				Update the combat log text with end of combat results
+			&lt;&lt;/silently&gt;&gt;
+			&lt;&lt;set $combatArena.combatResult = $combatArena.CombatResultEnum.playerVictory&gt;&gt;
+			&lt;&lt;set $combatArena.combatLogContent = &quot;The party has triumphed over evil once more!&quot;&gt;&gt;
+		  &lt;&lt;/if&gt;&gt;
 		&lt;&lt;/link&gt;&gt;
 	&lt;&lt;else&gt;&gt;
 		&lt;&lt;print &quot;state &quot;+$combatArena.playerTurnState+&quot; is unknown&quot;&gt;&gt;
