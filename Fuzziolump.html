@@ -176,6 +176,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -899,24 +900,34 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	for(let enemyChar of this.enemyParty){
 		var enemyCharacter = State.variables.characters[enemyChar.id];
 			for(let effect of enemyCharacter.statusEffects){
-				// process top of stateffects with variable or triggered effects per round
-				if(effect.id === "terror"){
-					// terror's effect will roll percentage, with 35% to skip this turn
-					if(effect.effect()){
-						enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
+				if(enemyCharacter.living){
+					// process top of stateffects with variable or triggered effects per round
+					if(effect.id === "terror"){
+						// terror's effect will roll percentage, with 35% to skip this turn
+						if(effect.effect()){
+							enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
+						}
 					}
-				}
-				else if(effect.id === "poison"){
-					enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
-				}
-				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
-				}
-				
-				
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
+					else if(effect.id === "poison"){
+						enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
+					}
+					else if(effect.id === "regen"){
+						State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
+					}
+					
+					
+					effect.tickDown();
+					if(effect.ticks <= 0){
+						// reverse the effect now that it is over
+						effect.reverseEffect(enemyCharacter);	
+						// reset the ticks count to duration in case we
+						// want to re-use this statuseffect instance
+						effect.ticks = effect.duration;
+						// remove the status effect from the character
+						State.variables.removeStatusEffect(enemyCharacter,effect);
+					}
+				}else{
+					// reverse the effect now that char is dead
 					effect.reverseEffect(enemyCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
@@ -929,20 +940,30 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	for(let playerChar of this.playerParty){
 		var playerCharacter = State.variables.characters[playerChar.id];
 			for(let effect of playerCharacter.statusEffects){
-				// process top of stateffects with variable effects per round
-				if(effect.id === "terror"){
-					// terror's effect will roll percentage, with 35% to skip this turn
-					if(effect.effect()){
-						playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
+				if(playerCharacter.living){
+					// process top of stateffects with variable effects per round
+					if(effect.id === "terror"){
+						// terror's effect will roll percentage, with 35% to skip this turn
+						if(effect.effect()){
+							playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
+						}
 					}
-				}
-				else if(effect.id === "regen"){
-					State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
-				}
-				
-				effect.tickDown();
-				if(effect.ticks <= 0){
-					// reverse the effect now that it is over
+					else if(effect.id === "regen"){
+						State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
+					}
+					
+					effect.tickDown();
+					if(effect.ticks <= 0){
+						// reverse the effect now that it is over
+						effect.reverseEffect(playerCharacter);	
+						// reset the ticks count to duration in case we
+						// want to re-use this statuseffect instance
+						effect.ticks = effect.duration;
+						// remove the status effect from the character
+						State.variables.removeStatusEffect(playerCharacter,effect);
+					}
+				}else{
+					// reverse the effect now that character is dead
 					effect.reverseEffect(playerCharacter);	
 					// reset the ticks count to duration in case we
 					// want to re-use this statuseffect instance
@@ -1520,7 +1541,7 @@ function init(){
 	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
 	pierceIncarnation.cost = {"hp":10};
 	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
-		return sourceChar.stats["atk"];		
+		return sourceChar.stats["atk"]*2+Math.random()*10;		
 	}
 	pierceIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -1662,7 +1683,7 @@ function init(){
 	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
 	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
-		return 4*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
+		return 2*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
 	}
 	maenadFrenzyIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -2308,7 +2329,7 @@ function init(){
 			// healed based on the wielder's pwr and how much the wielder likes the target
 			var likeFactor = targetChar.affinities[sourceChar.id];
 			if(likeFactor !== undefined){
-				return 1.5*(sourceChar.stats["pwr"]+targetChar.affinities[sourceChar.id]);
+				return 1.5*(sourceChar.stats["pwr"]+likeFactor);
 			}else{
 				return 1.5*sourceChar.stats["pwr"];
 			}
@@ -2333,7 +2354,12 @@ function init(){
 		griefHowlIncarnation.cost = {"mp":30};
 		griefHowlIncarnation.calcDmg = function(sourceChar,targetChar){
 			// healed for maxHP/2 plus how much the wielder likes the target
-			return targetChar.stats["maxHP"]/2+targetChar.affinities[sourceChar.id];
+			var likeFactor = targetChar.affinities[sourceChar.id];
+			if(likeFactor !== undefined){
+				return targetChar.stats["maxHP"]/2+likeFactor;
+			}else{
+				return targetChar.stats["maxHP"]/2;
+			}
 		}
 		griefHowlIncarnation.effect = function(sourceChar,targetChar){
 			// remove dead status and heal for calcDmg()
@@ -2525,8 +2551,7 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///
-</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
@@ -3882,19 +3907,395 @@ var monster_party = [characters[&quot;puck&quot;]];
 State.variables.combatArena = new State.variables.Combat(State.variables.party,monster_party,passage())
 State.variables.combatArena.turnOwner = &quot;player&quot;
 &lt;&lt;/script&gt;&gt;
-&lt;&lt;goto [[Combat]]&gt;&gt;</tw-passagedata><tw-passagedata pid="67" name="Demo_Postproc" tags="demo dev" position="1451,633" size="100,100">Thanks so much for playing the demo!  It&#39;s been fun, but it&#39;s over for now; please feel free to close the window/tab.</tw-passagedata><tw-passagedata pid="68" name="Bush_Warren_Council_Postproc_Splinter" tags="conversation" position="148,1811" size="100,100">Ingrid nods her acceptance of your choice.  She begins stepping back into the fold, then pauses and returns to the table, sighing resignedly.  &quot;We also have a few Splinters of Entity that you could learn Incarnation from in a snap.&quot;  Her whiskers droop and her eyes go misty as she explains, &quot;Splinters grow over the place a Lumpkin died.  The phenomenon only occurs rarely, and only when said Lumpkin died while channeling Incarnation.  Even then, it takes about a century to grow large enough to be useful and its power only lasts a decade or so after that.  Lumpkins with a similar Entity can use them for a boost of power in a pinch, or Humans can learn them permanently.  I will allow you to devour all that remains of one of our well-liked but not really beloved ancestors, and no more.  Choose carefully!&quot;
-	&lt;&lt;link [[&quot;Take the Splinter of Serpentarius&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a vile cobra whose venom cut short a thousand thousand warriors&#39; lives before they managed to end his bid for absolute conquest of Fuzziolump.
+&lt;&lt;goto [[Combat]]&gt;&gt;</tw-passagedata><tw-passagedata pid="67" name="Demo_Postproc" tags="demo dev" position="1451,633" size="100,100">/*Thanks so much for playing the demo!  It&#39;s been fun, but it&#39;s over for now; please feel free to close the window/tab.*/
+&lt;style&gt;
+      body{
+			margin:0;
+			overflow: hidden;
+			font-size:0;
+		}
+		canvas{
+			background: black;
+			width: 100vw;
+			height: 100vh;
+		}
+		input{
+			width: 250px;
+			height: 40px;
+			line-height: 40px;
+			position: absolute;
+			bottom: 35px;
+			left: calc(50% - 125px);
+			background: none;
+			color: white;
+			font-size: 30px;
+			font-family: arial;
+			text-align: center;
+			border: 1px solid white;
+			background: rgba(255,255,255,0.2);
+		}
+p{
+  position: fixed;
+  left: 0;
+  bottom:5px;
+  color: #fff;
+  z-index:10;
+  font-size:16px;
+  font-family: Helvetica, Verdana, sans-serif;
+  opacity:0.5;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
+    &lt;/style&gt;
+
+  &lt;&lt;script&gt;&gt;
+  window.console = window.console || function(t) {};
+&lt;&lt;/script&gt;&gt;
+
+  
+  
+  &lt;&lt;script&gt;&gt;
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage(&quot;resize&quot;, &quot;*&quot;);
+  }
+&lt;&lt;/script&gt;&gt;
+
+  &lt;!-- Edit the text with whatever you want :) --&gt; 
+&lt;!-- Works with emojis too ! --&gt;
+&lt;canvas id=&quot;scene&quot;&gt;&lt;/canvas&gt;
+	
+
+  
+  
+
+    &lt;&lt;script&gt;&gt;
+      /*
+Goal: to combine the fireworks effect and the text-&gt;particles effect to have a starscape for a few seconds w/ fireworks going on followed by the stars drifting together to form the text (with fireworks still going off)
+*/
+
+	var c = document.querySelector(&quot;#scene&quot;),
+		ctx = c.getContext(&#39;2d&#39;),
+		width = c.width = window.innerWidth,
+		height = c.height = window.innerHeight,
+
+		n_stars = 150, 
+		stars = [], 
+		twinkleFactor = .4, 
+		maxStarRadius = 3,
+
+		fw1, fw2, 
+		minStrength = 1.5, 
+		maxStrength = 7, 
+		minTrails = 7, 
+		maxTrails = 30, 
+		particleRadius = 2,
+		trailLength = 15, 
+		delay = .5, 
+
+		LIFE = 150, 
+
+		g = 5e-2, 
+		D = 1e-3; 
+
+	
+	var FireworkParticle = function FireworkParticle(x, y, vx, vy, ax, ay, colour) {
+		this.x = x;
+		this.y = y;
+		this.vx = vx;
+		this.vy = vy;
+		this.ax = ax;
+		this.ay = ay;
+		this.life = LIFE; 
+		this.path = [];
+		this.colour = colour;
+		this.r = particleRadius;
+
+		this.update = function() {
+			this.life--;
+
+			
+			if (this.path.length &gt;= trailLength) this.path.shift();
+			this.path.push([this.x, this.y])
+
+			
+			this.vy += this.ay;
+			this.vx += this.ax;
+			this.x += this.vx;
+			this.y += this.vy;
+		}
+
+		this.draw = function() {
+			var opacity = ~~(this.life * 100 / LIFE) / 100;
+
+			   
+			ctx.fillStyle = &#39;rgba(&#39; + this.colour + (opacity * 0.4) + &#39;)&#39;;
+			if (this.life &gt; LIFE * 0.95) ctx.fillStyle = &#39;#fff&#39;;
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(this.x - this.r, this.y);
+			var i = this.path.length - 1;
+			ctx.lineTo(this.path[0][0], this.path[0][1]);
+			ctx.lineTo(this.x + this.r, this.y);
+			ctx.closePath();
+			ctx.fill();
+
+			
+			ctx.fillStyle = &#39;rgba(&#39; + this.colour + opacity + &#39;)&#39;;
+			if (this.life &gt; LIFE * 0.95) ctx.fillStyle = &#39;#fff&#39;;
+			ctx.beginPath();
+			ctx.arc(~~this.x, ~~this.y, this.r, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.closePath();
+		}
+	}
+
+	
+	var Firework = function() {
+		this.x = width * (Math.random() * 0.8 + 0.1); 
+		this.y = height * (Math.random() * 0.8 + 0.1); 
+		this.strength = Math.random() * (maxStrength - minStrength) + minStrength;
+		this.colour = ~~(Math.random() * 255) + &#39;,&#39; +
+			~~(Math.random() * 255) + &#39;,&#39; +
+			~~(Math.random() * 255) + &#39;,&#39;;
+		this.life = 0;
+		this.fireworkParticles = (function(x, y, strength, colour) {
+			var p = [];
+
+			var n = ~~(Math.random() * (maxTrails - minTrails)) + minTrails;
+			var ay = g;
+			for (var i = n; i--;) {
+				var ax = D;
+				var angle = i * Math.PI * 2 / n;
+				if (angle &lt; Math.PI) ax *= -1;
+				var vx = strength * Math.sin(angle);
+				var vy = strength * Math.cos(angle);
+				p.push(new FireworkParticle(x, y, vx, vy, ax, ay, colour));
+			}
+
+			return p;
+		})(this.x, this.y, this.strength, this.colour);
+
+		this.update = function() {
+			this.life++;
+			if (this.life &lt; 0) return; 
+			for (var i = this.fireworkParticles.length; i--;) {
+				this.fireworkParticles[i].update();
+				this.fireworkParticles[i].draw();
+				
+			}
+		}
+	};
+
+	var Star = function() {
+		this.x = Math.random() * width;
+		this.y = Math.random() * height;
+		this.r = Math.random() * maxStarRadius;
+		this.b = ~~(Math.random() * 100) / 100;
+	}
+
+	Star.prototype.draw = function() {
+		this.b += twinkleFactor * (Math.random() - .5);
+		ctx.fillStyle = &#39;rgba(255,255,255,&#39; + this.b + &#39;)&#39;;
+		ctx.beginPath();
+		ctx.arc(~~this.x, ~~this.y, this.r, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.closePath();
+	}
+
+	function createStars() {
+		for (var i = n_stars; i--;) stars.push(new Star);
+	}
+	
+	/*text effect*/
+	var canvas = document.querySelector(&quot;#scene&quot;),
+		ctx = canvas.getContext(&quot;2d&quot;),
+		particles = [],
+		amount = 0,
+		radius = 1;
+
+	var colors = [&quot;#468966&quot;,&quot;#FFF0A5&quot;, &quot;#FFB03B&quot;,&quot;#B64926&quot;, &quot;#8E2800&quot;];
+
+	
+
+	var ww = canvas.width = window.innerWidth;
+	var wh = canvas.height = window.innerHeight;
+
+	function Particle(x,y){
+		this.x =  Math.random()*ww;
+		this.y =  Math.random()*wh;
+		this.dest = {
+			x : x,
+			y: y
+		};
+		this.r =  Math.random()*5 + 2;
+		this.vx = (Math.random()-0.5)*20;
+		this.vy = (Math.random()-0.5)*20;
+		this.accX = 0;
+		this.accY = 0;
+		this.friction = Math.random()*0.05 + 0.94;
+
+		this.color = colors[Math.floor(Math.random()*6)];
+	}
+
+	Particle.prototype.render = function() {
+    
+
+		this.accX = (this.dest.x - this.x)/1000;
+		this.accY = (this.dest.y - this.y)/1000;
+		this.vx += this.accX;
+		this.vy += this.accY;
+		this.vx *= this.friction;
+		this.vy *= this.friction;
+
+		this.x += this.vx;
+		this.y +=  this.vy;
+
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r, Math.PI * 2, false);
+		ctx.fill();
+
+		var a = this.x;
+		var b = this.y;
+
+		var distance = Math.sqrt( a*a + b*b );
+		if(distance&lt;(radius*70)){
+			this.accX = (this.x)/100;
+			this.accY = (this.y)/100;
+			this.vx += this.accX;
+			this.vy += this.accY;
+		}
+
+	}
+
+
+	function initScene(){
+		ww = canvas.width = window.innerWidth;
+		wh = canvas.height = window.innerHeight;
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		ctx.font = &quot;bold &quot;+(ww/10)+&quot;px sans-serif&quot;;
+		ctx.textAlign = &quot;center&quot;;
+		ctx.fillText(&quot;test line one&quot;, ww/2, wh/2); 
+    	ctx.fillText(&quot;test line two&quot;, ww/2, (wh/2)+150); 
+    
+
+		var data  = ctx.getImageData(0, 0, ww, wh).data;
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.globalCompositeOperation = &quot;screen&quot;;
+
+		particles = [];
+    
+		for(var i=0;i&lt;ww;i+=Math.round(ww/150)){
+			for(var j=0;j&lt;wh;j+=Math.round(ww/150)){
+        
+				if(data[ ((i + j*ww)*4) + 3] &gt; 150){
+					particles.push(new Particle(i,j));
+				}
+			}
+		}
+		amount = particles.length;
+
+	}
+
+  
+
+  /*
+  Fills text on the canvas and automatically sizes the font so that it will fit
+  */
+  function fitTextOnCanvas(canvas,text,fontface,x,y){    
+
+      
+      var fontsize=300;
+      var context=canvas.getContext(&quot;2d&quot;);
+
+      
+      do{
+          fontsize--;
+          context.font=fontsize+&quot;px &quot;+fontface;
+      }while(context.measureText(text).width&gt;canvas.width)
+
+      
+      context.fillText(text,x,y);
+
+      console.log(&quot;A fontsize of &quot;+fontsize+&quot;px fits this text on the canvas&quot;);
+
+  }
+
+  /*
+  Fills text on the canvas adds a line break if it is too wide
+  */
+  function fitTextOnCanvasMultiline(canvas,text,fontface,x,y){    
+      var context=canvas.getContext(&quot;2d&quot;);
+
+      
+      if(context.measureText(text).width&gt;canvas.width){
+          
+        context.fillText(text.substring(0,Math.floor(text.length/2)),x,y);
+          
+        context.fillText(text.substring(Math.floor(text.length/2),text.length),x,y+context.measureText(text).height);
+      }else{
+        
+        context.fillText(text,x,y);
+      }
+  }
+
+	function render(a) {
+		
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for (var i = 0; i &lt; amount; i++) {
+			particles[i].render();
+		}
+	};
+
+	
+	initScene();
+	
+
+function main() {
+  
+    
+    render();
+  
+		ctx.fillStyle = &#39;#000&#39;;
+		ctx.fillRect(0, 0, width, height);
+
+		for (var i = n_stars; i--;) stars[i].draw();
+
+		fw1.update();
+		fw2.update();
+
+		if (fw1.life == LIFE * delay) fw2 = new Firework;
+		if (fw2.life == LIFE * delay) fw1 = new Firework;
+
+		window.requestAnimationFrame(main);
+	}
+
+	function init() {
+		fw1 = new Firework;
+		fw2 = new Firework;
+		fw2.life = -LIFE * delay;
+		createStars();
+		main();
+	}
+
+	init();
+      
+    &lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="68" name="Bush_Warren_Council_Postproc_Splinter" tags="conversation" position="148,1811" size="100,100">Ingrid nods her acceptance of your choice.  She begins stepping back into the fold, then pauses and returns to the table, sighing resignedly.  &quot;We also have a few Splinters of Entity that you could learn Incarnation from in a snap.&quot;  Her whiskers droop and her eyes go misty as she explains, &quot;Splinters grow over the place a Lumpkin died.  The phenomenon only occurs rarely, and only when said Lumpkin died while channeling Incarnation.  Even then, it takes about a century to grow large enough to be useful and its power only lasts a decade or so after that.  Lumpkins with a similar Entity can use them for a boost of power in a pinch, or Humans can learn them permanently.  I will allow you to devour all that remains of one of our well-liked but not really beloved ancestors, and no more.  Choose carefully!&quot;
+	&lt;&lt;link [[&quot;Take the Splinter of Serpentarius&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;debilitate&quot;] = $incarnationsDict[&quot;debilitate&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;pierce&quot;] = $incarnationsDict[&quot;pierce&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;toxin&quot;] = $incarnationsDict[&quot;toxin&quot;]&gt;&gt;
-	&lt;&lt;/link&gt;&gt;
-	&lt;&lt;link [[&quot;Take the Splinter of Violet&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a lovely young mink who only truly lived in her final hours when she discovered true solitude, bathed in shadow and cold beneath the cave-in that slowly smothered her.
+	&lt;&lt;/link&gt;&gt;, a vile cobra whose venom cut short a thousand thousand warriors&#39; lives before they managed to end his bid for absolute conquest of Fuzziolump.
+	&lt;&lt;link [[&quot;Take the Splinter of Violet&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;
 	&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;shadowform&quot;] = $incarnationsDict[&quot;shadowform&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;perfect_stillness&quot;] = $incarnationsDict[&quot;perfect_stillness&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;savage_sympathy&quot;] = $incarnationsDict[&quot;savage_sympathy&quot;]&gt;&gt;
-	&lt;&lt;/link&gt;&gt;
-	&lt;&lt;link [[&quot;Take the Splinter of Snugg-lor&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;, a guinea pig priest of pleasure and passion who, during a particularly rowdy drinking game, literally burst with joy.
+	&lt;&lt;/link&gt;&gt;, a lovely young mink who only truly lived in her final hours when she discovered true solitude, bathed in shadow and cold beneath the cave-in that slowly smothered her.
+	&lt;&lt;link [[&quot;Take the Splinter of Snugg-lor&quot;-&gt;Bush_Warren_Council_Exit]]&gt;&gt;
 	&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;warmest_hug&quot;] = $incarnationsDict[&quot;warmest_hug&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;wooly_shield&quot;] = $incarnationsDict[&quot;woolly_shield&quot;]&gt;&gt;
 		&lt;&lt;run $characters[&quot;player&quot;].incarnations[&quot;maenad_frenzy&quot;] = $incarnationsDict[&quot;maenad_frenzy&quot;]&gt;&gt;
-	&lt;&lt;/link&gt;&gt;</tw-passagedata></tw-storydata>
+	&lt;&lt;/link&gt;&gt;, a guinea pig priest of pleasure and passion who, during a particularly rowdy drinking game, literally burst with joy.</tw-passagedata></tw-storydata>

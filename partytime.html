@@ -1,0 +1,430 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" type="image/x-icon" href="https://static.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+  <link rel="mask-icon" type="" href="https://static.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" />
+  <title>CodePen - A Message in the Stars</title>
+  
+  
+  
+  
+      <style>
+      body{
+			margin:0;
+			overflow: hidden;
+			font-size:0;
+		}
+		canvas{
+			background: black;
+			width: 100vw;
+			height: 100vh;
+		}
+		input{
+			width: 250px;
+			height: 40px;
+			line-height: 40px;
+			position: absolute;
+			bottom: 35px;
+			left: calc(50% - 125px);
+			background: none;
+			color: white;
+			font-size: 30px;
+			font-family: arial;
+			text-align: center;
+			border: 1px solid white;
+			background: rgba(255,255,255,0.2);
+		}
+p{
+  position: fixed;
+  left: 0;
+  bottom:5px;
+  color: #fff;
+  z-index:10;
+  font-size:16px;
+  font-family: Helvetica, Verdana, sans-serif;
+  opacity:0.5;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
+    </style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+</head>
+
+<body translate="no" >
+
+  <!-- Edit the text with whatever you want :) --> 
+<!-- Works with emojis too ! -->
+<canvas id="scene"></canvas>
+	
+
+  
+  
+
+    <script >
+      /**
+Goal: to combine the fireworks effect and the text->particles effect to have a starscape for a few seconds w/ fireworks going on followed by the stars drifting together to form the text (with fireworks still going off)
+*/
+
+/// begin fireworks effect, taken from https://www.html5canvastutorials.com/advanced/html5-canvas-fireworks-effect/ ///
+
+	// VARIABLEZ
+	// play with them
+	var c = document.querySelector("#scene"),
+		ctx = c.getContext('2d'),
+		width = c.width = window.innerWidth,
+		height = c.height = window.innerHeight,
+
+		n_stars = 150, //num of stars
+		stars = [], //array to store generated stars
+		twinkleFactor = .4, //how much stars 'twinkle'
+		maxStarRadius = 3,
+
+		fw1, fw2, //firework objects
+		minStrength = 1.5, //lowest firework power
+		maxStrength = 7, //highest firework power
+		minTrails = 7, //min particles
+		maxTrails = 30, //max particles
+		particleRadius = 2,
+		trailLength = 15, //particle trail length
+		delay = .5, // number of LIFEs between explosions
+
+		LIFE = 150, //life time of firework
+
+		g = 5e-2, //strength of gravity
+		D = 1e-3; //strength of drag (air resistance)
+
+	// FireworkParticle Class
+	var FireworkParticle = function FireworkParticle(x, y, vx, vy, ax, ay, colour) {
+		this.x = x;
+		this.y = y;
+		this.vx = vx;
+		this.vy = vy;
+		this.ax = ax;
+		this.ay = ay;
+		this.life = LIFE; //only here for opacity in .draw() method
+		this.path = [];
+		this.colour = colour;
+		this.r = particleRadius;
+
+		this.update = function() {
+			this.life--;
+
+			// add point to path but if full, remove a point first
+			if (this.path.length >= trailLength) this.path.shift();
+			this.path.push([this.x, this.y])
+
+			// update speed n position n stuff
+			this.vy += this.ay;
+			this.vx += this.ax;
+			this.x += this.vx;
+			this.y += this.vy;
+		}
+
+		this.draw = function() {
+			var opacity = ~~(this.life * 100 / LIFE) / 100;
+
+			// tail      
+			ctx.fillStyle = 'rgba(' + this.colour + (opacity * 0.4) + ')';
+			if (this.life > LIFE * 0.95) ctx.fillStyle = '#fff';
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(this.x - this.r, this.y);
+			var i = this.path.length - 1;
+			ctx.lineTo(this.path[0][0], this.path[0][1]);
+			ctx.lineTo(this.x + this.r, this.y);
+			ctx.closePath();
+			ctx.fill();
+
+			// main dot
+			ctx.fillStyle = 'rgba(' + this.colour + opacity + ')';
+			if (this.life > LIFE * 0.95) ctx.fillStyle = '#fff';
+			ctx.beginPath();
+			ctx.arc(~~this.x, ~~this.y, this.r, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.closePath();
+		}
+	}
+
+	// Firework class
+	var Firework = function() {
+		this.x = width * (Math.random() * 0.8 + 0.1); // from 0.1-0.9 widths
+		this.y = height * (Math.random() * 0.8 + 0.1); // from 0.1-0.9 heights
+		this.strength = Math.random() * (maxStrength - minStrength) + minStrength;
+    // the double bitwise NOT is a cheap way to get (in this case) the same effect as Math.floor()
+		this.colour = ~~(Math.random() * 255) + ',' +
+			~~(Math.random() * 255) + ',' +
+			~~(Math.random() * 255) + ',';
+		this.life = 0;
+    // iife: immediately invoked function expression -- it runs as soon as it is created
+		this.fireworkParticles = (function(x, y, strength, colour) {
+			var p = [];
+
+			var n = ~~(Math.random() * (maxTrails - minTrails)) + minTrails;
+			var ay = g;
+			for (var i = n; i--;) {
+				var ax = D;
+				var angle = i * Math.PI * 2 / n;
+				if (angle < Math.PI) ax *= -1;
+				var vx = strength * Math.sin(angle);
+				var vy = strength * Math.cos(angle);
+				p.push(new FireworkParticle(x, y, vx, vy, ax, ay, colour));
+			}
+
+			return p;
+		})(this.x, this.y, this.strength, this.colour);
+
+		this.update = function() {
+			this.life++;
+			if (this.life < 0) return; //allows life to be delayed
+			for (var i = this.fireworkParticles.length; i--;) {
+				this.fireworkParticles[i].update();
+				this.fireworkParticles[i].draw();
+				//wasn't bothered to make an extra draw function for firework class
+			}
+		}
+	};// end Firework class
+
+	var Star = function() {
+		this.x = Math.random() * width;
+		this.y = Math.random() * height;
+		this.r = Math.random() * maxStarRadius;
+		this.b = ~~(Math.random() * 100) / 100;
+	}
+
+	Star.prototype.draw = function() {
+		this.b += twinkleFactor * (Math.random() - .5);
+		ctx.fillStyle = 'rgba(255,255,255,' + this.b + ')';
+		ctx.beginPath();
+		ctx.arc(~~this.x, ~~this.y, this.r, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.closePath();
+	}
+
+	function createStars() {
+		for (var i = n_stars; i--;) stars.push(new Star);
+	}
+
+	
+
+/// end fireworks effect, taken from https://www.html5canvastutorials.com/advanced/html5-canvas-fireworks-effect////
+
+
+	var canvas = document.querySelector("#scene"),
+		ctx = canvas.getContext("2d"),
+		particles = [],
+		amount = 0,
+		radius = 1;
+
+	var colors = ["#468966","#FFF0A5", "#FFB03B","#B64926", "#8E2800"];
+
+	
+
+	var ww = canvas.width = window.innerWidth;
+	var wh = canvas.height = window.innerHeight;
+
+	function Particle(x,y){
+		this.x =  Math.random()*ww;
+		this.y =  Math.random()*wh;
+		this.dest = {
+			x : x,
+			y: y
+		};
+		this.r =  Math.random()*5 + 2;
+		this.vx = (Math.random()-0.5)*20;
+		this.vy = (Math.random()-0.5)*20;
+		this.accX = 0;
+		this.accY = 0;
+		this.friction = Math.random()*0.05 + 0.94;
+
+		this.color = colors[Math.floor(Math.random()*6)];
+	}
+
+	Particle.prototype.render = function() {
+    // todo: long text renders off the window
+
+		this.accX = (this.dest.x - this.x)/1000;
+		this.accY = (this.dest.y - this.y)/1000;
+		this.vx += this.accX;
+		this.vy += this.accY;
+		this.vx *= this.friction;
+		this.vy *= this.friction;
+
+		this.x += this.vx;
+		this.y +=  this.vy;
+
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r, Math.PI * 2, false);
+		ctx.fill();
+
+		var a = this.x;
+		var b = this.y;
+
+		var distance = Math.sqrt( a*a + b*b );
+		if(distance<(radius*70)){
+			this.accX = (this.x)/100;
+			this.accY = (this.y)/100;
+			this.vx += this.accX;
+			this.vy += this.accY;
+		}
+
+	}
+
+
+	function initScene(){
+		ww = canvas.width = window.innerWidth;
+		wh = canvas.height = window.innerHeight;
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		ctx.font = "bold "+(ww/10)+"px sans-serif";
+		ctx.textAlign = "center";
+		ctx.fillText("test line one", ww/2, wh/2); // runs off the screen
+    ctx.fillText("test line two", ww/2, (wh/2)+150); // runs off the screen
+    //fitTextOnCanvas(canvas,copy.value,"arial", ww/2, wh/2); // illegible, for some reason -- the text particle effect seems hardcoded somewhere for the original config
+    // todo: can't see second line
+    // todo: should break line at whitespace to avoid fragmenting words
+    //fitTextOnCanvasMultiline(canvas,copy.value,"arial", ww/2, wh/2); // the starting position also seems hardcoded in somewhere/how, as setting height to 0 for max vertical line space breaks everything
+
+		var data  = ctx.getImageData(0, 0, ww, wh).data;
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.globalCompositeOperation = "screen";
+
+		particles = [];
+    // the value given in the denominator here modifies the spacing between particles making up the text
+    // -- smaller denominator means that i,j (X,Y coordinates of the particle) will be closer to the entire
+    // window width pixels apart, and higher values means they will be closer to 1 pixel apart.
+    // The single dimension window width is used to keep the spacing uniform on horizontal and vertical axes.
+		for(var i=0;i<ww;i+=Math.round(ww/150)){
+			for(var j=0;j<wh;j+=Math.round(ww/150)){
+        // finding the current pixel index in the whole matrix
+        // why * 4 and + 3? Mucking with the coefficient seems to
+        // almost produce a zoom/diffusion effect, but not clearly.  The
+        // offset constant leads to nothing being visible unless 3 is used.
+        //UPDATE: coefficient 4 to account for 4 channels RGBA per pixel.
+        // Plus 3 maybe to take you to the B channel of the pixel?
+        // I don't think so, since 1 and 2 both show nothing. Also,
+        // since the array is 0-indexed, I think +3 would take you to the Alpha channel.
+				if(data[ ((i + j*ww)*4) + 3] > 150){
+					particles.push(new Particle(i,j));
+				}
+			}
+		}
+		amount = particles.length;
+
+	}
+
+  
+
+  /**
+  Fills text on the canvas and automatically sizes the font so that it will fit
+  */
+  function fitTextOnCanvas(canvas,text,fontface,x,y){    
+
+      // start with a large font size
+      var fontsize=300;
+      var context=canvas.getContext("2d");
+
+      // lower the font size until the text fits the canvas
+      do{
+          fontsize--;
+          context.font=fontsize+"px "+fontface;
+      }while(context.measureText(text).width>canvas.width)
+
+      // draw the text
+      context.fillText(text,x,y);
+
+      console.log("A fontsize of "+fontsize+"px fits this text on the canvas");
+
+  }
+
+  /**
+  Fills text on the canvas adds a line break if it is too wide
+  */
+  function fitTextOnCanvasMultiline(canvas,text,fontface,x,y){    
+      var context=canvas.getContext("2d");
+
+      // lower the font size until the text fits the canvas
+      if(context.measureText(text).width>canvas.width){
+        // draw the first half of the text on one line  
+        context.fillText(text.substring(0,Math.floor(text.length/2)),x,y);
+        // draw the second half of the text on next line  
+        context.fillText(text.substring(Math.floor(text.length/2),text.length),x,y+context.measureText(text).height);
+      }else{
+        // draw the text
+        context.fillText(text,x,y);
+      }
+  }
+
+	function render(a) {
+		//requestAnimationFrame(render);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for (var i = 0; i < amount; i++) {
+			particles[i].render();
+		}
+	};
+
+	
+	initScene();
+	//requestAnimationFrame(render);
+
+function main() {
+  
+    // load the text particles
+    render();
+  
+		ctx.fillStyle = '#000';
+		ctx.fillRect(0, 0, width, height);
+
+		for (var i = n_stars; i--;) stars[i].draw();
+
+		fw1.update();
+		fw2.update();
+
+		if (fw1.life == LIFE * delay) fw2 = new Firework;
+		if (fw2.life == LIFE * delay) fw1 = new Firework;
+
+		window.requestAnimationFrame(main);
+	}
+
+	function init() {
+		fw1 = new Firework;
+		fw2 = new Firework;
+		fw2.life = -LIFE * delay;
+		createStars();
+		main();
+	}
+
+	init();
+      //# sourceURL=pen.js
+    </script>
+
+
+
+  
+  
+
+  <script src="https://static.codepen.io/assets/editor/live/css_reload-2a5c7ad0fe826f66e054c6020c99c1e1c63210256b6ba07eb41d7a4cb0d0adab.js"></script>
+</body>
+
+</html>
+ 
+
