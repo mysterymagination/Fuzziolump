@@ -1524,6 +1524,32 @@ function init(){
 		return "A manic gleam shines in "+sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.  "+this.dmg+" damage is dealt around the world's unhappiest hug.";	
 	} 
 	
+	/// begin for debug only ///
+	/**
+	TODO: for debug only -- critToTheDick kills the enemy immediately
+	*/
+	/*
+	var critToDickIncarnation = new State.variables.Incarnation("crit_dick","Crit to the Dick");
+	critToDickIncarnation.targetType = critToDickIncarnation.TargetTypesEnum.singleEnemy;
+	critToDickIncarnation.cost = {"mp":0};
+	critToDickIncarnation.calcDmg = function(sourceChar,targetChar){
+		return targetChar.stats.hp;		
+	}
+	critToDickIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	critToDickIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" says 'f&*k it' and puts a foot directly between "+targetChar.name+"'s legs with the force of a thousand thousand folk who have had just about enough of this sh!t.";	
+	} 
+	State.variables.characters["player"].incarnations["crit_dick"] = critToDickIncarnation;
+	State.variables.characters["player"].stats.hp = 1;
+	*/
+	/// end for debug only ///
+	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
 	puckChar.attributes["strength"] = 4;
@@ -1532,7 +1558,7 @@ function init(){
 	puckChar.attributes["intelligence"] = 22;
 	puckChar.attributes["wisdom"] = 6;
 	puckChar.attributes["charisma"] = 20;
-	puckChar.stats["hp"] = 150;
+	puckChar.stats["hp"] = 200;
 	puckChar.stats["mp"] = Infinity;
 	puckChar.stats["maxHP"] = 150;
 	puckChar.stats["maxMP"] = Infinity;

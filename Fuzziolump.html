@@ -177,6 +177,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -1697,6 +1698,32 @@ function init(){
 		return "A manic gleam shines in "+sourceChar.name+"'s eyes as they reflect the brilliant light of the lunatic moon suddenly huge in the sky above.  "+sourceChar.getPronoun_nom()+" embraces "+targetChar.name+" with a violent longing, pleasure driven through to pain before the fires of wild need.  "+targetChar.getPronoun_nom()+" wriggles and tries to escape as "+sourceChar.name+" squeezes "+targetChar.getPronoun_obj()+", but there is no way out.  The embrace tightens and the whipcrack of snapping bone makes the night itself cower.  "+this.dmg+" damage is dealt around the world's unhappiest hug.";	
 	} 
 	
+	/// begin for debug only ///
+	/**
+	TODO: for debug only -- critToTheDick kills the enemy immediately
+	*/
+	/*
+	var critToDickIncarnation = new State.variables.Incarnation("crit_dick","Crit to the Dick");
+	critToDickIncarnation.targetType = critToDickIncarnation.TargetTypesEnum.singleEnemy;
+	critToDickIncarnation.cost = {"mp":0};
+	critToDickIncarnation.calcDmg = function(sourceChar,targetChar){
+		return targetChar.stats.hp;		
+	}
+	critToDickIncarnation.effect = function(sourceChar,targetChar){
+		this.dmg = this.calcDmg(sourceChar,targetChar);
+		targetChar.stats["hp"] -= this.dmg;
+		
+		// MP cost
+		this.processCost(sourceChar);
+	}
+	critToDickIncarnation.generateFlavorText = function(sourceChar,targetChar){
+		return sourceChar.name+" says 'f&*k it' and puts a foot directly between "+targetChar.name+"'s legs with the force of a thousand thousand folk who have had just about enough of this sh!t.";	
+	} 
+	State.variables.characters["player"].incarnations["crit_dick"] = critToDickIncarnation;
+	State.variables.characters["player"].stats.hp = 1;
+	*/
+	/// end for debug only ///
+	
 	var puckChar = State.variables.characters["puck"];
 	puckChar.gender = "male";
 	puckChar.attributes["strength"] = 4;
@@ -1705,7 +1732,7 @@ function init(){
 	puckChar.attributes["intelligence"] = 22;
 	puckChar.attributes["wisdom"] = 6;
 	puckChar.attributes["charisma"] = 20;
-	puckChar.stats["hp"] = 150;
+	puckChar.stats["hp"] = 200;
 	puckChar.stats["mp"] = Infinity;
 	puckChar.stats["maxHP"] = 150;
 	puckChar.stats["maxMP"] = Infinity;
@@ -3817,7 +3844,8 @@ $combatArena.combatLogContent
 	&lt;&lt;/if&gt;&gt;
   &lt;&lt;/link&gt;&gt;
 &lt;&lt;elseif $combatArena.turnGroup is &quot;system&quot;&gt;&gt;
-	&lt;&lt;link [[&quot;Continue the adventure...&quot;-&gt;Demo_Postproc]]&gt;&gt;&lt;&lt;/link&gt;&gt;
+	/*&lt;&lt;link [[&quot;Continue the adventure...&quot;-&gt;Demo_Postproc]]&gt;&gt;&lt;&lt;/link&gt;&gt;*/
+	&lt;a href=&quot;partytime.html&quot;&gt;Continue the adventure...&lt;/a&gt;
 &lt;&lt;/if&gt;&gt;
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="61" name="CombatWin" tags="dev" position="1460,324" size="100,100">You Win -- dragon thoroughly punched and sworded!</tw-passagedata><tw-passagedata pid="62" name="CombatLose" tags="dev" position="1460,451" size="100,100">You lose -- why were you fighting a dragon, anyway?</tw-passagedata><tw-passagedata pid="63" name="twine notes" tags="dev" position="1636,14" size="100,100">The following:
 &lt;replace &quot;#combatLog&quot;&gt;
@@ -3948,27 +3976,8 @@ p{
   margin: 0;
 }
     &lt;/style&gt;
-
-  &lt;&lt;script&gt;&gt;
-  window.console = window.console || function(t) {};
-&lt;&lt;/script&gt;&gt;
-
-  
-  
-  &lt;&lt;script&gt;&gt;
-  if (document.location.search.match(/type=embed/gi)) {
-    window.parent.postMessage(&quot;resize&quot;, &quot;*&quot;);
-  }
-&lt;&lt;/script&gt;&gt;
-
-  &lt;!-- Edit the text with whatever you want :) --&gt; 
-&lt;!-- Works with emojis too ! --&gt;
 &lt;canvas id=&quot;scene&quot;&gt;&lt;/canvas&gt;
 	
-
-  
-  
-
     &lt;&lt;script&gt;&gt;
       /*
 Goal: to combine the fireworks effect and the text-&gt;particles effect to have a starscape for a few seconds w/ fireworks going on followed by the stars drifting together to form the text (with fireworks still going off)
