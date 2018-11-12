@@ -180,6 +180,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -2582,6 +2583,7 @@ function init(){
 init();
 /// end init ///
 
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -3245,7 +3247,7 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 					/*todo: hmmm... she&#39;s a little psycho here.  Maybe have the default failure dialogue be a little toned down and more disappointed than, like, crazy?  On the other hand, &#39;rabid wombat&#39; was a great Magic card.*/
 					The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;Enough!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
-					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to.&quot;
+					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
 				&lt;&lt;/if&gt;&gt; /* end if player&#39;s wombuddy score is one of the segments that should be unwombatty*/
@@ -3256,10 +3258,10 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;script&gt;&gt;console.log(State.variables.characters[&quot;sheila&quot;].inductive_bias);&lt;&lt;/script&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
-					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need.&quot;
+					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need in the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
 					Sheila smoothes her fur repeatedly and unnecessarily as you grin charmingly at her.  Her eyes are shining, and you think you detect a hint of blush under the thinner spots of fur on her face.  &quot;Those answers were, um, interesting.  Not quite what we were hoping for, but definitely worth considering.&quot;  She squirms under your attention and looks determinedly at her footpaws.  &quot;Please c&#39;mon in, though.&quot;  Summoning what looks like considerable courage, she wrenches her gaze away from the ground and meets your own.  &quot;We&#39;d love to have you!&quot;  
-					As you pass by her, she pulls Nuvi aside and whispers, &quot;Keep an eye on the human, please.  They&#39;re pretty great and all, but you&#39;re their wombuddy escort.&quot;
+					As you pass by her, she pulls Nuvi aside and whispers, &quot;Keep an eye on the human, please.  They&#39;re pretty great and all, but you&#39;re their wombuddy escort while they&#39;re in the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
 				&lt;&lt;/if&gt;&gt;
@@ -3302,7 +3304,8 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 &lt;&lt;link [[&quot;I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;	
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
 	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_humble,$inductive_bias_lacks_confidence,$inductive_bias_knows_limitations])&gt;&gt;
-&lt;&lt;/link&gt;&gt;&quot;
+&lt;&lt;/link&gt;&gt;
+
 &lt;&lt;silently&gt;&gt;
 	Passionate and compassionate response, but potentially foolish
 	
@@ -3313,6 +3316,7 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
 	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_kind,$inductive_bias_reckless,$inductive_bias_heart_over_head])&gt;&gt;
 &lt;&lt;/link&gt;&gt;
+
 &lt;&lt;silently&gt;&gt;
 	The reasonable and cool-headed approach, best for wombats
 	
@@ -3369,6 +3373,7 @@ scenario about work ethic and community focus
 	Wombuddy +1
 	Inductive Bias: chill, lazy, crush
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
@@ -3383,6 +3388,7 @@ scenario about work ethic and community focus
 	Wombuddy +2
 	Inductive bias: friendly, pushy, hypersocial
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
@@ -3397,6 +3403,7 @@ scenario about work ethic and community focus
 	Wombuddy +5
 	Inductive bias: studious, ambitious
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 5&gt;&gt;

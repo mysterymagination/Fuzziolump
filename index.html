@@ -283,6 +283,9 @@ var saveAs=saveAs||navigator.msSaveBlob&&navigator.msSaveBlob.bind(navigator)||f
 
 
 
+
+
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -2684,6 +2687,9 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
+
+
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
@@ -2969,7 +2975,8 @@ Shimmerin gazes at their carefree play with a wistful expression, and looks away
 &quot;They don&#39;t usually go in for all that finery, but the bejeweled dryads have as curious a sense of style as [[their trees-&gt;Bejeweled_Pines]].&quot;</tw-passagedata><tw-passagedata pid="33" name="Faery_Friend" tags="party_mod character shimmerin" position="567,1089" size="100,100">/*
 This quest is entirely optional, and allows the player to add Shimmerin the faery to their party.  She will be useful in solving puzzles and in combat, but is not required.
 */
-Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="593,1404" size="100,100">&lt;&lt;silently&gt;&gt;
+Nuvi hovers patiently nearby as you dart off after the faery.  She&#39;s waiting for you on the far side of the tree, and as soon as she confirms you are following her she winks cheerily and disappears into the surrounding foliage.  She seems to want you to [[chase her-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]], but Nuvi is waiting [[back amongst the bejeweled pines-&gt;Bejeweled_Pines]].</tw-passagedata><tw-passagedata pid="34" name="Shimmerin_Chase_Ghostly_Greeting_Chamber" tags="shimmerin party_mod character quest room" position="593,1404" size="100,100">/* bad idea for demo.  Plus, apparently JS considers a number beyond the range it can represent to be Infinity or -Infinity, so the Infinity constant is not simply a value for which &gt; or == will never ever return true (y&#39;know like math would call for).  I&#39;ve seen in weird circumstances involving history backtracking (accidentally went past Shimmerin quest and backed up to it) the cold_count &gt;= cold_max_count, which is currently Infinity return true.  This basically means the demo can end early in pointless and confusing death... not good.
+&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -2978,7 +2985,7 @@ hypothermia processing
 &lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
 	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
 &lt;&lt;else&gt;&gt;
-
+*/
 &lt;&lt;if visited() == 1&gt;&gt;
 Crashing through the frosted pines as gracefully as possible for a fully grown human following a faery no larger than your little finger, you chase after the elusive sphere of lilac light.  Luckily, she&#39;s waiting just at the edge of the current clearing every time you make it through an obstacle blocking line of sight to her.  However, she has veered off in many different directions and you&#39;ve lost track of where you are relative to the Bejeweled Pines and Nuvi.
 &lt;&lt;else&gt;&gt;
@@ -3009,7 +3016,7 @@ The faery giggles and flits off through a [[close copse of pines to the East-&gt
 
 //todo: make the mole go CC when player is already in the room when it arrives.  Also make sure the mole&#39;s direction of burrowing is clear so that this doesn&#39;t turn into another Rilix Castle situation that can&#39;t be solved without already knowing the map.
 */
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
+/*&lt;&lt;/if&gt;&gt; end if hypothermia didn&#39;t kill player*/</tw-passagedata><tw-passagedata pid="35" name="test_party_array" tags="test dev" position="1468,1047" size="100,100">The starting party is: &lt;&lt;print $party&gt;&gt;, and after adding TestFriend 
 &lt;&lt;script&gt;&gt;
 State.variables.party.push(&quot;TestFriend&quot;);
 &lt;&lt;/script&gt;&gt;
@@ -3018,7 +3025,8 @@ it is &lt;&lt;print $party&gt;&gt;
 &lt;&lt;script&gt;&gt;
 variables().party[0].name = &quot;Testy McTestFace&quot;;
 alert(&quot;Player is &quot;+variables().party[0].name+&quot; whose CHA is &quot;+variables().party[0].attributes[&quot;charisma&quot;]);
-&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest room" position="728,1421" size="100,100">&lt;&lt;silently&gt;&gt;
+&lt;&lt;/script&gt;&gt;</tw-passagedata><tw-passagedata pid="36" name="Shimmerin_Chase_Frozen_Stair" tags="shimmerin party_mod character quest room" position="728,1421" size="100,100">/*
+&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -3027,7 +3035,7 @@ hypothermia processing
 &lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
 	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
 &lt;&lt;else&gt;&gt;
-
+*/
 &lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
@@ -3068,11 +3076,10 @@ You can see your fairy quarry&#39;s lilac glow disappearing down the stairs.
 		  A spray of dirt from the mole hole mars the otherwise pristine marble tile.
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;
-
-
 [[You can climb (carefully!) the frozen steps down Southwest into the little vale.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up a little curving path [[Northwest you can just make out oddly cultivated-looking shards of colorful crystal.-&gt;Shimmerin_Chase_Crystal_Gardens]]  Through a close copse of snowy pines to the [[West you can see hints of fallen grandeur.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]
 
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest room" position="581,1598" size="100,100">&lt;&lt;silently&gt;&gt;
+/*&lt;&lt;/if&gt;&gt; hypothermia*/</tw-passagedata><tw-passagedata pid="37" name="Shimmerin_Chase_Diamond_Throneroom" tags="shimmerin party_mod character quest room" position="581,1598" size="100,100">/*
+&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -3081,7 +3088,7 @@ hypothermia processing
 &lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
 	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
 &lt;&lt;else&gt;&gt;
-
+*/
 &lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
@@ -3126,7 +3133,8 @@ A distant lilac glow flickers with a cadence quite like giggling laughter as it 
 [[The stairs lead up Northeast and away from the lonely throne-&gt;Shimmerin_Chase_Frozen_Stair]]
 [[Directly North, hanging over the ancient little throne, is the fraying end of a sturdy rope-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]] 
 
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod room" position="422,1426" size="100,100">&lt;&lt;silently&gt;&gt;
+/*&lt;&lt;/if&gt;&gt; hypothermia*/</tw-passagedata><tw-passagedata pid="38" name="Shimmerin_Chase_Treasure_Of_Stillness" tags="shimmerin character quest party_mod room" position="422,1426" size="100,100">/*
+&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -3135,7 +3143,7 @@ hypothermia processing
 &lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
 	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
 &lt;&lt;else&gt;&gt;
-
+*/
 &lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
@@ -3163,15 +3171,11 @@ hypothermia processing
 	
 	An ice mole snuffles in amongst the treasures from the Southeast, ignoring the sparklies and evidently intent on some secret quest.  When he sees you, his fur stands on end and he jumps three feet in the air, and then flees back the way he came.
 	&lt;&lt;/if&gt;&gt;
-	
 &lt;&lt;/if&gt;&gt;
-
 Heaps of gold coins and gemstones lay scattered about in the snow and ice.  The coins show significant patina and undisturbed drifts blanket much of the hoard, suggesting that it has been here for some time.  As you ogle the goodies, you imagine you can hear it calling out to you, begging to be scooped up and appreciated.  Notably, several humanoid bones are interspersed with the treasures.  The air here is alarmingly still, as if the very world holds its breath. 
-
 &lt;&lt;if not $party.includes($character_shimmerin)&gt;&gt;
 You see no sign of your fairy friend here; seems she didn&#39;t wish to linger. 
 &lt;&lt;/if&gt;&gt;
-
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
 		Scattered about the mole hole are several exciting shinies: a large emerald carved in the likeness of a winking fairy, which pulses gently with a soft verdant radiance; a needle-sized sword that gleams whiter than the fresh snow, its brightness searing an impression behind your eyes; a shimmering midnight blue dress, with skirts divided for riding, that fits in the palm of your hand.  
@@ -3195,7 +3199,8 @@ You see no sign of your fairy friend here; seems she didn&#39;t wish to linger.
 /* todo: add options for the player to steal surface treasure or enact other mischief and receive a mild rebuke for it (magical shock or similar for mischief, maybe death for stealing... maybe first a shock as warning then death if player doesn&#39;t reverse action) to establish precedent for why faeries couldn&#39;t actively startle the mole and manipulate him into burrowing the tiara out.
 */
 Up a gradual incline and over the remains of a once-sturdy gate to the [[Northeast, you can see several oddly pointy bushes glittering in the verdant sunlight. -&gt;Shimmerin_Chase_Crystal_Gardens]]  Down a slightly harsh rockfall (best to slide, but watch your rump!) [[Southeast lies a lonely little frosted valley.-&gt;Shimmerin_Chase_Diamond_Throneroom]]  Up the slope and over the sad ruins of a once fancy archway stand the bases of mighty pillars that once supported a grand antechamber [[East of here.-&gt;Shimmerin_Chase_Ghostly_Greeting_Chamber]]
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest room" position="565,1281" size="100,100">&lt;&lt;silently&gt;&gt;
+/*&lt;&lt;/if&gt;&gt; hypothermia*/</tw-passagedata><tw-passagedata pid="39" name="Shimmerin_Chase_Crystal_Gardens" tags="shimmerin character party_mod quest room" position="565,1281" size="100,100">/*
+&lt;&lt;silently&gt;&gt;
 hypothermia processing
 &lt;&lt;/silently&gt;&gt;
 &lt;&lt;set $characters[&quot;player&quot;].cold_count++&gt;&gt;
@@ -3204,7 +3209,7 @@ hypothermia processing
 &lt;&lt;elseif $characters[&quot;player&quot;].cold_count &gt;= $characters[&quot;player&quot;].cold_max_count/2&gt;&gt;
 	Your breaths turn to wheezes, and rime coats your flesh as the cold wriggles in.
 &lt;&lt;else&gt;&gt;
-
+*/
 &lt;&lt;silently&gt;&gt;
 //anicemole processing
 &lt;&lt;/silently&gt;&gt;
@@ -3256,19 +3261,15 @@ The fairy you&#39;re chasing peeks out from behind a sapphire flower as tall as 
 	&lt;&lt;else&gt;&gt;
 		Simultaneously, blinding beautiful light explodes from every one of the innumerable crystals in the garden, and when you can see again you see that the little fairy has vanished. 
 	&lt;&lt;/if&gt;&gt;
-	
-
 &lt;&lt;/if&gt;&gt;
-
 &lt;&lt;if typeof $field_mods_map.get(passage()) != &#39;undefined&#39;&gt;&gt;
 	&lt;&lt;if $field_mods_map.get(passage()).includes($field_mod_anicemole_burrowed)&gt;&gt;
 		  Emerald shards lay scattered about where the crystal oak fell after the ice mole burrowed away beneath it.
 	&lt;&lt;/if&gt;&gt;
 &lt;&lt;/if&gt;&gt;
-
 The ground slopes downward in a gently meandering curve heading [[Southeast to a large clearing that frames a set of grandiose stairs that descend out of sight.-&gt;Shimmerin_Chase_Frozen_Stair]]  Just over the lip of a once ornate gate to the Southwest you can see a shallow hill with bumps of ice (most likely hiding buried steps) leading down into a [[gallery frozen forever in its final moment of splendor-&gt;Shimmerin_Chase_Treasure_Of_Stillness]].
 
-&lt;&lt;/if&gt;&gt;</tw-passagedata><tw-passagedata pid="40" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Mole" tags="conversation shimmerin" position="800,1268" size="100,100">&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;]++ &gt;&gt;
+/*&lt;&lt;/if&gt;&gt; hypothermia*/</tw-passagedata><tw-passagedata pid="40" name="Shimmerin_Chase_Crystal_Gardens_Tiara_Mole" tags="conversation shimmerin" position="800,1268" size="100,100">&lt;&lt;set $characters[&quot;player&quot;].affinities[&quot;shimmerin&quot;]++ &gt;&gt;
 &lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_clever) &gt;&gt;
 &lt;&lt;run $characters[&quot;shimmerin&quot;].inductive_bias.push($inductive_bias_animal_handler) &gt;&gt;
 
@@ -3352,7 +3353,7 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 					/*todo: hmmm... she&#39;s a little psycho here.  Maybe have the default failure dialogue be a little toned down and more disappointed than, like, crazy?  On the other hand, &#39;rabid wombat&#39; was a great Magic card.*/
 					The warren&#39;s fuzzy little keeper throws up her hands in consternation.  &quot;Enough!  You&#39;re not wombat material, and I&#39;m not willing to let you keep trying forever.&quot;  She massages her brow with dusty digging claws for a moment and then eyes you warily.  &quot;All right, I&#39;ve made up my mind.  Since the council already pulled the trigger on risking bringing a human into our midst, I will allow you to enter.  However, I will be watching your every move!  Also, I mandate that you must remain with your escort Nuvi, who is sufficiently wombatty to pass, at all times while within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
-					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to.&quot;
+					The warren&#39;s fuzzy little keeper scratches irritably at a ragged ear, then grumbles and kicks a stone.  &quot;That&#39;ll do.  You&#39;re not what I&#39;d call wombatty, human, but I guess you&#39;re good enough for an emergency.  I&#39;m watching you, though.&quot;  She turns her stalwart gaze upon Nuvi and levels a steady claw at him.  &quot;I&#39;m holding you personally responsible as the human&#39;s escort.  As a wombuddy, you ought to be fit to police any mischief they might want to get up to within the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
 				&lt;&lt;/if&gt;&gt; /* end if player&#39;s wombuddy score is one of the segments that should be unwombatty*/
@@ -3363,10 +3364,10 @@ The stout little wombat turns to you and puffs herself up.  &quot;Are you ready,
 			&lt;&lt;else&gt;&gt;
 				&lt;&lt;script&gt;&gt;console.log(State.variables.characters[&quot;sheila&quot;].inductive_bias);&lt;&lt;/script&gt;&gt;
 				&lt;&lt;if $wombuddy_score &lt; 5&gt;&gt;
-					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need.&quot;
+					Sheila fidgets and edges away from you, not quite meeting your gaze.  &quot;Um.  Right.  That&#39;s enough.  I&#39;m afraid you didn&#39;t pass the test, but I suppose you can c&#39;mon in anyway.&quot;  She shuffles her footpaws self-consciously, still refusing to look at you.  &quot;Mr. Nuvi, as a wombuddy escort to the human, their actions are your responsibility.  Please stick by them and provide whatever they need in the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;elseif $wombuddy_score &gt;= 5 &amp;&amp; $wombuddy_score &lt; 10&gt;&gt;
 					Sheila smoothes her fur repeatedly and unnecessarily as you grin charmingly at her.  Her eyes are shining, and you think you detect a hint of blush under the thinner spots of fur on her face.  &quot;Those answers were, um, interesting.  Not quite what we were hoping for, but definitely worth considering.&quot;  She squirms under your attention and looks determinedly at her footpaws.  &quot;Please c&#39;mon in, though.&quot;  Summoning what looks like considerable courage, she wrenches her gaze away from the ground and meets your own.  &quot;We&#39;d love to have you!&quot;  
-					As you pass by her, she pulls Nuvi aside and whispers, &quot;Keep an eye on the human, please.  They&#39;re pretty great and all, but you&#39;re their wombuddy escort.&quot;
+					As you pass by her, she pulls Nuvi aside and whispers, &quot;Keep an eye on the human, please.  They&#39;re pretty great and all, but you&#39;re their wombuddy escort while they&#39;re in the [[warren tunnels-&gt;Bush_Warren]].&quot;
 				&lt;&lt;else&gt;&gt;
 					Test -- should not be here
 				&lt;&lt;/if&gt;&gt;
@@ -3409,7 +3410,8 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 &lt;&lt;link [[&quot;I&#39;m not qualified to handle that situation, so I would defer to someone else&#39;s expertise.&quot;-&gt;Bush_Wombuddy_Test_Quest_2]]&gt;&gt;	
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
 	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_humble,$inductive_bias_lacks_confidence,$inductive_bias_knows_limitations])&gt;&gt;
-&lt;&lt;/link&gt;&gt;&quot;
+&lt;&lt;/link&gt;&gt;
+
 &lt;&lt;silently&gt;&gt;
 	Passionate and compassionate response, but potentially foolish
 	
@@ -3420,6 +3422,7 @@ Termites, those evil buggers, have weakened a timber toward front of the tunnel 
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
 	&lt;&lt;run $addToInductiveBias($characters[&quot;sheila&quot;].inductive_bias,[$inductive_bias_kind,$inductive_bias_reckless,$inductive_bias_heart_over_head])&gt;&gt;
 &lt;&lt;/link&gt;&gt;
+
 &lt;&lt;silently&gt;&gt;
 	The reasonable and cool-headed approach, best for wombats
 	
@@ -3476,6 +3479,7 @@ scenario about work ethic and community focus
 	Wombuddy +1
 	Inductive Bias: chill, lazy, crush
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;Resting my weary bones!  I&#39;d curl up with a good book and some soft music and snooze the day away.  Ooh!  With a lilac-scented bubble bath to soothe those nasty muscle cramps.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 1&gt;&gt;
@@ -3490,6 +3494,7 @@ scenario about work ethic and community focus
 	Wombuddy +2
 	Inductive bias: friendly, pushy, hypersocial
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;I suppose I&#39;d grab my teammates and lead the charge in a day of fantastic team building exploits!  Cooperative games, candid discussions, and shared memories should really help us once we&#39;re back on the job.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 2&gt;&gt;
@@ -3504,6 +3509,7 @@ scenario about work ethic and community focus
 	Wombuddy +5
 	Inductive bias: studious, ambitious
 &lt;&lt;/silently&gt;&gt;\
+
 &lt;&lt;link [[&quot;I&#39;d take the opportunity to brush up on my tunneling theory, or maybe review safety checklists for the tunnel segment my team is working on.  I might even go ahead and start in on the next segment if my forebeast gives the OK and I can do so safely on my own.&quot;-&gt;Bush_Wombat_Burrow_1]]&gt;&gt;
 	&lt;&lt;set $wombuddy_trials++&gt;&gt;
 	&lt;&lt;set $wombuddy_score += 5&gt;&gt;
