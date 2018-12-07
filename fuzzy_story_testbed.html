@@ -295,6 +295,28 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 		console.log("status effect reversal unset");	
 	}
 }
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.StatusEffect.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Ability with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.StatusEffect({0},{1},{2})',
+		JSON.stringify(this.id),
+		JSON.stringify(this.name),
+		JSON.stringify(this.duration)
+	));
+};
+State.variables.StatusEffect.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.StatusEffect(
+		this.id,
+		this.name,
+		this.duration
+	);
+};
 
 State.variables.Ability = function Ability(id,name){
 	this.TargetTypesEnum = Object.freeze (
@@ -359,12 +381,53 @@ State.variables.Ability = function Ability(id,name){
 	this.generateFlavorText = function(sourceChar,targetChar){console.log("flavor text undefined for "+this.name)}
 	
 } // end Ability def
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.Ability.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Ability with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.Ability({0},{1})',
+		JSON.stringify(this.id),
+		JSON.stringify(this.name)
+	));
+};
+State.variables.Ability.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.Ability(
+		this.id,
+		this.name
+	);
+};
 
 State.variables.Incarnation = function Incarnation(id,name){
 	// Incarnation inherits from Ability
 	State.variables.Ability.call(this,id,name);
 	
 }
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.Incarnation.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Incarnation with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.Incarnation({0},{1})',
+		JSON.stringify(this.id),
+		JSON.stringify(this.name)
+	));
+};
+State.variables.Incarnation.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.Incarnation(
+		this.id,
+		this.name
+	);
+};
+
 function Entity(name){
 	this.name = name;
 	
@@ -378,7 +441,27 @@ function Entity(name){
 	e.g. [[fire blast, ice blast],[],[rock tomb]] would indicate the wielder leanrs fire blast and ice blast at level 1, and rock tomb at level 3.
 	*/
 	this.associatedIncarnationsByLevel = [];
-}
+}// end Entity
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+/* getting Entity is not defined error at load... maybe it isn't need in de/serialization since we never use it outside the story JS?
+Entity.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Entity with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new Entity({0})',
+		JSON.stringify(this.name)
+	));
+};
+Entity.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new Entity(
+		this.name
+	);
+};
+*/
 
 // Character object definition
 State.variables.Character = function Character(id,name){
@@ -624,7 +707,29 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 	this.runAI = function(combat,role){
 			console.log("AI behavior unset");
 	}
-}
+}// end Character
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.Character.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Character with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.Character({0},{1})',
+		JSON.stringify(this.id),
+		JSON.stringify(this.name)
+	));
+};
+State.variables.Character.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.Character(
+		this.id,
+		this.name
+	);
+};
+
+
 State.variables.playerCount = 0;
 // Player object definition; should not need to be a story variable since it will only be defined once, later on in the characters dict (no multiplayer in the demo)
 function Player(){
@@ -856,6 +961,29 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	}// end processRoundBottom()
 }// end Combat
 
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.Combat.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Combat with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.Combat({0},{1},{2})',
+		JSON.stringify(this.playerParty),
+		JSON.stringify(this.enemyParty),
+		JSON.stringify(this.destPassageName)
+	));
+};
+State.variables.Combat.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.Combat(
+		this.playerParty,
+		this.enemyParty,
+		this.destPassageName
+	);
+};
+
 State.variables.combatArena = undefined;
 
 function Room(){
@@ -884,7 +1012,27 @@ State.variables.Item = function Item(id,name){
 	this.equipEffect = function(){console.log("You equip the "+this.name+" and now boast an eccentric stylish look.");}
 	this.description = this.name+" is uncannily nondescript -- you've already forgotten its details and you're still looking at it!";
 	// todo: some sort of on-hit effect for weapons?
-}
+}// end Item
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+State.variables.Item.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Item with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new State.variables.Item({0},{1})',
+		JSON.stringify(this.id),
+		JSON.stringify(this.name)
+	));
+};
+State.variables.Item.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new State.variables.Item(
+		this.id,
+		this.name
+	);
+};
 
 /// begin global story state dicts ///
 
@@ -1085,7 +1233,22 @@ function AnIceMole(){
 	
 	// flag indicating that the ice mole is present in the room when the player enters and there needs to be text detailing how he burrows away
 	//this.ice_mole_burrow_flag = false;
-}
+}// and AnIceMole
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+AnIceMole.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of AnIceMole with our current data.
+	return JSON.reviveWrapper(
+		'new AnIceMole()'
+		);
+};
+AnIceMole.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new AnIceMole();
+};
 
 // grant access to anicemole instance in the story
 State.variables.anicemole = new AnIceMole();
@@ -2406,8 +2569,6 @@ function init(){
 init();
 /// end init ///
 
-
-var test = {a:1};
 </script>
 </head>
 <body>
