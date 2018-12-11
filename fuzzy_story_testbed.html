@@ -762,8 +762,10 @@ party and the enemy's party.
 @param playerParty: an array of Characters representing the player's party
 @param enemyParty: an array of Characters representing the enemy's party
 @param destPassageName: the name of the passage to which the player should be sent if they survive
+@param dataBundle: if this arg is undefined, the object will be constructed using the above params.  Otherwise, the above params will be ignored and the object will be inflated from the given data bundle, which should be a primitive js object map of field names to desired values.
 */
-State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName){
+State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName, copy){
+	if(copy == undefined){
 	this.PlayerTurnState = Object.freeze (
 		{ 
 			selectTarget: 1, 
@@ -783,6 +785,8 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 			playerVictory: 1, 
 			enemyVictory: 2
 		});
+
+	
 	
 	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
 	this.playerTurnState = this.PlayerTurnState.selectAbility;
@@ -809,7 +813,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 	
 	// the text feedback to the user re: the state of combat
 	this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
-	
+
 	this.randoCombatantExcept = function(exceptCharacter){
 		var combatants = this.enemyParty.concat(this.playerParty);
 		var eligibleCombatants = this.combatants.filter(combatant => combatant.id != exceptCharacter.id);
@@ -959,12 +963,64 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName)
 		}
 		
 	}// end processRoundBottom()
+
+	/**
+	Creates and returns a primitve (JSON serializable) JS object that contains the current
+	value at each of this instance's fields, with the field name as the key paired with the
+	current value.  The ctor(dataBundle) uses this data bundle to inflate an object from JSON,
+	which is crucial for restoring state after a game is loaded.
+	*/
+	//this.getData = function(){
+	//	var dataBundle = {}
+		// I've never actually looped through attrs of a complex object before... does this work? UPDATE: apparently maybe, though everything showed undefined for some reason
+		// UPDATE2: ah, the undefined was because I was using dot notation without the correct literal symbol -- that case needs bracket notation, it seems.  JS is bonkers, man.
+	//	for(var attr in this){
+	//		console.log(""+attr+":"+this[attr]);
+	//	}
+		/* manual approach; shouldn't be necessary since hasOwnProperty() is a thing
+			"playerTurnState" : this.playerTurnState,
+			"enemyTurnState" : this.enemyTurnState,
+			"playerParty" : this.playerParty,
+			"enemyParty" : this.enemyParty,
+			"destPassageName" : this.destPassageName;
+			"combatResult" : this.combatResult,
+			"currentSelectedAbility" : this.currentSelectedAbility,
+			"turnGroup" : this.turnGroup,
+			"turnOwner" : this.turnOwner,
+			"abilityName" : this.abilityName,
+			"currentTargetCharacter" : this.currentTargetCharacter,
+			"combatLogContent" : this.combatLogContent
+		*/
+	//}
+	}// end if copy is not defined
+	else{
+		// restore from saved data bundle case
+		/* manual approach, might not be necessary unless a deep copy is needed
+		this.playerTurnState = dataBundle["playerTurnState"];
+		this.enemyTurnState =	dataBundle["enemyTurnState"];
+		this.playerParty = dataBundle["playerParty"];
+		this.enemyParty = dataBundle["enemyParty"];
+		this.destPassageName = dataBundle["destPassageName"];
+		this.combatResult = dataBundle["combatResult"];
+		this.currentSelectedAbility = dataBundle["currentSelectedAbility"];
+		this.turnGroup = dataBundle["turnGroup"];
+		this.turnOwner = dataBundle["turnOwner"];
+		this.abilityName = dataBundle["abilityName"];
+		this.currentTargetCharacter = dataBundle["currentTargetCharacter"];
+		this.combatLogContent = dataBundle["combatLogContent"]; 
+		*/
+		Object.assign(this,copy);
+
+	}
+	
+	
 }// end Combat
 
 /**
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
+/*
 State.variables.Combat.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Combat with our current data.
@@ -973,6 +1029,15 @@ State.variables.Combat.prototype.toJSON = function () {
 		JSON.stringify(this.playerParty),
 		JSON.stringify(this.enemyParty),
 		JSON.stringify(this.destPassageName)
+		//todo: need to be able to restore entire complex object state
+		// so we either need:
+		// 1. to use the $ReviveData$ var and pass it a simple anon object with
+		// key/value pairs for each field, and then write a ctor for each complex object
+		// that expects such a data bundle to inflate itself from
+		// 2. stringify each complex object field and write a ctor that takes all fields
+		// as params (not recommended)
+		// 2. to use a copy ctor and then teach JSON how to stringify an entire complex object
+		// which is basically what I think toJSON() would normally be doing... I dunno, I don't particularly wanna go against the Sugarcube docs' recommendation to use their JSON.reviveWrapper() method, which sort of combines de/serialization oddly into one shot.  Keeping with that approach, the thing to do is #1, and indeed the docs' $pc_getData() function sounds like it would be doing the thing from #1.
 	));
 };
 State.variables.Combat.prototype.clone = function () {
@@ -982,6 +1047,19 @@ State.variables.Combat.prototype.clone = function () {
 		this.enemyParty,
 		this.destPassageName
 	);
+};
+*/
+window.Combat.prototype.toJSON = function() {
+    return JSON.reviveWrapper('new window.Combat(undefined,undefined,undefined,$ReviveData$)',this);
+};
+window.Combat.prototype.clone = function() {
+    // Return a new instance containing our current data.
+    return new window.Combat(
+        undefined,
+        undefined,
+        undefined,
+        this
+    );
 };
 
 State.variables.combatArena = undefined;
@@ -2576,6 +2654,7 @@ init();
 var playerParty = [State.variables.characters['player']];
 var enemyParty = [State.variables.characters['puck']];
 var combat = new State.variables.Combat(playerParty,enemyParty,"");
+combat.getData();
 State.variables.godling_strat_chosen = State.variables.godling_strat_surgical_system;
 </script>
 <button onclick="State.variables.characters['puck'].runAI(combat,'enemy')">Test</button>
