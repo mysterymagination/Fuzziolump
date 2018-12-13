@@ -816,7 +816,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 
 	this.randoCombatantExcept = function(exceptCharacter){
 		var combatants = this.enemyParty.concat(this.playerParty);
-		var eligibleCombatants = this.combatants.filter(combatant => combatant.id != exceptCharacter.id);
+		var eligibleCombatants = combatants.filter(combatant => combatant.id != exceptCharacter.id);
 		var unluckyIndex = Math.floor(Math.random() * eligibleCombatants.length);
 		return eligibleCombatants[unluckyIndex];
 		
