@@ -17,7 +17,7 @@ function myCustomFn(arg1, arg2,arg3) {
 }
 console.log(getParams(myCustomFn)); // returns ["arg1", "arg2", "arg3"]
 */
-State.variables.getParams = function(func) {
+window.getParams = function(func) {
   // First match everything inside the function argument parens.
   var args = func.toString().match(/function\s.*?\(([^)]*)\)/)[1];
  
@@ -31,13 +31,13 @@ State.variables.getParams = function(func) {
   });
 }
 
-State.variables.addUniqueToArray = function(array,element){
+window.addUniqueToArray = function(array,element){
 	if(!array.includes(element)){
 		array.push(element);	
 	}
 }
 
-State.variables.addUniqueToArray = function(array,element,filterFn){
+window.addUniqueToArray = function(array,element,filterFn){
 	if(!array.some(filterFn)){
 		array.push(element);	
 	}
@@ -46,7 +46,7 @@ State.variables.addUniqueToArray = function(array,element,filterFn){
 /**
 Get a random Character object from an array of Character objects that can't have the given Character ID
 */
-State.variables.randoCharacterFromArrayExceptId = function(characterArray,exceptCharacterId){
+window.randoCharacterFromArrayExceptId = function(characterArray,exceptCharacterId){
 		var eligibleCharacters = characterArray.filter(characterUnderTest => characterUnderTest.id != exceptCharacterId);
 		var unluckyIndex = Math.floor(Math.random() * eligibleCharacters.length);
 		return eligibleCharacters[unluckyIndex];
@@ -58,7 +58,7 @@ Applies the combat status effect to the given character, adding it to their list
 @param character the recipient of the effect
 @param effect the status effect to apply
 */
-State.variables.addUniqueStatusEffect = function(character,effect){
+window.addUniqueStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
 		statuses.push(effect);
@@ -73,7 +73,7 @@ The source character is the one who inflicted the status; this function should b
 @param targetCharacter the recipient of the effect
 @param effect the status effect to apply
 */
-State.variables.addUniqueStatusEffectWithSource = function(sourceCharacter, targetCharacter,effect){
+window.addUniqueStatusEffectWithSource = function(sourceCharacter, targetCharacter,effect){
 	var statuses = targetCharacter.statusEffects;
 	if(!statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
 		statuses.push(effect);
@@ -87,7 +87,7 @@ Checks a given character for a given statyus effect
 @param effect the StatusEffect we're looking for
 @return true if the status effect is found, false otherwise
 */
-State.variables.hasStatusEffect = function(character,effect){
+window.hasStatusEffect = function(character,effect){
 	var statuses = character.statusEffects;
 	if(statuses.some(effectUnderTest => effect.id === effectUnderTest.id)){
 		return true;
@@ -102,13 +102,13 @@ Checks a given character for a given status effect and returns the discovered st
 @param effectId the ID of the StatusEffect we're looking for
 @return the status effect instance if found, otherwise undefined
 */
-State.variables.getStatusEffect = function(character,effectId){
+window.getStatusEffect = function(character,effectId){
 	var statuses = character.statusEffects;
 	return statuses.find(effectUnderTest => effectId === effectUnderTest.id);
 }
 
 // find index of a particular character id in a character array
-State.variables.findCharacterIndex = function(characterArray,characterID){
+window.findCharacterIndex = function(characterArray,characterID){
 	return characterArray.findIndex(function (character){
 		return character.id === characterID;
 	});	
@@ -118,7 +118,7 @@ State.variables.findCharacterIndex = function(characterArray,characterID){
 Adds this character to the $party iff they are not already a member
 @param character Character object to be added
 */
-State.variables.addUniqueCharacterToParty = function(character){
+window.addUniqueCharacterToParty = function(character){
 	var party = State.variables.party;
 	if(!party.some(characterUnderTest => character.id === characterUnderTest.id)){
 		party.push(character);
@@ -128,14 +128,14 @@ State.variables.addUniqueCharacterToParty = function(character){
 /**
 Returns a Character object from the array whose id matches the given id
 */
-State.variables.findCharacterInArrayById = function(characterId,array){
+window.findCharacterInArrayById = function(characterId,array){
 	return array.find(characterUnderTest => characterId === characterUnderTest.id);
 }
 
 /**
 Returns true if any Character object from the array has an id that matches the given id
 */
-State.variables.isCharacterWithIdInArray = function(characterId,array){
+window.isCharacterWithIdInArray = function(characterId,array){
 	return array.some(characterUnderTest => characterId === characterUnderTest.id);
 }
 
@@ -144,28 +144,27 @@ Removes a Character from an array of Characters using splice()
 @parm character the Character to be removed from the array
 @param characterArray the array of Characters
 */
-State.variables.removeCharacterFromArray = function(character,characterArray){
+window.removeCharacterFromArray = function(character,characterArray){
 	// find the index of the target character in the array
-	var index = State.variables.findCharacterIndex(characterArray,character.id);
+	var index = window.findCharacterIndex(characterArray,character.id);
 	// splice the character out of the array; this modified the given array
 	characterArray.splice(index,1); 
 }
 /* // not very space friendly
-State.variables.removeCharacterFromArray = function(character,characterArray){
+window.removeCharacterFromArray = function(character,characterArray){
 	return characterArray.filter(characterUnderTest =>
 		characterUnderTest.id != character.id
 	);	
 }
 */
 																	
-State.variables.findCurrentPlayerCharacterIndex = function(){
+window.findCurrentPlayerCharacterIndex = function(){
 	return State.variables.combatArena.playerParty.findIndex(function (character){
 		console.log("finding current player char index -- checking character "+character.id+" against turn owner "+State.variables.combatArena.turnOwner);
 		return character.id === State.variables.combatArena.turnOwner;
 	});	
 }
-
-State.variables.findLastLivingCharacter = function(characterArray){
+window.findLastLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = characterArray.length-1; index >= 0; index--){
 		var fullCharacter = State.variables.characters[characterArray[index].id];
@@ -175,7 +174,7 @@ State.variables.findLastLivingCharacter = function(characterArray){
 		}
 	}
 }
-State.variables.findFirstLivingCharacter = function(characterArray){
+window.findFirstLivingCharacter = function(characterArray){
 	var index = 0;
 	for(index = 0; index < characterArray.length; index++){
 		var fullCharacter = State.variables.characters[characterArray[index].id];
@@ -185,7 +184,7 @@ State.variables.findFirstLivingCharacter = function(characterArray){
 		}
 	}
 }
-State.variables.findNextLivingCharacter = function(characterArray,startingIndex){
+window.findNextLivingCharacter = function(characterArray,startingIndex){
 	var index = 0;
 	for(index = startingIndex; index < characterArray.length; index++){
 		var fullCharacter = State.variables.characters[characterArray[index].id];
@@ -201,7 +200,7 @@ This shouldn't be... see github issue #2
 
 Takes id property of the given character array, looks up the character object from $characters based on the id, and adds said character object to a new array.  This new array is returned.
 */
-State.variables.drawCharacterArrayFromCharactersDict = function(characterArray){
+window.drawCharacterArrayFromCharactersDict = function(characterArray){
 	var actualChars = [];
 	for(let character of characterArray){
 		actualChars.push(State.variables.characters[character.id]);
@@ -210,31 +209,31 @@ State.variables.drawCharacterArrayFromCharactersDict = function(characterArray){
 }
 
 // simulate a d20 roll
-State.variables.rollD20 = function(){
+window.rollD20 = function(){
 	return Math.floor(Math.random() * 20) + 1;
 }
 
 // simulate a dN roll, where N is given by sides param
-State.variables.rollDie = function(sides){
+window.rollDie = function(sides){
 	return Math.floor(Math.random() * sides) + 1;
 }
 
 // simulate a d% roll
-State.variables.rollPercentage = function(){
+window.rollPercentage = function(){
 	return Math.floor(Math.random() * 100) + 1;
 }
 
 // calculate the ability modifier per Pathfinder rules
-State.variables.calcMod = function(ablScore){
+window.calcMod = function(ablScore){
 	return Math.floor((ablScore-10)/2);
 }
 
 // perform an ability score check
-State.variables.checkAbility = function(characterObject, attributeString){
-	return State.variables.rollD20() + State.variables.calcMod(characterObject.attributes[attributeString]);	
+window.checkAbility = function(characterObject, attributeString){
+	return window.rollD20() + window.calcMod(characterObject.attributes[attributeString]);	
 }
 
-State.variables.addToInductiveBias = function(inductiveBiasArray, args){
+window.addToInductiveBias = function(inductiveBiasArray, args){
 	for(var biasitem of args){
 		if(!inductiveBiasArray.includes(biasitem)){
 			inductiveBiasArray.push(biasitem);
@@ -242,7 +241,7 @@ State.variables.addToInductiveBias = function(inductiveBiasArray, args){
 	}
 }
 
-State.variables.deleteTitle = function(title){
+window.deleteTitle = function(title){
 	var playerTitleArray = State.variables.characters["player"].titles;
 	var titleIndex = playerTitleArray.indexOf(title);
 	if(titleIndex > -1){
@@ -251,7 +250,7 @@ State.variables.deleteTitle = function(title){
 	}
 }
 
-State.variables.addTitle = function(title){
+window.addTitle = function(title){
 	var playerTitleArray = State.variables.characters["player"].titles;
 	if(!playerTitleArray.includes(title)){
 			playerTitleArray.push(title);
@@ -260,22 +259,22 @@ State.variables.addTitle = function(title){
 
 /// begin main quest vars ///
 // wipe out the godlings and anybody nearby
-State.variables.godling_strat_viral_violence = "viral_violence";
+window.godling_strat_viral_violence = "viral_violence";
 // disrupt the godlings' godlingness in the hopes this might check them or even restore them to their former selves
-State.variables.godling_strat_surgical_system = "surgical_system";
+window.godling_strat_surgical_system = "surgical_system";
 // friendship for everyone!  Trying to use Incarnation to get through to each godling
-State.variables.godling_strat_diplomancy = "diplomancy";
+window.godling_strat_diplomancy = "diplomancy";
 State.variables.godling_strat_chosen = "";
 /// end main quest vars ///
 
-State.variables.removeStatusEffect = function(character,effect){
+window.removeStatusEffect = function(character,effect){
 		var effectIndex = character.statusEffects.findIndex(function(element){
 			return element.id === effect.id;
 		});
 		character.statusEffects.splice(effectIndex,1);
 }
 
-State.variables.StatusEffect = function StatusEffect(id,name,duration){
+window.StatusEffect = function StatusEffect(id,name,duration){
 	this.id = id;
 	this.name = name;
 	/** 
@@ -299,26 +298,26 @@ State.variables.StatusEffect = function StatusEffect(id,name,duration){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-State.variables.StatusEffect.prototype.toJSON = function () {
+window.StatusEffect.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Ability with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.StatusEffect({0},{1},{2})',
+		'new window.StatusEffect({0},{1},{2})',
 		JSON.stringify(this.id),
 		JSON.stringify(this.name),
 		JSON.stringify(this.duration)
 	));
 };
-State.variables.StatusEffect.prototype.clone = function () {
+window.StatusEffect.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.StatusEffect(
+	return new window.StatusEffect(
 		this.id,
 		this.name,
 		this.duration
 	);
 };
 
-State.variables.Ability = function Ability(id,name){
+window.Ability = function Ability(id,name){
 	this.TargetTypesEnum = Object.freeze (
 		{ 
 			singleEnemy: 1, 
@@ -385,50 +384,50 @@ State.variables.Ability = function Ability(id,name){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-State.variables.Ability.prototype.toJSON = function () {
+window.Ability.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Ability with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.Ability({0},{1})',
+		'new window.Ability({0},{1})',
 		JSON.stringify(this.id),
 		JSON.stringify(this.name)
 	));
 };
-State.variables.Ability.prototype.clone = function () {
+window.Ability.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.Ability(
+	return new window.Ability(
 		this.id,
 		this.name
 	);
 };
 
-State.variables.Incarnation = function Incarnation(id,name){
+window.Incarnation = function Incarnation(id,name){
 	// Incarnation inherits from Ability
-	State.variables.Ability.call(this,id,name);
+	window.Ability.call(this,id,name);
 	
 }
 /**
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-State.variables.Incarnation.prototype.toJSON = function () {
+window.Incarnation.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Incarnation with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.Incarnation({0},{1})',
+		'new window.Incarnation({0},{1})',
 		JSON.stringify(this.id),
 		JSON.stringify(this.name)
 	));
 };
-State.variables.Incarnation.prototype.clone = function () {
+window.Incarnation.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.Incarnation(
+	return new window.Incarnation(
 		this.id,
 		this.name
 	);
 };
 
-function Entity(name){
+window.Entity = function Entity(name){
 	this.name = name;
 	
 	/**
@@ -446,8 +445,8 @@ function Entity(name){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-/* getting Entity is not defined error at load... maybe it isn't need in de/serialization since we never use it outside the story JS?
-Entity.prototype.toJSON = function () {
+
+window.Entity.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Entity with our current data.
 	return JSON.reviveWrapper(String.format(
@@ -455,16 +454,15 @@ Entity.prototype.toJSON = function () {
 		JSON.stringify(this.name)
 	));
 };
-Entity.prototype.clone = function () {
+window.Entity.prototype.clone = function () {
 	// Return a new instance containing our current data.
 	return new Entity(
 		this.name
 	);
 };
-*/
 
 // Character object definition
-State.variables.Character = function Character(id,name){
+window.Character = function Character(id,name){
 	this.CombatFlags = Object.freeze (
 		{ 
 			FLAG_SKIP_TURN: 1,
@@ -598,9 +596,9 @@ State.variables.Character = function Character(id,name){
 	}
 	
 	this.abilities = {
-		"attack" : new State.variables.Ability("attack","Attack"),
-		"defend" : new State.variables.Ability("defend","Defend"),
-		"run" : new State.variables.Ability("run","Run") 
+		"attack" : new window.Ability("attack","Attack"),
+		"defend" : new window.Ability("defend","Defend"),
+		"run" : new window.Ability("run","Run") 
 	}
 	this.abilities["attack"].calcDmg = function(sourceCharacter,targetCharacter){
 		// favor the STR since the attacker is the leading participant
@@ -712,18 +710,18 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-State.variables.Character.prototype.toJSON = function () {
+window.Character.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Character with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.Character({0},{1})',
+		'new window.Character({0},{1})',
 		JSON.stringify(this.id),
 		JSON.stringify(this.name)
 	));
 };
-State.variables.Character.prototype.clone = function () {
+window.Character.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.Character(
+	return new window.Character(
 		this.id,
 		this.name
 	);
@@ -732,9 +730,9 @@ State.variables.Character.prototype.clone = function () {
 
 State.variables.playerCount = 0;
 // Player object definition; should not need to be a story variable since it will only be defined once, later on in the characters dict (no multiplayer in the demo)
-function Player(){
+window.Player = function Player(){
 	// inherit from Character
-	State.variables.Character.call(this,"player","The Human");
+	window.Character.call(this,"player","The Human");
 	
 	// the player can remain in full cold for 25 room moves
 	// before becoming hypothermic
@@ -759,12 +757,9 @@ function Player(){
 /**
 Combat object takes two arrays of Character objects, the player's
 party and the enemy's party.
-@param playerParty: an array of Characters representing the player's party
-@param enemyParty: an array of Characters representing the enemy's party
-@param destPassageName: the name of the passage to which the player should be sent if they survive
-@param dataBundle: if this arg is undefined, the object will be constructed using the above params.  Otherwise, the above params will be ignored and the object will be inflated from the given data bundle, which should be a primitive js object map of field names to desired values.
+@param config: either an existing Combat object to be used with a copy-constructor or an object sack with parameterized fields playerParty Character array, enemyParty Character array, and destPassageName String (passage to which player should be returned after combat).
 */
-State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName, copy){
+window.Combat = function Combat(config){
 	if(copy == undefined){
 	this.PlayerTurnState = Object.freeze (
 		{ 
@@ -797,7 +792,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 	this.combatResult = this.CombatResultEnum.pending;
 	
 	// tracks the currently selected player ability
-	this.currentSelectedAbility = new State.variables.Ability("unset");
+	this.currentSelectedAbility = new window.Ability("unset");
 	
 	// tracks the turn as either player or enemy group
 	this.turnGroup = "player";
@@ -809,7 +804,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 	this.abilityName = "";
 	
 	// tracks the target of the current ability
-	this.currentTargetCharacter = new State.variables.Character("unset");
+	this.currentTargetCharacter = new window.Character("unset");
 	
 	// the text feedback to the user re: the state of combat
 	this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
@@ -848,7 +843,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 						enemyCharacter.stats["hp"] -= enemyCharacter.stats["maxHP"]*0.1; 	
 					}
 					else if(effect.id === "regen"){
-						State.variables.statusEffectsDict["regen"].effect(enemyCharacter);	
+						window.statusEffectsDict["regen"].effect(enemyCharacter);	
 					}
 					
 					
@@ -860,7 +855,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 						// want to re-use this statuseffect instance
 						effect.ticks = effect.duration;
 						// remove the status effect from the character
-						State.variables.removeStatusEffect(enemyCharacter,effect);
+						window.removeStatusEffect(enemyCharacter,effect);
 					}
 				}else{
 					// reverse the effect now that char is dead
@@ -869,7 +864,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 					// want to re-use this statuseffect instance
 					effect.ticks = effect.duration;
 					// remove the status effect from the character
-					State.variables.removeStatusEffect(enemyCharacter,effect);
+					window.removeStatusEffect(enemyCharacter,effect);
 				}
 			}
 	}
@@ -885,7 +880,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 						}
 					}
 					else if(effect.id === "regen"){
-						State.variables.statusEffectsDict["regen"].effect(playerCharacter);	
+						window.statusEffectsDict["regen"].effect(playerCharacter);	
 					}
 					
 					effect.tickDown();
@@ -896,7 +891,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 						// want to re-use this statuseffect instance
 						effect.ticks = effect.duration;
 						// remove the status effect from the character
-						State.variables.removeStatusEffect(playerCharacter,effect);
+						window.removeStatusEffect(playerCharacter,effect);
 					}
 				}else{
 					// reverse the effect now that character is dead
@@ -905,7 +900,7 @@ State.variables.Combat = function Combat(playerParty,enemyParty,destPassageName,
 					// want to re-use this statuseffect instance
 					effect.ticks = effect.duration;
 					// remove the status effect from the character
-					State.variables.removeStatusEffect(playerCharacter,effect);
+					window.removeStatusEffect(playerCharacter,effect);
 				}
 			}
 	}
@@ -1021,11 +1016,11 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 /*
-State.variables.Combat.prototype.toJSON = function () {
+window.Combat.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Combat with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.Combat({0},{1},{2})',
+		'new window.Combat({0},{1},{2})',
 		JSON.stringify(this.playerParty),
 		JSON.stringify(this.enemyParty),
 		JSON.stringify(this.destPassageName)
@@ -1040,9 +1035,9 @@ State.variables.Combat.prototype.toJSON = function () {
 		// which is basically what I think toJSON() would normally be doing... I dunno, I don't particularly wanna go against the Sugarcube docs' recommendation to use their JSON.reviveWrapper() method, which sort of combines de/serialization oddly into one shot.  Keeping with that approach, the thing to do is #1, and indeed the docs' $pc_getData() function sounds like it would be doing the thing from #1.
 	));
 };
-State.variables.Combat.prototype.clone = function () {
+window.Combat.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.Combat(
+	return new window.Combat(
 		this.playerParty,
 		this.enemyParty,
 		this.destPassageName
@@ -1064,7 +1059,7 @@ window.Combat.prototype.clone = function() {
 
 State.variables.combatArena = undefined;
 
-function Room(){
+window.Room = function Room(){
 	
 	// array of field mods that have occurred in this room
 	this.field_mods = [];
@@ -1082,7 +1077,7 @@ var playerAffinities = new Affinities();
 /**
 An Item is an object that the player can use and/or equip
 */
-State.variables.Item = function Item(id,name){
+window.Item = function Item(id,name){
 	this.id = id;
 	this.name = name;
 	this.useEffect = function(){console.log("Using the "+this.name+" accomplishes little, but you do look silly.");}
@@ -1095,18 +1090,18 @@ State.variables.Item = function Item(id,name){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-State.variables.Item.prototype.toJSON = function () {
+window.Item.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of Item with our current data.
 	return JSON.reviveWrapper(String.format(
-		'new State.variables.Item({0},{1})',
+		'new window.Item({0},{1})',
 		JSON.stringify(this.id),
 		JSON.stringify(this.name)
 	));
 };
-State.variables.Item.prototype.clone = function () {
+window.Item.prototype.clone = function () {
 	// Return a new instance containing our current data.
-	return new State.variables.Item(
+	return new window.Item(
 		this.id,
 		this.name
 	);
@@ -1117,70 +1112,70 @@ State.variables.Item.prototype.clone = function () {
 // Global Object mapping of prefab Characters
 State.variables.characters = {
 	"player" : new Player(),
-	"nuvi" : new State.variables.Character("nuvi","Nuvi"),
-	"shimmerin" : new State.variables.Character("shimmerin","Shimmerin"),
-	"sheila" : new State.variables.Character("sheila","Sheila"),
-	"council" : new State.variables.Character("council","Council Of Animals"),
-	"marrah" : new State.variables.Character("marrah","Marrah"),
-	"drbeakman" : new State.variables.Character("drbeakman","Dr. Beakman"),
-	"mooty" : new State.variables.Character("mooty","Mooty Wort"),
-	"puck" : new State.variables.Character("puck","Puck")
+	"nuvi" : new window.Character("nuvi","Nuvi"),
+	"shimmerin" : new window.Character("shimmerin","Shimmerin"),
+	"sheila" : new window.Character("sheila","Sheila"),
+	"council" : new window.Character("council","Council Of Animals"),
+	"marrah" : new window.Character("marrah","Marrah"),
+	"drbeakman" : new window.Character("drbeakman","Dr. Beakman"),
+	"mooty" : new window.Character("mooty","Mooty Wort"),
+	"puck" : new window.Character("puck","Puck")
 }
 
 // Global Object mapping of prefab StatusEffects
-State.variables.statusEffectsDict = {
+window.statusEffectsDict = {
 	/**
 	Bloodlust raises STR at the expense of all mental attributes
 	*/
-	"bloodlust" : new State.variables.StatusEffect("bloodlust","Bloodlust",3),
+	"bloodlust" : new window.StatusEffect("bloodlust","Bloodlust",3),
 	/**
 	Doubt halves all confidence based attributes (STR and CHA)
 	*/
-	"doubt" : new State.variables.StatusEffect("doubt","Doubt",3),
+	"doubt" : new window.StatusEffect("doubt","Doubt",3),
 	/**
 	Terror gives a 35% chance to do nothing but shiver in fear
 	*/
-	"terror" : new State.variables.StatusEffect("terror","Terror",5),
+	"terror" : new window.StatusEffect("terror","Terror",5),
 	/**
 	Poison inflicts 5% health dmg each turn, and helaves atk/def
 	*/
-	"poison" : new State.variables.StatusEffect("poison","Poison",3),
+	"poison" : new window.StatusEffect("poison","Poison",3),
 	/**
 	Shadow makes the affected character immune to physical dmg
 	*/
-	"shadow" : new State.variables.StatusEffect("shadow","Shadow",3),
+	"shadow" : new window.StatusEffect("shadow","Shadow",3),
 	/**
 	Regen heals each turn
 	*/
-	"regen" : new State.variables.StatusEffect("regen","Regen",3),
+	"regen" : new window.StatusEffect("regen","Regen",3),
 	/**
 	Confuse causes the AI to 50% redirct its chosen abl at itself
 	*/
-	"confuse" : new State.variables.StatusEffect("confuse","Confusion",3),
+	"confuse" : new window.StatusEffect("confuse","Confusion",3),
 	/**
 	Charm causes the afflicted character to be unable to target the character who charmed them with harmful abilities
 	*/
-	"charm" : new State.variables.StatusEffect("charm","Charm",3),
+	"charm" : new window.StatusEffect("charm","Charm",3),
 	/**
 	Temper doubles physical attack power for 3 turns
 	*/
-	"temper" : new State.variables.StatusEffect("temper","Temper",3),
+	"temper" : new window.StatusEffect("temper","Temper",3),
 	/**
 	Focus doubles magic attack power for 3 turns
 	*/
-	"focus" : new State.variables.StatusEffect("focus","Focus",3),
+	"focus" : new window.StatusEffect("focus","Focus",3),
 	/**
 	Third Eye quadruples magic attack power for 3 turns at the expense of halved physical attack and defense
 	*/
-	"third_eye" : new State.variables.StatusEffect("third_eye","Third Eye",3),
+	"third_eye" : new window.StatusEffect("third_eye","Third Eye",3),
 	/**
 	Defenseless reduces the target's defensive stats by half for 3 turns
 	*/
-	"defenseless" : new State.variables.StatusEffect("defenseless","Defenseless",3)
+	"defenseless" : new window.StatusEffect("defenseless","Defenseless",3)
 }
 
 /* // room objects might be overkill since they'll be pretty different, and it really starts to fight with Twine rather than leveraging it
-State.variables.rooms = {
+window.rooms = {
 	"Shimmerin_Chase_Ghostly_Greeting_Chamber" : new Room(...) 	// defined here?  With all details or boilerplate that's modified later?
 }
 */
@@ -1194,25 +1189,25 @@ alert("player is "+characters["player"].name+", nuvi is "+characters["nuvi"].nam
 Global dictionary object of public incarnations.  Since The Human can learn any Incarnation, all the Incarnations should be indexed here
 TODO: move the inline definitions of Incarnations from within Character configs to here, and then reference this dict in said configs.
 */
-State.variables.incarnationsDict = {
+window.incarnationsDict = {
 	// from Splinter of Serpentarius
-	"debilitate" : new State.variables.Incarnation("debilitate","Debilitate"),
-	"pierce" : new State.variables.Incarnation("pierce","Pierce"),
-	"toxin" : new State.variables.Incarnation("toxin","Toxin"),
+	"debilitate" : new window.Incarnation("debilitate","Debilitate"),
+	"pierce" : new window.Incarnation("pierce","Pierce"),
+	"toxin" : new window.Incarnation("toxin","Toxin"),
 	// from Splinter of Violet
-	"shadowform" : new State.variables.Incarnation("shadowform","Shadowform"),
-	"perfect_stillness" : new State.variables.Incarnation("perfect_stillness","Perfect Stillness"),
-	"savage_sympathy" : new State.variables.Incarnation("savage_sympathy","Savage Sympathy"),
+	"shadowform" : new window.Incarnation("shadowform","Shadowform"),
+	"perfect_stillness" : new window.Incarnation("perfect_stillness","Perfect Stillness"),
+	"savage_sympathy" : new window.Incarnation("savage_sympathy","Savage Sympathy"),
 	// from Splinter of Snugg-lor
-	"warmest_hug" : new State.variables.Incarnation("warmest_hug","Warmest Hug"),
-	"woolly_shield" : new State.variables.Incarnation("woolly_shield","Woolly Shield"),
-	"maenad_frenzy" : new State.variables.Incarnation("maenad_frenzy","Maenad Frenzy"),
+	"warmest_hug" : new window.Incarnation("warmest_hug","Warmest Hug"),
+	"woolly_shield" : new window.Incarnation("woolly_shield","Woolly Shield"),
+	"maenad_frenzy" : new window.Incarnation("maenad_frenzy","Maenad Frenzy"),
 }
 
-State.variables.itemsDict = {
-	"wicked_axe" : new State.variables.Item("wicked_axe","Wickedly Curved Axe"),
-	"cold_mace" : new State.variables.Item("cold_mace","Inexplicably Cold Mace"),
-	"sawtooth_star_dagger" : new State.variables.Item("sawtooth_star_dagger","Starlight Sawtooth Dagger")
+window.itemsDict = {
+	"wicked_axe" : new window.Item("wicked_axe","Wickedly Curved Axe"),
+	"cold_mace" : new window.Item("cold_mace","Inexplicably Cold Mace"),
+	"sawtooth_star_dagger" : new window.Item("sawtooth_star_dagger","Starlight Sawtooth Dagger")
 }
 
 /// end global story state dicts ///
@@ -1227,26 +1222,26 @@ State.variables.inventory = [];
 
 // inductive biases characters may have toward the Player
 
-// fuzzy biases
-State.variables.inductive_bias_digger_good = "digger_good";
-State.variables.inductive_bias_clever = "clever";
-State.variables.inductive_bias_animal_handler = "animal_handler";
-State.variables.inductive_bias_crush = "crush";
+// fuzzy biases TODO: make these constant with Object.freeze()
+window.inductive_bias_digger_good = "digger_good";
+window.inductive_bias_clever = "clever";
+window.inductive_bias_animal_handler = "animal_handler";
+window.inductive_bias_crush = "crush";
 
 // unfortunate biases
-State.variables.inductive_bias_liar = "liar";
-State.variables.inductive_bias_manipulative = "manipulative";
-State.variables.inductive_bias_lacks_confidence = "lacks_confidence";
-State.variables.inductive_bias_humble = "humble";
-State.variables.inductive_bias_knows_limitations = "knows_limitations";
+window.inductive_bias_liar = "liar";
+window.inductive_bias_manipulative = "manipulative";
+window.inductive_bias_lacks_confidence = "lacks_confidence";
+window.inductive_bias_humble = "humble";
+window.inductive_bias_knows_limitations = "knows_limitations";
 
 // titles the player can have
-State.variables.title_wombuddy = "wombuddy";
+window.title_wombuddy = "wombuddy";
 
 /// begin Shimmerin acq///
-State.variables.field_mod_anicemole_burrowed = "anicemole_burrowed";
+window.field_mod_anicemole_burrowed = "anicemole_burrowed";
 
-function AnIceMole(){
+window.AnIceMole = function AnIceMole(){
 	this.path_index = 0;
 	// the path an ice mole can take
 	this.ice_mole_path = ["Shimmerin_Chase_Frozen_Stair","Shimmerin_Chase_Diamond_Throneroom","Shimmerin_Chase_Treasure_Of_Stillness","Shimmerin_Chase_Crystal_Gardens"];
@@ -1296,12 +1291,12 @@ function AnIceMole(){
 		
 		// need to check for null return of field mods at given passage and init currentModsArray to an empty new array in that case
 		if (typeof currentModsArray == 'undefined'){
-			currentModsArray = [State.variables.field_mod_anicemole_burrowed];
+			currentModsArray = [window.field_mod_anicemole_burrowed];
 			State.variables.field_mods_map.set(passage(),currentModsArray);	
-		}else if(!currentModsArray.includes(State.variables.field_mod_anicemole_burrowed)){
+		}else if(!currentModsArray.includes(window.field_mod_anicemole_burrowed)){
 
 						 // field mods exist for this passage, but they do not yet include anicemole's burrowing.  Add burrowing to it.
-						 currentModsArray.push(State.variables.field_mod_anicemole_burrowed);
+						 currentModsArray.push(window.field_mod_anicemole_burrowed);
 		
 	 }
 		
@@ -1316,14 +1311,14 @@ function AnIceMole(){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-AnIceMole.prototype.toJSON = function () {
+window.AnIceMole.prototype.toJSON = function () {
 	// Return a code string that will create a new instance
 	// of AnIceMole with our current data.
 	return JSON.reviveWrapper(
 		'new AnIceMole()'
 		);
 };
-AnIceMole.prototype.clone = function () {
+window.AnIceMole.prototype.clone = function () {
 	// Return a new instance containing our current data.
 	return new AnIceMole();
 };
@@ -1367,13 +1362,13 @@ function init(){
 	
 	//items
 	
-	var wickedlyCurvedAxe = State.variables.itemsDict["wicked_axe"];
+	var wickedlyCurvedAxe = window.itemsDict["wicked_axe"];
 	wickedlyCurvedAxe.equipEffect = function(targetChar){
 		targetChar.stats["atk"] += 20;
 	}	
 	wickedlyCurvedAxe.description = "This axe is a solid piece of metal as black as the darkest corner of the abyss, so sharp that light itself appears to silently die upon its edge.  The Lumpkins have a prohecy that \'a shard of shadow will split the fundaments of the world and bring all that they love crashing down upon them\'... it's probably nothing.";
 	// todo: bleed status effect on-hit?
-	var coldMace = State.variables.itemsDict["cold_mace"];
+	var coldMace = window.itemsDict["cold_mace"];
 	coldMace.equipEffect = function(targetChar){
 		targetChar.stats["atk"] += 5;
 		targetChar.attributes["charisma"] -= 10;
@@ -1382,7 +1377,7 @@ function init(){
 		targetChar.stats.mp += 10;
 	}
 	coldMace.description = "The very chill that grips the heart of a snowstorm flashes through you as you gingerly touch the haft of this hefty mace.  You feel your concern for other living things dull notably, as an insidiously gentle numbness flows through your soul; in a moment, everything is a simple equation as clear and coldly beautiful as the corpse of a flower entombed within ice.  Your breath mists despite the temperate weather.";
-	var sawtoothDagger = State.variables.itemsDict["sawtooth_star_dagger"];
+	var sawtoothDagger = window.itemsDict["sawtooth_star_dagger"];
 	sawtoothDagger.equipEffect = function(targetChar){
 		targetChar.stats["atk"] = 0;
 		targetChar.attributes["charisma"] += 10;
@@ -1398,7 +1393,7 @@ function init(){
 	Defenseless halves a character's defensive attributes 
 	*/
 	// todo: I keep wanting to do mag def and phys def etc. stat changes -- add jRPG standard stats which are informed by D&D attributes, maybe?
-	var defenselessStatusEffect = State.variables.statusEffectsDict["defenseless"];
+	var defenselessStatusEffect = window.statusEffectsDict["defenseless"];
 	defenselessStatusEffect.buffity = "bluffins";
 	defenselessStatusEffect.descriptors.push("debuff","defense");
 	defenselessStatusEffect.effect = function(targetChar){
@@ -1414,7 +1409,7 @@ function init(){
 	/**
 	Temper provides a simple ATK*2 for 3 turns
 	*/
-	var temperStatusEffect = State.variables.statusEffectsDict["temper"];
+	var temperStatusEffect = window.statusEffectsDict["temper"];
 	temperStatusEffect.buffity = "buffins";
 	temperStatusEffect.descriptors.push("buff","offense");
 	temperStatusEffect.effect = function(targetChar){
@@ -1427,7 +1422,7 @@ function init(){
 	/**
 	Focus provides a simple PWR*2 for 3 turns
 	*/
-	var focusStatusEffect = State.variables.statusEffectsDict["focus"];
+	var focusStatusEffect = window.statusEffectsDict["focus"];
 	focusStatusEffect.buffity = "buffins";
 	focusStatusEffect.descriptors.push("buff","offense");
 	focusStatusEffect.effect = function(targetChar){
@@ -1440,7 +1435,7 @@ function init(){
 	/**
 	Third Eye provides a PWR*4 at cost of ATK/2 and DEF/2 for 3 turns
 	*/
-	var thirdEyeStatusEffect = State.variables.statusEffectsDict["third_eye"];
+	var thirdEyeStatusEffect = window.statusEffectsDict["third_eye"];
 	thirdEyeStatusEffect.buffity = "buffins";
 	thirdEyeStatusEffect.descriptors.push("buff","offense");
 	thirdEyeStatusEffect.effect = function(targetChar){
@@ -1457,7 +1452,7 @@ function init(){
 	/**
 	Regen heals a character by their RES each turn
 	*/
-	var regenStatusEffect = State.variables.statusEffectsDict["regen"];
+	var regenStatusEffect = window.statusEffectsDict["regen"];
 	regenStatusEffect.buffity = "buffins";
 	regenStatusEffect.descriptors.push("buff","health");
 	regenStatusEffect.effect = function(targetChar){
@@ -1469,7 +1464,7 @@ function init(){
 	/**
 	Doubt halves a character's attributes that are driven by presence and self-confidence: STR and CHA.
 	*/
-	var doubtStatusEffect = State.variables.statusEffectsDict["doubt"];
+	var doubtStatusEffect = window.statusEffectsDict["doubt"];
 	doubtStatusEffect.buffity = "bluffins";
 	doubtStatusEffect.descriptors.push("debuff","offense");
 	doubtStatusEffect.effect = function(targetChar){
@@ -1492,7 +1487,7 @@ function init(){
 	/**
 	Bloodlust quadruples STR in exchange for halving all mental attributes
 	*/
-	var bloodlustStatusEffect = State.variables.statusEffectsDict["bloodlust"];
+	var bloodlustStatusEffect = window.statusEffectsDict["bloodlust"];
 	bloodlustStatusEffect.buffity = "buffins";
 	bloodlustStatusEffect.descriptors.push("buff","offense");
 	bloodlustStatusEffect.effect = function(targetChar){
@@ -1520,7 +1515,7 @@ function init(){
 		
 	}
 	
-	var terrorStatusEffect = State.variables.statusEffectsDict["terror"];
+	var terrorStatusEffect = window.statusEffectsDict["terror"];
 	terrorStatusEffect.buffity = "bluffins";
 	terrorStatusEffect.descriptors.push("debuff","turn");
 	terrorStatusEffect.effect = function(targetChar){
@@ -1532,14 +1527,14 @@ function init(){
 		//targetChar.combatFlags |= targetChar.CombatFlags.FLAG_SKIP_TURN; // flag needs to be raised in round pre proc.  The pre proc block should check for this status effect and then call its effect(), which will return true if some status-effect-specific percentage range is hit.
 		
 		// 35% chance
-		return State.variables.rollPercentage() <= 35;
+		return window.rollPercentage() <= 35;
 	}
 	terrorStatusEffect.reverseEffect = function(targetChar){}
 	
 	/**
 	Poison deals dmg each turn and halves atk/def stats
 	*/
-	var poisonStatusEffect = State.variables.statusEffectsDict["poison"];
+	var poisonStatusEffect = window.statusEffectsDict["poison"];
 	poisonStatusEffect.buffity = "bluffins";
 	poisonStatusEffect.descriptors.push("debuff","health");
 	poisonStatusEffect.effect = function(targetChar){
@@ -1551,7 +1546,7 @@ function init(){
 		targetChar.stats["def"] *= 2;
 	}
 	
-	var shadowStatusEffect = State.variables.statusEffectsDict["shadow"];
+	var shadowStatusEffect = window.statusEffectsDict["shadow"];
 	shadowStatusEffect.buffity = "buffins";
 	shadowStatusEffect.descriptors.push("buff","defense");
 	shadowStatusEffect.effect = function(targetChar){
@@ -1562,15 +1557,15 @@ function init(){
 		targetChar.stats["def"] = this.cachedDef;
 	}
 	
-	var confuseStatusEffect = State.variables.statusEffectsDict["confuse"];
+	var confuseStatusEffect = window.statusEffectsDict["confuse"];
 	confuseStatusEffect.buffity = "bluffins";
 	confuseStatusEffect.descriptors.push("debuff","turn","ai","abilities");
 	confuseStatusEffect.effect = function(targetChar){
-		return State.variables.rollPercentage() > 50;
+		return window.rollPercentage() > 50;
 	}
 	confuseStatusEffect.reverseEffect = function(targetChar){}
 	
-	var charmStatusEffect = State.variables.statusEffectsDict["charm"];
+	var charmStatusEffect = window.statusEffectsDict["charm"];
 	charmStatusEffect.buffity = "bluffins";
 	charmStatusEffect.descriptors.push("debuff","turn","ai","targeting");
 	charmStatusEffect.effect = function(sourceChar,targetChar){
@@ -1587,14 +1582,14 @@ function init(){
 	/**
 	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
 	*/
-	var debilitate = State.variables.incarnationsDict["debilitate"];
+	var debilitate = window.incarnationsDict["debilitate"];
 	debilitate.targetType = debilitate.TargetTypesEnum.singleEnemy;
 	debilitate.cost = {"mp":25};
 	debilitate.calcDmg = function(sourceChar,targetChar){
 		return targetChar.stats.hp*0.1;	
 	}
 	debilitate.effect = function(sourceChar,targetChar){
-		State.variables.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
+		window.addUniqueStatusEffect(targetChar,defenselessStatusEffect);	
 		
 		// MP cost
 		this.processCost(sourceChar);
@@ -1605,7 +1600,7 @@ function init(){
 	/**
 	Pierce is a physical strike for which atk bypasses def
 	*/
-	var pierceIncarnation = State.variables.incarnationsDict["pierce"];
+	var pierceIncarnation = window.incarnationsDict["pierce"];
 	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
 	pierceIncarnation.cost = {"hp":10};
 	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1622,7 +1617,7 @@ function init(){
 		return sourceChar.name+" smoothly reaches directly into "+targetChar.name+"'s soul, and just kinda... fiddles around a little.  "+targetChar.name+" does not appreciate this, emphatically, to the tune of "+this.dmg+" delicious damages!";	
 	}
 	
-	var toxinIncarnation = State.variables.incarnationsDict["toxin"];
+	var toxinIncarnation = window.incarnationsDict["toxin"];
 	toxinIncarnation.targetType = toxinIncarnation.TargetTypesEnum.singleEnemy;
 	toxinIncarnation.cost = {"mp":15};
 	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1631,7 +1626,7 @@ function init(){
 	toxinIncarnation.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats["hp"] -= this.dmg;
-		State.variables.addUniqueStatusEffect(targetChar,poisonStatusEffect);
+		window.addUniqueStatusEffect(targetChar,poisonStatusEffect);
 		
 		// MP cost
 		this.processCost(sourceChar);
@@ -1645,11 +1640,11 @@ function init(){
 	Shadowform makes the character immune to physical damage.  
 	TODO: add a physical/magic damage typing system.  For now, we'll just make def infinite.
 	*/
-	var shadowFormIncarnation = State.variables.incarnationsDict["shadowform"];
+	var shadowFormIncarnation = window.incarnationsDict["shadowform"];
 	shadowFormIncarnation.targetType = shadowFormIncarnation.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
 	shadowFormIncarnation.cost = {"mp":30};
 	shadowFormIncarnation.effect = function(sourceChar,targetChar){
-		State.variables.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
+		window.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
 		
 		// MP cost
 		this.processCost(sourceChar);
@@ -1661,7 +1656,7 @@ function init(){
 	/**
 	Perfect Stillness deals mild cold damage to the wielder and massive cold damage to the target
 	*/
-	var perfectStillnessIncarnation = State.variables.incarnationsDict["perfect_stillness"];
+	var perfectStillnessIncarnation = window.incarnationsDict["perfect_stillness"];
 	perfectStillnessIncarnation.targetType = perfectStillnessIncarnation.TargetTypesEnum.singleEnemy;
 	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
 	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
@@ -1684,7 +1679,7 @@ function init(){
 	/**
 	Savage Sympathy deals more damage the greater the difference between the wielder and the target's ATK, and heals the wielder
 	*/
-	var savageSympathyIncarnation = State.variables.incarnationsDict["savage_sympathy"];
+	var savageSympathyIncarnation = window.incarnationsDict["savage_sympathy"];
 	savageSympathyIncarnation.targetType = savageSympathyIncarnation.TargetTypesEnum.singleEnemy;
 	savageSympathyIncarnation.cost = {"mp":20};
 	savageSympathyIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1706,7 +1701,7 @@ function init(){
 	/**
 	Warmest hug heals self and other with ATK
 	*/
-	var warmestHugIncarnation = State.variables.incarnationsDict["warmest_hug"];
+	var warmestHugIncarnation = window.incarnationsDict["warmest_hug"];
 	warmestHugIncarnation.targetType = warmestHugIncarnation.TargetTypesEnum.singleAlly;
 	warmestHugIncarnation.cost = {"mp":20};
 	warmestHugIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1727,7 +1722,7 @@ function init(){
 	/**
 	Woolly Shield raises target's DEF by wielder's RES+DEF
 	*/
-	var woollyShieldIncarnation = State.variables.incarnationsDict["woolly_shield"];
+	var woollyShieldIncarnation = window.incarnationsDict["woolly_shield"];
 	woollyShieldIncarnation.targetType = woollyShieldIncarnation.TargetTypesEnum.singleAlly;
 	woollyShieldIncarnation.cost = {"mp":30};
 	woollyShieldIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1747,7 +1742,7 @@ function init(){
 	/**
 	Maenad Frenzy deals ATK+CHA to self and (ATK+CHA)*2 to target
 	*/
-	var maenadFrenzyIncarnation = State.variables.incarnationsDict["maenad_frenzy"];
+	var maenadFrenzyIncarnation = window.incarnationsDict["maenad_frenzy"];
 	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
 	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1770,7 +1765,7 @@ function init(){
 	TODO: for debug only -- critToTheDick kills the enemy immediately
 	*/
 	/*
-	var critToDickIncarnation = new State.variables.Incarnation("crit_dick","Crit to the Dick");
+	var critToDickIncarnation = new window.Incarnation("crit_dick","Crit to the Dick");
 	critToDickIncarnation.targetType = critToDickIncarnation.TargetTypesEnum.singleEnemy;
 	critToDickIncarnation.cost = {"mp":0};
 	critToDickIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1810,13 +1805,13 @@ function init(){
 	puckChar.stats["res"] = puckChar.getMagicAttributeScore();
 	// todo: equip Puck?
 	puckChar.entity = new Entity("Vicious Mockery");
-	var rapierWit = new State.variables.Incarnation("rapier_wit","Rapier Wit");
+	var rapierWit = new window.Incarnation("rapier_wit","Rapier Wit");
 	rapierWit.cost = {"mp":15};
 	rapierWit.generateFlavorText = function(sourceChar,targetChar){
 		if(targetChar){
 			// todo: randomly selected insults based on descriptor tags
 			
-				var percentage = State.variables.rollPercentage();
+				var percentage = window.rollPercentage();
 				var flavorText = "";
 				if(targetChar.gender === "female"){
 					if(percentage <= 20){
@@ -1852,12 +1847,12 @@ function init(){
 	rapierWit.targetType = rapierWit.TargetTypesEnum.singleEnemy;
 	rapierWit.calcDmg = function(sourceChar,targetChar){
 		// highly variable damage sourced from source CHA and resisted slightly by target CHA
-		return State.variables.rollDie(6) *State.variables.calcMod(sourceChar.attributes["charisma"]) - State.variables.calcMod(targetChar.attributes["charisma"]);	
+		return window.rollDie(6) *window.calcMod(sourceChar.attributes["charisma"]) - window.calcMod(targetChar.attributes["charisma"]);	
 	}
 	rapierWit.effect = function(sourceChar,targetChar){
 		this.dmg = rapierWit.calcDmg(sourceChar,targetChar);
 		targetChar.stats.hp -= this.dmg;
-		State.variables.addUniqueStatusEffect(targetChar,doubtStatusEffect);
+		window.addUniqueStatusEffect(targetChar,doubtStatusEffect);
 		
 		// possible player death processing
 		// todo: move this and similar common abl processes to a common abl I/O
@@ -1870,7 +1865,7 @@ function init(){
 	}
 	puckChar.incarnations["rapier_wit"] = rapierWit;
 	
-	var rainOfRadiance = new State.variables.Incarnation("rain_of_radiance","Rain of Radiance");
+	var rainOfRadiance = new window.Incarnation("rain_of_radiance","Rain of Radiance");
 	rainOfRadiance.cost = {"mp":50};
 	rainOfRadiance.generateFlavorText = function(sourceChar,targetChars){
 			return sourceChar.name+" thrusts a hand towards the heavens, muscles quivering with equal parts strain and anticipation.  The first few glittering droplets of liquid blue-white starlight are beautiful, but their virtue is quickly eclipsed by a tide of agony that grips the entire party as their flesh/fur is scorched/singed by celestial fire!  "+this.dmg+" horrifically burning damages to the whole party!";	
@@ -1881,7 +1876,7 @@ function init(){
 		var sourcePower = sourceChar.stats["pwr"];
 		//alert(sourceChar.name+"'s pwr is "+sourcePower);
 		console.log("Power of "+sourceChar.name+" is "+sourcePower);
-		return 5*State.variables.calcMod(sourcePower);
+		return 5*window.calcMod(sourcePower);
 	}
 	/**
 	Rain of Radiance expects an array of target chars since it hits all enemies
@@ -1903,7 +1898,7 @@ function init(){
 	}
 	puckChar.incarnations["rain_of_radiance"] = rainOfRadiance;
 	
-	var swordsDance = new State.variables.Incarnation("swords_dance","Swords Dance");
+	var swordsDance = new window.Incarnation("swords_dance","Swords Dance");
 	swordsDance.cost = {"mp":15};
 	swordsDance.generateFlavorText = function(sourceChar,targetChar){
 		var flavorString = "Cruel cold light gleams in "+targetChar.name+"'s eyes as warrior spirits torn directly from the savagery of the Wild Hunt meld with "+(targetChar.gender === "female"?"her":"his")+" spirit!";
@@ -1917,7 +1912,7 @@ function init(){
 	}
 	swordsDance.targetType = swordsDance.TargetTypesEnum.singleAlly;
 	swordsDance.effect = function(sourceChar,targetChar){
-		State.variables.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
+		window.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
 		
 		// mp cost
 		this.processCost(sourceChar);
@@ -1992,7 +1987,7 @@ function init(){
 								
 								if(status.descriptors.includes("offense")){
 									 anyPlayerOffenseBuffed = true;
-									 if( !State.variables.hasStatusEffect(player,State.variables.statusEffectsDict["doubt"])){
+									 if( !window.hasStatusEffect(player,window.statusEffectsDict["doubt"])){
 									playerWithTargetBuff = player;	
 								}
 							 }
@@ -2009,10 +2004,10 @@ function init(){
 				/// end gathering data + maybe buff balancing ///
 				
 				/// begin story scenario modifier processing ///
-				if(State.variables.godling_strat_chosen === State.variables.godling_strat_viral_violence){
+				if(State.variables.godling_strat_chosen === window.godling_strat_viral_violence){
 					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
 						// if the player char with least def is bloodied...
-						if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){
+						if(window.hasStatusEffect(puckChar,window.statusEffectsDict["bloodlust"])){
 							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
 							/*
 							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
@@ -2033,10 +2028,10 @@ function init(){
 							chosenTarget = puckChar;
 						}
 					}
-				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_surgical_system){
+				}else if(State.variables.godling_strat_chosen === window.godling_strat_surgical_system){
 					// hit the latest player with a buff with debuff to balance the ol' scales
 					if(playerWithTargetBuff){
-							if(!State.variables.hasStatusEffect(playerWithTargetBuff,State.variables.statusEffectsDict["doubt"])){
+							if(!window.hasStatusEffect(playerWithTargetBuff,window.statusEffectsDict["doubt"])){
 							
 /*								puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
 								combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
@@ -2056,7 +2051,7 @@ function init(){
 							chosenTarget = playerParty;
 						}
 					}
-				}else if(State.variables.godling_strat_chosen === State.variables.godling_strat_diplomancy){
+				}else if(State.variables.godling_strat_chosen === window.godling_strat_diplomancy){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							
@@ -2075,10 +2070,10 @@ function init(){
 			if(chosenAbility === undefined && chosenTarget === undefined){
 				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
 					// rando time!
-				var percentageRandoAbl = State.variables.rollPercentage();
+				var percentageRandoAbl = window.rollPercentage();
 				/* wtf
 				// establish a random percentage which will be used to select a player party member
-				var randoAtkTargetRange = State.variables.rollPercentage();
+				var randoAtkTargetRange = window.rollPercentage();
 				// the mapping between percentage and player party indices, e.g. 4 player chars -> 100/4 = 25 -> every 25% we figure the index needs to increment
 				var playerPartyRangeChunk = 100/combat.playerParty.length;
 				// todo: this does not result in a reasonable index -- if party length is 1,
@@ -2110,7 +2105,7 @@ function init(){
 					chosenTarget = playerRandoTarget;
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
 					
-					if(!State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["bloodlust"])){					
+					if(!window.hasStatusEffect(puckChar,window.statusEffectsDict["bloodlust"])){					
 /*						puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
 																																																				combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
 																																																				return;
@@ -2155,15 +2150,15 @@ function init(){
 		
 // todo: if confused, reassign chosenTarget with 50% self-target and 50% original target(s)
 				// todo: this reassignment would ideally take ability target types into account
-				if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["confuse"])){
+				if(window.hasStatusEffect(puckChar,window.statusEffectsDict["confuse"])){
 					
 // confuse's effect is to roll percentage and return true if value is > 50
-					if(State.variables.getStatusEffect(puckChar,"confuse").effect()){
+					if(window.getStatusEffect(puckChar,"confuse").effect()){
 						chosenTarget = puckChar;	
 					}
 			}
-			else if(State.variables.hasStatusEffect(puckChar,State.variables.statusEffectsDict["charm"])){
-				var charmStatusInstance = State.variables.getStatusEffect(puckChar,"charm");
+			else if(window.hasStatusEffect(puckChar,window.statusEffectsDict["charm"])){
+				var charmStatusInstance = window.getStatusEffect(puckChar,"charm");
 				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
 					if(chosenTarget.id === charmingCharacterId){
 						 // rando reassign to someone other than charming character
@@ -2192,14 +2187,14 @@ function init(){
 				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
 						
 				// remove the walled character from the chosenTarget array
-						State.variables.removeCharacterFromArray(target,targets);
+						window.removeCharacterFromArray(target,targets);
 				
 				// generate a random effect, dmg or status, to direct back at Puck
-						var incarnationKeys = Object.keys(State.variables.incarnationsDict);
+						var incarnationKeys = Object.keys(window.incarnationsDict);
 						var randoIncarnationIndex = Math.floor(Math.random() * incarnationKeys.length);
 				
 				// apply the effect to Puck
-				var randoReprisalAbility = State.variables.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
+				var randoReprisalAbility = window.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
 						randoReprisalAbility.effect(puckChar);
 						// todo: need support for abilities going off without a caster/target.  For the demo, simply saying Miss Fortune for wielder and Puck for target of rando wall of wonder effect is fine.
 						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character("miss_fortune","Miss Fortune"),puckChar);
@@ -2256,16 +2251,16 @@ function init(){
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
-	var hauntedFey = new State.variables.Incarnation("haunted_fey","Haunted Fey");
+	var hauntedFey = new window.Incarnation("haunted_fey","Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
 	console.log("Marrah's first incarnation is "+Object.keys(marrahChar.incarnations)[0].name);
 	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
 	hauntedFey.cost = {"mp":20};
 	hauntedFey.effect = function(sourceChar,targetChar){
-		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		var savingThrow = targetChar.saves["will"] + window.rollD20();
 		// effect will be called on the Incarnation instance, so this should be bound to same
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["terror"]);	
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["terror"]);	
 		}
 		
 		// cost
@@ -2276,7 +2271,7 @@ function init(){
 		return sourceChar.name+"'s visage shimmers as reality warps around "+sourceChar.getPronoun_gen()+" body.  In the next instant, "+sourceChar.getPronoun_nom()+" has been replaced by something born of the very fabric of nightmare -- the creature's flesh is withered and weathered, and blood oozes from innumerable splits in what appear to be surgical seams all along its abominable body.  Horns and claws extend from odd places, and fangs sprout from everywhere.  Wherever you look, there's another drooling mouth with a lashing, searching tongue covered in wicked barbs.  The eyes concern you the most, however: there is an alienness to them that you can't clearly define, but which speaks to you of unfathomable depths in the emptiness between the stars... and all that lurks there.  A moment later the horror is gone and "+sourceChar.name+" stands there as if nothing had happened, a smile all of teeth on "+sourceChar.getPronoun_gen()+" face as "+sourceChar.getPronoun_nom()+" surveys the anarchy "+sourceChar.getPronoun_nom()+" has inspired in the foebeasts' ranks!";
 	}
 	
-	var foxFire = new State.variables.Incarnation("fox_fire","Fox Fire");
+	var foxFire = new window.Incarnation("fox_fire","Fox Fire");
 	marrahChar.incarnations["fox_fire"] = foxFire;
 	foxFire.targetType = foxFire.TargetTypesEnum.singleEnemy;
 	foxFire.cost = {"mp":15};
@@ -2291,10 +2286,10 @@ function init(){
 	foxFire.effect = function(sourceChar,targetChar){
 		/* // shouldn't be able to save against the whole thing, plus the Puck fight for the demo is a bit on the too hard side
 		// apply status effect, doubt
-		var savingThrow = targetChar.saves["will"] + State.variables.rollD20();
+		var savingThrow = targetChar.saves["will"] + window.rollD20();
 		// effect will be called on the Incarnation instance, so this should be bound to same
 		if(savingThrow <= this.calcDC(marrahChar,"charisma")){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["doubt"]);
 			
 			// set dmg
 			this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -2304,7 +2299,7 @@ function init(){
 		}
 		*/
 
-		State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["doubt"]);
+		window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["doubt"]);
 			
 			// set dmg
 			this.dmg = this.calcDmg(sourceChar,targetChar);
@@ -2320,7 +2315,7 @@ function init(){
 		return "Marrah's brilliant scarlet fur stands on end as static electricity fills the air, along with a menacing hum.  Her yellow eyes flash electric blue for a moment and she puts both paws over her heart.  Closing her eyes, she inhales deeply, her chest puffing out proud and strong, as she allows her awareness to cascade inward.  The world waits on her discovery for a few moments, and then her eyes fly wide open -- they are glowing a painfully bright ruby with a molten gold corona.  Eight tails forged from fires of every imaginable hue, from ghostly green to putrescent purple, join her only slightly less magical normal one. She turns tail and flicks all nine dismissively towards "+targetChar.name+".  The technicolor flames leap from Marrah with gleeful fervor, and engulf "+targetChar.getPronoun_obj()+" for "+this.dmg+" damage!";	
 	}
 		
-	var ghostWhip = new State.variables.Incarnation("ghost_whip","Ghost Whip");
+	var ghostWhip = new window.Incarnation("ghost_whip","Ghost Whip");
 	marrahChar.incarnations["ghost_whip"] = ghostWhip;
 	ghostWhip.targetType = ghostWhip.TargetTypesEnum.singleEnemy;
 	ghostWhip.cost = {"mp":15};
@@ -2354,7 +2349,7 @@ function init(){
 	/**
 	Fire Claw combines Incarnation power with physical attack power to inflict heavy damage
 	*/
-	var fireClawIncarnation = new State.variables.Incarnation("fire_claw","Fire Claw");
+	var fireClawIncarnation = new window.Incarnation("fire_claw","Fire Claw");
 		marrahChar.incarnations["fire_claw"] = fireClawIncarnation;
 		fireClawIncarnation.targetType = fireClawIncarnation.TargetTypesEnum.singleEnemy;
 	fireClawIncarnation.cost = {"mp":5,"hp":5};
@@ -2399,12 +2394,12 @@ function init(){
 		/**
 		Regenerator adds regen to the target
 		*/
-	var regeneratorIncarnation = new State.variables.Incarnation("regenerator","Regenerator");
+	var regeneratorIncarnation = new window.Incarnation("regenerator","Regenerator");
 		mootyChar.incarnations["regenerator"] = regeneratorIncarnation;
 		regeneratorIncarnation.targetType = regeneratorIncarnation.TargetTypesEnum.singleAlly;
 		regeneratorIncarnation.cost = {"mp":10};
 		regeneratorIncarnation.effect = function(sourceChar,targetChar){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["regen"]);	
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["regen"]);	
 			
 			// mp cost
 			this.processCost(sourceChar);
@@ -2415,7 +2410,7 @@ function init(){
 		/**
 		Spring Rain heals the entire party
 		*/
-	var springRainIncarnation = new State.variables.Incarnation("spring_rain","Spring Rain");
+	var springRainIncarnation = new window.Incarnation("spring_rain","Spring Rain");
 		mootyChar.incarnations["spring_rain"] = springRainIncarnation;
 		springRainIncarnation.targetType = springRainIncarnation.TargetTypesEnum.allAllies;
 		springRainIncarnation.cost = {"mp":20};
@@ -2442,7 +2437,7 @@ function init(){
 		/**
 		Grief Howl returns a deceased ally to life  
 		*/
-	var griefHowlIncarnation = new State.variables.Incarnation("grief_howl","Grief Howl");
+	var griefHowlIncarnation = new window.Incarnation("grief_howl","Grief Howl");
 		mootyChar.incarnations["grief_howl"] = griefHowlIncarnation;
 		griefHowlIncarnation.targetType = griefHowlIncarnation.TargetTypesEnum.singleAlly;
 		griefHowlIncarnation.cost = {"mp":30};
@@ -2495,12 +2490,12 @@ function init(){
 	/**
 		Vibroblade adds a chainsaw-like kinetic force to the target's weapon! (gives temper status effect)
 		*/
-	var vibrobladeIncarnation = new State.variables.Incarnation("vibroblade","Vibroblade");
+	var vibrobladeIncarnation = new window.Incarnation("vibroblade","Vibroblade");
 		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
 		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
 		vibrobladeIncarnation.cost = {"mp":10};
 		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["temper"]);	
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["temper"]);	
 			
 			// mp cost
 			this.processCost(sourceChar);
@@ -2513,12 +2508,12 @@ function init(){
 	/**
 		Laser Sight adds Focus status effect
 		*/
-	var laserSightIncarnation = new State.variables.Incarnation("laser_sight","Laser Sight");
+	var laserSightIncarnation = new window.Incarnation("laser_sight","Laser Sight");
 		drbeakmanChar.incarnations["laser_sight"] = laserSightIncarnation;
 		laserSightIncarnation.targetType = laserSightIncarnation.TargetTypesEnum.singleAlly;
 		laserSightIncarnation.cost = {"mp":10};
 		laserSightIncarnation.effect = function(sourceChar,targetChar){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["focus"]);	
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["focus"]);	
 			
 			// mp cost
 			this.processCost(sourceChar);
@@ -2531,12 +2526,12 @@ function init(){
 	/**
 		Fey Touch adds Third Eye status effect
 		*/
-	var feyTouchIncarnation = new State.variables.Incarnation("fey_touch","Fey Touch");
+	var feyTouchIncarnation = new window.Incarnation("fey_touch","Fey Touch");
 		drbeakmanChar.incarnations["fey_touch"] = feyTouchIncarnation;
 		feyTouchIncarnation.targetType = feyTouchIncarnation.TargetTypesEnum.singleAlly;
 		feyTouchIncarnation.cost = {"mp":15};
 		feyTouchIncarnation.effect = function(sourceChar,targetChar){
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["third_eye"]);	
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["third_eye"]);	
 			
 			// mp cost
 			this.processCost(sourceChar);
@@ -2572,7 +2567,7 @@ function init(){
 	/**
 		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation (using the character who cast the Wall Incarnation as the sourceChar). 
 		*/
-	var wallOfWonderIncarnation = new State.variables.Incarnation("wall_of_wonder","Wall of Wonder");
+	var wallOfWonderIncarnation = new window.Incarnation("wall_of_wonder","Wall of Wonder");
 		shimmerinChar.incarnations["wall_of_wonder"] = wallOfWonderIncarnation;
 		wallOfWonderIncarnation.cost = {"mp":35}
 		wallOfWonderIncarnation.targetType = wallOfWonderIncarnation.TargetTypesEnum.allAllies;
@@ -2591,7 +2586,7 @@ function init(){
 	/**
 	Phantasmagoria: whimsical breath full of wonder and horror inextricably merged washes over the foebeasts, damaging and confusing them! (Confused status effect causes 50% chance that whatever abl the confused character chooses to use will be targeted at themselves instead of the original target)	
 	*/
-		var phantasmagoriaIncarnation = new State.variables.Incarnation("phantasmagoria","Phantasmagoria");
+		var phantasmagoriaIncarnation = new window.Incarnation("phantasmagoria","Phantasmagoria");
 		shimmerinChar.incarnations["phantasmagoria"] = phantasmagoriaIncarnation;
 		phantasmagoriaIncarnation.cost = {"mp":20}
 		phantasmagoriaIncarnation.targetType = phantasmagoriaIncarnation.TargetTypesEnum.singleEnemy;
@@ -2602,7 +2597,7 @@ function init(){
 			// apply dmg + Confuse to target
 			this.dmg = this.calcDmg(sourceChar,targetChar);
 			targetChar.stats["hp"] -= this.dmg;
-			State.variables.addUniqueStatusEffect(targetChar,State.variables.statusEffectsDict["confuse"]);
+			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["confuse"]);
 			
 			// handle cost to user
 			this.processCost(sourceChar);
@@ -2614,7 +2609,7 @@ function init(){
 	/**
 	Caress of the Zephyr: teases, titillates, and slashes a target.  Deals dmg equal to pwr*2 - def/2 and charms the target (charm makes it so that the target cannot harm the charming character)
 	*/
-		var caressOfZephyrIncarnation = new State.variables.Incarnation("caress_of_zephyr","Caress of the Zephyr");
+		var caressOfZephyrIncarnation = new window.Incarnation("caress_of_zephyr","Caress of the Zephyr");
 		shimmerinChar.incarnations["caress_of_zephyr"] = caressOfZephyrIncarnation;
 		caressOfZephyrIncarnation.cost = {"mp":25}
 		caressOfZephyrIncarnation.targetType = caressOfZephyrIncarnation.TargetTypesEnum.singleEnemy;
@@ -2625,7 +2620,7 @@ function init(){
 			// todo: dmg + Charm
 			this.dmg = this.calcDmg(sourceChar,targetChar);
 			targetChar.stats["hp"] -= this.dmg;
-			State.variables.addUniqueStatusEffectWithSource(sourceChar,targetChar,State.variables.statusEffectsDict["charm"]);
+			window.addUniqueStatusEffectWithSource(sourceChar,targetChar,window.statusEffectsDict["charm"]);
 			
 			// handle cost to user
 			this.processCost(sourceChar);
@@ -2653,9 +2648,9 @@ init();
 <script>
 var playerParty = [State.variables.characters['player']];
 var enemyParty = [State.variables.characters['puck']];
-var combat = new State.variables.Combat(playerParty,enemyParty,"");
+var combat = new window.Combat(playerParty,enemyParty,"");
 combat.getData();
-State.variables.godling_strat_chosen = State.variables.godling_strat_surgical_system;
+State.variables.godling_strat_chosen = window.godling_strat_surgical_system;
 </script>
 <button onclick="State.variables.characters['puck'].runAI(combat,'enemy')">Test</button>
 </body>
