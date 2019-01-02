@@ -760,8 +760,106 @@ party and the enemy's party.
 @param config: either an existing Combat object to be used with a copy-constructor or an object sack with parameterized fields playerParty Character array, enemyParty Character array, and destPassageName String (passage to which player should be returned after combat).
 */
 window.Combat = function Combat(config){
-	if(copy == undefined){
-	this.PlayerTurnState = Object.freeze (
+	if (config.hasOwnProperty('playerTurnState')) {
+		// here we were given an old instance of Combat to cc with
+
+		// copy the own properties automatically, for simplicity.
+		Object.keys(config).forEach(function (propertyName) {
+			// clone() is a sugarcube built-in that returns a deep copy of the given object
+			this[propertyName] = clone(config[propertyName]);
+		}, this);
+
+	}// end if copy ctor
+	else{
+		// here we're creating a new instance of Combat from a config property bag
+
+		// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
+		this.playerTurnState = window.Combat.PlayerTurnState.selectAbility;
+		this.enemyTurnState = window.Combat.EnemyTurnState.runAI;
+		this.combatResult = window.Combat.CombatResultEnum.pending;
+
+		// parameterized properties
+		this.playerParty = config.playerParty;
+		this.enemyParty = config.enemyParty;
+		this.destPassageName = config.destPassageName;
+		
+		
+		// tracks the currently selected player ability
+		this.currentSelectedAbility = new window.Ability("unset");
+		
+		// tracks the turn as either player or enemy group
+		this.turnGroup = "player";
+		
+		// tracks the actual character id whose turn it is
+		this.turnOwner = "player";
+		
+		// tracks the currently selected ability for the current turn owner
+		this.abilityName = "";
+		
+		// tracks the target of the current ability
+		this.currentTargetCharacter = new window.Character("unset");
+		
+		// the text feedback to the user re: the state of combat
+		this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
+	}// end if new instance w/ prop bag
+
+	/**
+	Creates and returns a primitve (JSON serializable) JS object that contains the current
+	value at each of this instance's fields, with the field name as the key paired with the
+	current value.  The ctor(dataBundle) uses this data bundle to inflate an object from JSON,
+	which is crucial for restoring state after a game is loaded.
+	*/
+	//this.getData = function(){
+	//	var dataBundle = {}
+		// I've never actually looped through attrs of a complex object before... does this work? UPDATE: apparently maybe, though everything showed undefined for some reason
+		// UPDATE2: ah, the undefined was because I was using dot notation without the correct literal symbol -- that case needs bracket notation, it seems.  JS is bonkers, man.
+	//	for(var attr in this){
+	//		console.log(""+attr+":"+this[attr]);
+	//	}
+		/* manual approach; shouldn't be necessary since hasOwnProperty() is a thing
+			"playerTurnState" : this.playerTurnState,
+			"enemyTurnState" : this.enemyTurnState,
+			"playerParty" : this.playerParty,
+			"enemyParty" : this.enemyParty,
+			"destPassageName" : this.destPassageName;
+			"combatResult" : this.combatResult,
+			"currentSelectedAbility" : this.currentSelectedAbility,
+			"turnGroup" : this.turnGroup,
+			"turnOwner" : this.turnOwner,
+			"abilityName" : this.abilityName,
+			"currentTargetCharacter" : this.currentTargetCharacter,
+			"combatLogContent" : this.combatLogContent
+		
+	//}
+	}// end if copy is not defined
+	else{
+		*/
+		// restore from saved data bundle case
+		/* manual approach, might not be necessary unless a deep copy is needed
+		this.playerTurnState = dataBundle["playerTurnState"];
+		this.enemyTurnState =	dataBundle["enemyTurnState"];
+		this.playerParty = dataBundle["playerParty"];
+		this.enemyParty = dataBundle["enemyParty"];
+		this.destPassageName = dataBundle["destPassageName"];
+		this.combatResult = dataBundle["combatResult"];
+		this.currentSelectedAbility = dataBundle["currentSelectedAbility"];
+		this.turnGroup = dataBundle["turnGroup"];
+		this.turnOwner = dataBundle["turnOwner"];
+		this.abilityName = dataBundle["abilityName"];
+		this.currentTargetCharacter = dataBundle["currentTargetCharacter"];
+		this.combatLogContent = dataBundle["combatLogContent"]; 
+		*/
+		/*
+		Object.assign(this,copy);
+
+	}
+	*/
+	
+	
+}// end Combat instance def
+
+// Combat static properties - these do not need an instance of Combat at all
+window.Combat.PlayerTurnState = Object.freeze (
 		{ 
 			selectTarget: 1, 
 			selectAbility: 2,
@@ -769,47 +867,53 @@ window.Combat = function Combat(config){
 			selectEnemyTarget: 4,
 			selectAllyTarget: 5
 		});
-	this.EnemyTurnState = Object.freeze (
+window.Combat.EnemyTurnState = Object.freeze (
 		{ 
 			runAI: 1, 
 			displayResults: 2
 		});
-	this.CombatResultEnum = Object.freeze (
+window.Combat.CombatResultEnum = Object.freeze (
 		{ 
 			pending: 0,
 			playerVictory: 1, 
 			enemyVictory: 2
 		});
 
-	
-	
-	// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
-	this.playerTurnState = this.PlayerTurnState.selectAbility;
-	this.enemyTurnState = this.EnemyTurnState.runAI;
-	this.playerParty = playerParty;
-	this.enemyParty = enemyParty;
-	this.destPassageName = destPassageName;
-	this.combatResult = this.CombatResultEnum.pending;
-	
-	// tracks the currently selected player ability
-	this.currentSelectedAbility = new window.Ability("unset");
-	
-	// tracks the turn as either player or enemy group
-	this.turnGroup = "player";
-	
-	// tracks the actual character id whose turn it is
-	this.turnOwner = "player";
-	
-	// tracks the currently selected ability for the current turn owner
-	this.abilityName = "";
-	
-	// tracks the target of the current ability
-	this.currentTargetCharacter = new window.Character("unset");
-	
-	// the text feedback to the user re: the state of combat
-	this.combatLogContent = "What will "+State.variables.characters[this.turnOwner].name+" do?";
-
-	this.randoCombatantExcept = function(exceptCharacter){
+/**
+It is necessary to implement toJSON and clone for all complex objects to facilitate
+JSON de/serialization
+*/
+/*
+window.Combat.prototype.toJSON = function () {
+	// Return a code string that will create a new instance
+	// of Combat with our current data.
+	return JSON.reviveWrapper(String.format(
+		'new window.Combat({0},{1},{2})',
+		JSON.stringify(this.playerParty),
+		JSON.stringify(this.enemyParty),
+		JSON.stringify(this.destPassageName)
+		//todo: need to be able to restore entire complex object state
+		// so we either need:
+		// 1. to use the $ReviveData$ var and pass it a simple anon object with
+		// key/value pairs for each field, and then write a ctor for each complex object
+		// that expects such a data bundle to inflate itself from
+		// 2. stringify each complex object field and write a ctor that takes all fields
+		// as params (not recommended)
+		// 2. to use a copy ctor and then teach JSON how to stringify an entire complex object
+		// which is basically what I think toJSON() would normally be doing... I dunno, I don't particularly wanna go against the Sugarcube docs' recommendation to use their JSON.reviveWrapper() method, which sort of combines de/serialization oddly into one shot.  Keeping with that approach, the thing to do is #1, and indeed the docs' $pc_getData() function sounds like it would be doing the thing from #1.
+	));
+};
+window.Combat.prototype.clone = function () {
+	// Return a new instance containing our current data.
+	return new window.Combat(
+		this.playerParty,
+		this.enemyParty,
+		this.destPassageName
+	);
+};
+*/
+// Combat prototype methods - these have common behavior throughout all Combat instances, but depend on a given instance which is passed in implicitly based on calling object
+window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 		var combatants = this.enemyParty.concat(this.playerParty);
 		var eligibleCombatants = combatants.filter(combatant => combatant.id != exceptCharacter.id);
 		var unluckyIndex = Math.floor(Math.random() * eligibleCombatants.length);
@@ -819,14 +923,14 @@ window.Combat = function Combat(config){
 	/**
 	Concat the enemy and player party arrays, and return result
 	*/
-	this.getAllCombatants = function(){
+	window.Combat.prototype.getAllCombatants = function(){
 		return this.enemyParty.concat(this.playerParty);
 	}
 	
 	/**
 	Handle upkeep related to a new round beginning (i.e. top of the round to ye!)
 	*/
-	this.processRoundTop = function(){
+	window.Combat.prototype.processRoundTop = function(){
 	// tick down status effects
 	for(let enemyChar of this.enemyParty){
 		var enemyCharacter = State.variables.characters[enemyChar.id];
@@ -909,7 +1013,7 @@ window.Combat = function Combat(config){
 	/**
 	Process the bottom of a combat round.  
 	*/
-	this.processRoundBottom = function(){
+	window.Combat.prototype.processRoundBottom = function(){
 		var dedEnemies = 0;
 		var dedPlayers = 0;
 		for(let enemyChar of this.enemyParty){
@@ -958,92 +1062,6 @@ window.Combat = function Combat(config){
 		}
 		
 	}// end processRoundBottom()
-
-	/**
-	Creates and returns a primitve (JSON serializable) JS object that contains the current
-	value at each of this instance's fields, with the field name as the key paired with the
-	current value.  The ctor(dataBundle) uses this data bundle to inflate an object from JSON,
-	which is crucial for restoring state after a game is loaded.
-	*/
-	//this.getData = function(){
-	//	var dataBundle = {}
-		// I've never actually looped through attrs of a complex object before... does this work? UPDATE: apparently maybe, though everything showed undefined for some reason
-		// UPDATE2: ah, the undefined was because I was using dot notation without the correct literal symbol -- that case needs bracket notation, it seems.  JS is bonkers, man.
-	//	for(var attr in this){
-	//		console.log(""+attr+":"+this[attr]);
-	//	}
-		/* manual approach; shouldn't be necessary since hasOwnProperty() is a thing
-			"playerTurnState" : this.playerTurnState,
-			"enemyTurnState" : this.enemyTurnState,
-			"playerParty" : this.playerParty,
-			"enemyParty" : this.enemyParty,
-			"destPassageName" : this.destPassageName;
-			"combatResult" : this.combatResult,
-			"currentSelectedAbility" : this.currentSelectedAbility,
-			"turnGroup" : this.turnGroup,
-			"turnOwner" : this.turnOwner,
-			"abilityName" : this.abilityName,
-			"currentTargetCharacter" : this.currentTargetCharacter,
-			"combatLogContent" : this.combatLogContent
-		*/
-	//}
-	}// end if copy is not defined
-	else{
-		// restore from saved data bundle case
-		/* manual approach, might not be necessary unless a deep copy is needed
-		this.playerTurnState = dataBundle["playerTurnState"];
-		this.enemyTurnState =	dataBundle["enemyTurnState"];
-		this.playerParty = dataBundle["playerParty"];
-		this.enemyParty = dataBundle["enemyParty"];
-		this.destPassageName = dataBundle["destPassageName"];
-		this.combatResult = dataBundle["combatResult"];
-		this.currentSelectedAbility = dataBundle["currentSelectedAbility"];
-		this.turnGroup = dataBundle["turnGroup"];
-		this.turnOwner = dataBundle["turnOwner"];
-		this.abilityName = dataBundle["abilityName"];
-		this.currentTargetCharacter = dataBundle["currentTargetCharacter"];
-		this.combatLogContent = dataBundle["combatLogContent"]; 
-		*/
-		Object.assign(this,copy);
-
-	}
-	
-	
-}// end Combat
-
-/**
-It is necessary to implement toJSON and clone for all complex objects to facilitate
-JSON de/serialization
-*/
-/*
-window.Combat.prototype.toJSON = function () {
-	// Return a code string that will create a new instance
-	// of Combat with our current data.
-	return JSON.reviveWrapper(String.format(
-		'new window.Combat({0},{1},{2})',
-		JSON.stringify(this.playerParty),
-		JSON.stringify(this.enemyParty),
-		JSON.stringify(this.destPassageName)
-		//todo: need to be able to restore entire complex object state
-		// so we either need:
-		// 1. to use the $ReviveData$ var and pass it a simple anon object with
-		// key/value pairs for each field, and then write a ctor for each complex object
-		// that expects such a data bundle to inflate itself from
-		// 2. stringify each complex object field and write a ctor that takes all fields
-		// as params (not recommended)
-		// 2. to use a copy ctor and then teach JSON how to stringify an entire complex object
-		// which is basically what I think toJSON() would normally be doing... I dunno, I don't particularly wanna go against the Sugarcube docs' recommendation to use their JSON.reviveWrapper() method, which sort of combines de/serialization oddly into one shot.  Keeping with that approach, the thing to do is #1, and indeed the docs' $pc_getData() function sounds like it would be doing the thing from #1.
-	));
-};
-window.Combat.prototype.clone = function () {
-	// Return a new instance containing our current data.
-	return new window.Combat(
-		this.playerParty,
-		this.enemyParty,
-		this.destPassageName
-	);
-};
-*/
 window.Combat.prototype.toJSON = function() {
     return JSON.reviveWrapper('new window.Combat(undefined,undefined,undefined,$ReviveData$)',this);
 };
@@ -2649,7 +2667,6 @@ init();
 var playerParty = [State.variables.characters['player']];
 var enemyParty = [State.variables.characters['puck']];
 var combat = new window.Combat(playerParty,enemyParty,"");
-combat.getData();
 State.variables.godling_strat_chosen = window.godling_strat_surgical_system;
 </script>
 <button onclick="State.variables.characters['puck'].runAI(combat,'enemy')">Test</button>
