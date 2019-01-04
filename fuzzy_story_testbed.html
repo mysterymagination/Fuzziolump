@@ -316,20 +316,23 @@ window.StatusEffect.prototype.clone = function () {
 		this.duration
 	);
 };
+// todo: all classes with stateful properties not covered in ctor params will need the de/serialization treatment that Combat got in order to save/load their full state details
+window.Ability = function Ability(config){
+	if (config.hasOwnProperty('cost')) {
+		// copy the own properties automatically, for simplicity.
+		Object.keys(config).forEach(function (propertyName) {
+			// clone() is a sugarcube built-in that returns a deep copy of the given object
+			this[propertyName] = clone(config[propertyName]);
+		}, this);
+	}// end cc
+	else{
 
-window.Ability = function Ability(id,name){
-	this.TargetTypesEnum = Object.freeze (
-		{ 
-			singleEnemy: 1, 
-			allEnemies: 2,
-			singleAlly: 3,
-			allAllies: 4
-		});
-	this.id = id;
-	this.name = name;
+
+	this.id = config.id;
+	this.name = config.name;
 	
 	// metadata about who the ability targets, namely you, all allies, one enemy, or all enemies.
-	this.targetType = this.TargetTypesEnum.singleEnemy; 
+	this.targetType = window.Ability.TargetTypesEnum.singleEnemy; 
 	
 	/**
 	The friendly property describes whether an ability is considered hostile or beneficial to its target
@@ -345,10 +348,39 @@ window.Ability = function Ability(id,name){
 	*/
 	this.cost = {"mp":0};
 	
-	/**
+	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
+	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
+	this.calcDC = function(user,modifyingAttr){
+		return 10;	
+	}// end calcDC()
+	// lambda stub - dmg formula will be defined when Ability instance is defined
+	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
+	this.generateFlavorText = function(sourceChar,targetChar){console.log("flavor text undefined for "+this.name)}
+
+	}// end new instance ctor
+	
+} // end Ability def
+// static Ability class members
+window.Ability.TargetTypesEnum = Object.freeze (
+		{ 
+			singleEnemy: 1, 
+			allEnemies: 2,
+			singleAlly: 3,
+			allAllies: 4
+		});
+// Ability class prototype members
+/**
+	Process the cost of the ability, parsing the cost object map
+	*/
+window.Ability.prototype.processCost = function(character){
+		for(let statCost in this.cost){
+			character.stats[statCost] -= this.cost[statCost];	
+		}
+	}
+/**
 	Formats the total cost as a string and returns it
 	*/
-	this.printCost = function(){
+	window.Ability.prototype.printCost = function(){
 		var costString = "";
 		var costKeys = Object.keys(this.cost);
 		for(let index=0;index<costKeys.length-1;index++){
@@ -360,26 +392,6 @@ window.Ability = function Ability(id,name){
 		costString += costKeys[costKeys.length-1]+" : "+this.cost[costKeys[costKeys.length-1]];
 		return costString;
 	}
-	
-	/**
-	Process the cost of the ability, parsing the cost object map
-	*/
-	this.processCost = function(character){
-		for(let statCost in this.cost){
-			character.stats[statCost] -= this.cost[statCost];	
-		}
-	}
-	
-	// effect can be defined when Ability instance is defined, but usual behavior will generally be target character's HP reduced by calcDmg().  Default behavior will be to simply log a noop like the other default functions
-	this.effect = function(sourceChar,targetChar){console.log("no effect from "+this.name)};
-	this.calcDC = function(user,modifyingAttr){
-		return 10;	
-	}// end calcDC()
-	// lambda stub - dmg formula will be defined when Ability instance is defined
-	this.calcDmg = function(sourceChar,targetChar){console.log("no dmg from "+this.name)}
-	this.generateFlavorText = function(sourceChar,targetChar){console.log("flavor text undefined for "+this.name)}
-	
-} // end Ability def
 /**
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
@@ -463,11 +475,6 @@ window.Entity.prototype.clone = function () {
 
 // Character object definition
 window.Character = function Character(id,name){
-	this.CombatFlags = Object.freeze (
-		{ 
-			FLAG_SKIP_TURN: 1,
-			FLAG_WONDER_WALLED: 2
-		});
 	this.id = id;
 	this.name = name;
 	this.gender = "";
@@ -577,7 +584,7 @@ window.Character = function Character(id,name){
 	this.incarnations = {};
 	
 	// a character's Entity is their inherent set of talents re: Incarnation.  Only the human can learn Incarnations from any Entity.
-	this.entity = new Entity("unset");
+	this.entity = new window.Entity("unset");
 	
 	/**
 	Check whether the resource stat pools are in sufficient supply to feed a given ability
@@ -633,8 +640,8 @@ window.Character = function Character(id,name){
 	this.abilities["defend"].generateFlavorText = function(sourceCharacter,targetCharacter){
 		return sourceCharacter.name+" hops in front of "+targetCharacter.name+", valiantly using "+sourceCharacter.getPronoun_gen()+" own flesh to protect "+targetCharacter.getPronoun_obj()+"!";	
 	};
-	this.abilities["defend"].targetType = this.abilities["defend"].TargetTypesEnum.singleAlly;
-	this.abilities["run"].targetType = this.abilities["run"].TargetTypesEnum.allAllies;
+	this.abilities["defend"].targetType = window.Ability.TargetTypesEnum.singleAlly;
+	this.abilities["run"].targetType = window.Ability.TargetTypesEnum.allAllies;
 	this.abilities["run"].generateFlavorText = function(playerParty){
 		console.log("run::generateFlavorText -- The player party consists of "+playerParty);
 		var flavorText = "";
@@ -706,6 +713,15 @@ this.affinities.set(characterObject,this.affinities.get(characterObject)+modifie
 			console.log("AI behavior unset");
 	}
 }// end Character
+
+// Character class static members
+window.Character.CombatFlags = Object.freeze (
+		{ 
+			FLAG_SKIP_TURN: 1,
+			FLAG_WONDER_WALLED: 2
+		});
+
+// Character class prototype members
 /**
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
@@ -773,16 +789,15 @@ window.Combat = function Combat(config){
 	else{
 		// here we're creating a new instance of Combat from a config property bag
 
-		// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
-		this.playerTurnState = window.Combat.PlayerTurnState.selectAbility;
-		this.enemyTurnState = window.Combat.EnemyTurnState.runAI;
-		this.combatResult = window.Combat.CombatResultEnum.pending;
-
 		// parameterized properties
 		this.playerParty = config.playerParty;
 		this.enemyParty = config.enemyParty;
 		this.destPassageName = config.destPassageName;
-		
+
+		// metadata about what state the player's turn is in.  This is necessary to help route the UI around the various actions a human player will need to input
+		this.playerTurnState = window.Combat.PlayerTurnState.selectAbility;
+		this.enemyTurnState = window.Combat.EnemyTurnState.runAI;
+		this.combatResult = window.Combat.CombatResultEnum.pending;
 		
 		// tracks the currently selected player ability
 		this.currentSelectedAbility = new window.Ability("unset");
@@ -940,7 +955,7 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 					if(effect.id === "terror"){
 						// terror's effect will roll percentage, with 35% to skip this turn
 						if(effect.effect()){
-							enemyCharacter.combatFlags |= enemyCharacter.CombatFlags.FLAG_SKIP_TURN;	
+							enemyCharacter.combatFlags |= window.Character.CombatFlags.FLAG_SKIP_TURN;	
 						}
 					}
 					else if(effect.id === "poison"){
@@ -980,7 +995,7 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 					if(effect.id === "terror"){
 						// terror's effect will roll percentage, with 35% to skip this turn
 						if(effect.effect()){
-							playerCharacter.combatFlags |= playerCharacter.CombatFlags.FLAG_SKIP_TURN;	
+							playerCharacter.combatFlags |= window.Character.CombatFlags.FLAG_SKIP_TURN;	
 						}
 					}
 					else if(effect.id === "regen"){
@@ -1022,7 +1037,7 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		enemyCharacter.combatFlags &= ~enemyCharacter.CombatFlags.FLAG_SKIP_TURN;
+		enemyCharacter.combatFlags &= ~window.Character.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
@@ -1038,7 +1053,7 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 				// process bottom of stateffects with variable effects per round
 				if(effect.id === "terror"){
 					// clear the FLAG_SKIP_TURN flag
-		playerCharacter.combatFlags &= ~playerCharacter.CombatFlags.FLAG_SKIP_TURN;
+		playerCharacter.combatFlags &= ~window.Character.CombatFlags.FLAG_SKIP_TURN;
 				}
 			}
 			
@@ -1052,10 +1067,10 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 		// todo: need a way to clear conditions and/or reset stats as desired at end of combat
 		console.log("Dead players: "+dedPlayers+", dead enemies: "+dedEnemies);
 		if(dedEnemies >= this.enemyParty.length){
-			this.combatResult = this.CombatResultEnum.playerVictory;
+			this.combatResult = window.Combat.CombatResultEnum.playerVictory;
 			return false;	
 		}else if(dedPlayers >= this.playerParty.length){
-			this.combatResult = this.CombatResultEnum.enemyVictory;
+			this.combatResult = window.Combat.CombatResultEnum.enemyVictory;
 			return false;	
 		}else{
 			return true;	
@@ -1542,7 +1557,7 @@ function init(){
 		// 2. We add a bitfield to Character that can receive abitrary PoT flags like {FLAG_SKIP_TURN = 1} and when the character's turn comes up (or elsewhere, as needed) we check this bitfield for relevant raised flags.  In the case of FLAG_SKIP_TURN, we'd need to process the randomness and decide whether or not to raise the flag in round pre proc and then lower the flag in each round post proc since the character is not necessarily terrorized each round.
 		
 		// raise flag
-		//targetChar.combatFlags |= targetChar.CombatFlags.FLAG_SKIP_TURN; // flag needs to be raised in round pre proc.  The pre proc block should check for this status effect and then call its effect(), which will return true if some status-effect-specific percentage range is hit.
+		//targetChar.combatFlags |= window.Character.CombatFlags.FLAG_SKIP_TURN; // flag needs to be raised in round pre proc.  The pre proc block should check for this status effect and then call its effect(), which will return true if some status-effect-specific percentage range is hit.
 		
 		// 35% chance
 		return window.rollPercentage() <= 35;
@@ -1601,7 +1616,7 @@ function init(){
 	Debilitate lowers all defensive attributes of the target, and inflicts currHp*0.1 dmg
 	*/
 	var debilitate = window.incarnationsDict["debilitate"];
-	debilitate.targetType = debilitate.TargetTypesEnum.singleEnemy;
+	debilitate.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	debilitate.cost = {"mp":25};
 	debilitate.calcDmg = function(sourceChar,targetChar){
 		return targetChar.stats.hp*0.1;	
@@ -1619,7 +1634,7 @@ function init(){
 	Pierce is a physical strike for which atk bypasses def
 	*/
 	var pierceIncarnation = window.incarnationsDict["pierce"];
-	pierceIncarnation.targetType = pierceIncarnation.TargetTypesEnum.singleEnemy;
+	pierceIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	pierceIncarnation.cost = {"hp":10};
 	pierceIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["atk"]*2+Math.random()*10;		
@@ -1636,7 +1651,7 @@ function init(){
 	}
 	
 	var toxinIncarnation = window.incarnationsDict["toxin"];
-	toxinIncarnation.targetType = toxinIncarnation.TargetTypesEnum.singleEnemy;
+	toxinIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	toxinIncarnation.cost = {"mp":15};
 	toxinIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["pwr"]-targetChar.stats["res"];		
@@ -1659,7 +1674,7 @@ function init(){
 	TODO: add a physical/magic damage typing system.  For now, we'll just make def infinite.
 	*/
 	var shadowFormIncarnation = window.incarnationsDict["shadowform"];
-	shadowFormIncarnation.targetType = shadowFormIncarnation.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
+	shadowFormIncarnation.targetType = window.Ability.TargetTypesEnum.allAllies; // actually self-only, but this will have the same effect in the UI
 	shadowFormIncarnation.cost = {"mp":30};
 	shadowFormIncarnation.effect = function(sourceChar,targetChar){
 		window.addUniqueStatusEffect(sourceChar,shadowStatusEffect);
@@ -1675,7 +1690,7 @@ function init(){
 	Perfect Stillness deals mild cold damage to the wielder and massive cold damage to the target
 	*/
 	var perfectStillnessIncarnation = window.incarnationsDict["perfect_stillness"];
-	perfectStillnessIncarnation.targetType = perfectStillnessIncarnation.TargetTypesEnum.singleEnemy;
+	perfectStillnessIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	// by the time the HP cost is being evaluated, the selfDmg property should have been set in effect().  Would this be bound to perfectStillnessIncarnation inside the newly inline cost object map?
 	perfectStillnessIncarnation.cost = {"mp":15};//,"hp":perfectStillnessIncarnation.selfDmg};
 	perfectStillnessIncarnation.calcDmg = function(sourceChar,targetChar){
@@ -1698,7 +1713,7 @@ function init(){
 	Savage Sympathy deals more damage the greater the difference between the wielder and the target's ATK, and heals the wielder
 	*/
 	var savageSympathyIncarnation = window.incarnationsDict["savage_sympathy"];
-	savageSympathyIncarnation.targetType = savageSympathyIncarnation.TargetTypesEnum.singleEnemy;
+	savageSympathyIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	savageSympathyIncarnation.cost = {"mp":20};
 	savageSympathyIncarnation.calcDmg = function(sourceChar,targetChar){
 		return Math.abs(targetChar.stats["atk"] - sourceChar.stats["atk"])*2;		
@@ -1720,7 +1735,7 @@ function init(){
 	Warmest hug heals self and other with ATK
 	*/
 	var warmestHugIncarnation = window.incarnationsDict["warmest_hug"];
-	warmestHugIncarnation.targetType = warmestHugIncarnation.TargetTypesEnum.singleAlly;
+	warmestHugIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 	warmestHugIncarnation.cost = {"mp":20};
 	warmestHugIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["atk"];		
@@ -1741,7 +1756,7 @@ function init(){
 	Woolly Shield raises target's DEF by wielder's RES+DEF
 	*/
 	var woollyShieldIncarnation = window.incarnationsDict["woolly_shield"];
-	woollyShieldIncarnation.targetType = woollyShieldIncarnation.TargetTypesEnum.singleAlly;
+	woollyShieldIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 	woollyShieldIncarnation.cost = {"mp":30};
 	woollyShieldIncarnation.calcDmg = function(sourceChar,targetChar){
 		return sourceChar.stats["def"] + sourceChar.stats["res"];		
@@ -1761,7 +1776,7 @@ function init(){
 	Maenad Frenzy deals ATK+CHA to self and (ATK+CHA)*2 to target
 	*/
 	var maenadFrenzyIncarnation = window.incarnationsDict["maenad_frenzy"];
-	maenadFrenzyIncarnation.targetType = maenadFrenzyIncarnation.TargetTypesEnum.singleEnemy;
+	maenadFrenzyIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	maenadFrenzyIncarnation.cost = {"mp":10};//,"hp":maenadFrenzyIncarnation.dmg/2}; // todo: interesting idea, but won't work without proper abl I/O, since we'd need source and target char for calcDmg() to get an accurate readout
 	maenadFrenzyIncarnation.calcDmg = function(sourceChar,targetChar){
 		return 2*(sourceChar.stats["atk"]+sourceChar.attributes["charisma"]);		
@@ -1784,7 +1799,7 @@ function init(){
 	*/
 	/*
 	var critToDickIncarnation = new window.Incarnation("crit_dick","Crit to the Dick");
-	critToDickIncarnation.targetType = critToDickIncarnation.TargetTypesEnum.singleEnemy;
+	critToDickIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	critToDickIncarnation.cost = {"mp":0};
 	critToDickIncarnation.calcDmg = function(sourceChar,targetChar){
 		return targetChar.stats.hp;		
@@ -1822,7 +1837,7 @@ function init(){
 	puckChar.stats["pwr"] = puckChar.getMagicAttributeScore();
 	puckChar.stats["res"] = puckChar.getMagicAttributeScore();
 	// todo: equip Puck?
-	puckChar.entity = new Entity("Vicious Mockery");
+	puckChar.entity = new window.Entity("Vicious Mockery");
 	var rapierWit = new window.Incarnation("rapier_wit","Rapier Wit");
 	rapierWit.cost = {"mp":15};
 	rapierWit.generateFlavorText = function(sourceChar,targetChar){
@@ -1862,7 +1877,7 @@ function init(){
 		
 		
 	}
-	rapierWit.targetType = rapierWit.TargetTypesEnum.singleEnemy;
+	rapierWit.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	rapierWit.calcDmg = function(sourceChar,targetChar){
 		// highly variable damage sourced from source CHA and resisted slightly by target CHA
 		return window.rollDie(6) *window.calcMod(sourceChar.attributes["charisma"]) - window.calcMod(targetChar.attributes["charisma"]);	
@@ -1888,7 +1903,7 @@ function init(){
 	rainOfRadiance.generateFlavorText = function(sourceChar,targetChars){
 			return sourceChar.name+" thrusts a hand towards the heavens, muscles quivering with equal parts strain and anticipation.  The first few glittering droplets of liquid blue-white starlight are beautiful, but their virtue is quickly eclipsed by a tide of agony that grips the entire party as their flesh/fur is scorched/singed by celestial fire!  "+this.dmg+" horrifically burning damages to the whole party!";	
 	}
-	rainOfRadiance.targetType = rainOfRadiance.TargetTypesEnum.allEnemies;
+	rainOfRadiance.targetType = window.Ability.TargetTypesEnum.allEnemies;
 	rainOfRadiance.calcDmg = function(sourceChar,targetChar){
 		// 'starlight dmg' cuts through defenses and thus cannot be reduced by targetChar attrs... sure.
 		var sourcePower = sourceChar.stats["pwr"];
@@ -1928,7 +1943,7 @@ function init(){
 		
 		return flavorString;
 	}
-	swordsDance.targetType = swordsDance.TargetTypesEnum.singleAlly;
+	swordsDance.targetType = window.Ability.TargetTypesEnum.singleAlly;
 	swordsDance.effect = function(sourceChar,targetChar){
 		window.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
 		
@@ -2188,7 +2203,7 @@ function init(){
 				// UPDATE: create a set of chosen targets, even if only one.  Then step through and check for wall of wonder protection.  If found, remove the walled character from the set of targets and apply wall reprisal.  After iteration is complete, send the remaining target set into the chosen ability.
 				// since chosen target could be one or more, create an array if there is only one and then we can still just iterate over it
 			var targets = undefined;	
-			if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+			if(chosenAbility.targetType === window.Ability.TargetTypesEnum.allAllies){
 				targets = chosenTarget;
 			}else{
 				// in this case there is only one target, but by wrapping it in an array we can proceed with equivalent loop code below
@@ -2197,9 +2212,9 @@ function init(){
 				
 				// process combat flags on the chosen target(s)
 				for(let target of targets){
-					if(target.combatFlags & target.CombatFlags.FLAG_WONDER_WALLED === target.CombatFlags.FLAG_WONDER_WALLED){
+					if(target.combatFlags & window.Character.CombatFlags.FLAG_WONDER_WALLED === window.Character.CombatFlags.FLAG_WONDER_WALLED){
 				// lower the wonder wall flag
-				target.combatFlags &= ~target.CombatFlags.FLAG_WONDER_WALLED;
+				target.combatFlags &= ~window.Character.CombatFlags.FLAG_WONDER_WALLED;
 				
 				// the combat log content should reflect the bounce off the wall and any and all reprisals concatenated
 				combat.combatLogContent = "BZZzzzrrr--SHING!\n";
@@ -2223,7 +2238,7 @@ function init(){
 				// todo: easiest way to have cost still applied to the ability even if there are now 0 targets is to fire off the effect over an empty array.  Trouble is that most abl effect functions were not written expecting an array of targets, and even those that do don't check for an empty array explicitly which might matter depending on how we use the array in effect().  May want to re-write those APIs to make it a standard array of target chars, but for the moment simply sourcing the target type of the chosen ability should suffice.  However, that still procs undefined ref errors since effect() doesn't check for undefined target(s).  Way around that is to apply the cost of the ability separately and then skip the effect() call and the usual flavor text if the targets array is empty.
 				if(targets.length > 0){
 					// there are still targets, so go forward with them as per usual
-					if(chosenAbility.targetType === chosenAbility.TargetTypesEnum.allEnemies || chosenAbility.targetType === chosenAbility.TargetTypesEnum.allAllies){
+					if(chosenAbility.targetType === window.Ability.TargetTypesEnum.allAllies){
 
 						// multi-target attack, expects an array of chars as target	
 					chosenAbility.effect(puckChar,targets);
@@ -2265,14 +2280,14 @@ function init(){
 	marrahChar.stats["def"] = marrahChar.attributes["constitution"];
 	marrahChar.stats["pwr"] = marrahChar.getMagicAttributeScore();
 	marrahChar.stats["res"] = marrahChar.getMagicAttributeScore();
-	marrahChar.entity = new Entity("Kitsune");
+	marrahChar.entity = new window.Entity("Kitsune");
 	
 	
 	// Haunted Fey can Terrify opponent, causing them to randomly skip turns
 	var hauntedFey = new window.Incarnation("haunted_fey","Haunted Fey");
 	marrahChar.incarnations["haunted_fey"] = hauntedFey;
 	console.log("Marrah's first incarnation is "+Object.keys(marrahChar.incarnations)[0].name);
-	hauntedFey.targetType = hauntedFey.TargetTypesEnum.singleEnemy;
+	hauntedFey.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	hauntedFey.cost = {"mp":20};
 	hauntedFey.effect = function(sourceChar,targetChar){
 		var savingThrow = targetChar.saves["will"] + window.rollD20();
@@ -2291,7 +2306,7 @@ function init(){
 	
 	var foxFire = new window.Incarnation("fox_fire","Fox Fire");
 	marrahChar.incarnations["fox_fire"] = foxFire;
-	foxFire.targetType = foxFire.TargetTypesEnum.singleEnemy;
+	foxFire.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	foxFire.cost = {"mp":15};
 	foxFire.calcDmg = function(sourceChar,targetChar){
 		// dmg based on source's cur:max MP ratio
@@ -2335,7 +2350,7 @@ function init(){
 		
 	var ghostWhip = new window.Incarnation("ghost_whip","Ghost Whip");
 	marrahChar.incarnations["ghost_whip"] = ghostWhip;
-	ghostWhip.targetType = ghostWhip.TargetTypesEnum.singleEnemy;
+	ghostWhip.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	ghostWhip.cost = {"mp":15};
 	ghostWhip.calcDmg = function(sourceChar,targetChar,aspect){
 		if(aspect === "meat"){
@@ -2369,7 +2384,7 @@ function init(){
 	*/
 	var fireClawIncarnation = new window.Incarnation("fire_claw","Fire Claw");
 		marrahChar.incarnations["fire_claw"] = fireClawIncarnation;
-		fireClawIncarnation.targetType = fireClawIncarnation.TargetTypesEnum.singleEnemy;
+		fireClawIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 	fireClawIncarnation.cost = {"mp":5,"hp":5};
 		fireClawIncarnation.calcDmg = function(sourceChar,targetChar){
 				return sourceChar.stats["pwr"]+sourceChar.stats["atk"];
@@ -2405,7 +2420,7 @@ function init(){
 	mootyChar.stats["def"] = mootyChar.attributes["constitution"];
 	mootyChar.stats["pwr"] = mootyChar.getMagicAttributeScore();
 	mootyChar.stats["res"] = mootyChar.getMagicAttributeScore();
-	mootyChar.entity = new Entity("Burrower");
+	mootyChar.entity = new window.Entity("Burrower");
 	
 	// todo: all these private Incarnations should be moved to the public Incarnations dict, unless there is some reason The Human should not be able to learn them
 		
@@ -2414,7 +2429,7 @@ function init(){
 		*/
 	var regeneratorIncarnation = new window.Incarnation("regenerator","Regenerator");
 		mootyChar.incarnations["regenerator"] = regeneratorIncarnation;
-		regeneratorIncarnation.targetType = regeneratorIncarnation.TargetTypesEnum.singleAlly;
+		regeneratorIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 		regeneratorIncarnation.cost = {"mp":10};
 		regeneratorIncarnation.effect = function(sourceChar,targetChar){
 			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["regen"]);	
@@ -2430,7 +2445,7 @@ function init(){
 		*/
 	var springRainIncarnation = new window.Incarnation("spring_rain","Spring Rain");
 		mootyChar.incarnations["spring_rain"] = springRainIncarnation;
-		springRainIncarnation.targetType = springRainIncarnation.TargetTypesEnum.allAllies;
+		springRainIncarnation.targetType = window.Ability.TargetTypesEnum.allAllies;
 		springRainIncarnation.cost = {"mp":20};
 		springRainIncarnation.calcDmg = function(sourceChar,targetChar){
 			// healed based on the wielder's pwr and how much the wielder likes the target
@@ -2457,7 +2472,7 @@ function init(){
 		*/
 	var griefHowlIncarnation = new window.Incarnation("grief_howl","Grief Howl");
 		mootyChar.incarnations["grief_howl"] = griefHowlIncarnation;
-		griefHowlIncarnation.targetType = griefHowlIncarnation.TargetTypesEnum.singleAlly;
+		griefHowlIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 		griefHowlIncarnation.cost = {"mp":30};
 		griefHowlIncarnation.calcDmg = function(sourceChar,targetChar){
 			// healed for maxHP/2 plus how much the wielder likes the target
@@ -2503,14 +2518,14 @@ function init(){
 	drbeakmanChar.stats["def"] = drbeakmanChar.attributes["constitution"];
 	drbeakmanChar.stats["pwr"] = drbeakmanChar.getMagicAttributeScore();
 	drbeakmanChar.stats["res"] = drbeakmanChar.getMagicAttributeScore();
-	drbeakmanChar.entity = new Entity("Tactitian");
+	drbeakmanChar.entity = new window.Entity("Tactitian");
 	
 	/**
 		Vibroblade adds a chainsaw-like kinetic force to the target's weapon! (gives temper status effect)
 		*/
 	var vibrobladeIncarnation = new window.Incarnation("vibroblade","Vibroblade");
 		drbeakmanChar.incarnations["vibroblade"] = vibrobladeIncarnation;
-		vibrobladeIncarnation.targetType = vibrobladeIncarnation.TargetTypesEnum.singleAlly;
+		vibrobladeIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 		vibrobladeIncarnation.cost = {"mp":10};
 		vibrobladeIncarnation.effect = function(sourceChar,targetChar){
 			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["temper"]);	
@@ -2528,7 +2543,7 @@ function init(){
 		*/
 	var laserSightIncarnation = new window.Incarnation("laser_sight","Laser Sight");
 		drbeakmanChar.incarnations["laser_sight"] = laserSightIncarnation;
-		laserSightIncarnation.targetType = laserSightIncarnation.TargetTypesEnum.singleAlly;
+		laserSightIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 		laserSightIncarnation.cost = {"mp":10};
 		laserSightIncarnation.effect = function(sourceChar,targetChar){
 			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["focus"]);	
@@ -2546,7 +2561,7 @@ function init(){
 		*/
 	var feyTouchIncarnation = new window.Incarnation("fey_touch","Fey Touch");
 		drbeakmanChar.incarnations["fey_touch"] = feyTouchIncarnation;
-		feyTouchIncarnation.targetType = feyTouchIncarnation.TargetTypesEnum.singleAlly;
+		feyTouchIncarnation.targetType = window.Ability.TargetTypesEnum.singleAlly;
 		feyTouchIncarnation.cost = {"mp":15};
 		feyTouchIncarnation.effect = function(sourceChar,targetChar){
 			window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["third_eye"]);	
@@ -2580,7 +2595,7 @@ function init(){
 	shimmerinChar.stats["def"] = shimmerinChar.attributes["constitution"];
 	shimmerinChar.stats["pwr"] = shimmerinChar.getMagicAttributeScore();
 	shimmerinChar.stats["res"] = shimmerinChar.getMagicAttributeScore();
-	shimmerinChar.entity = new Entity("Whimsy of Wind");
+	shimmerinChar.entity = new window.Entity("Whimsy of Wind");
 	
 	/**
 		Wall of Wonder: protects each ally from a single attack by the enemy, and inflicts a random negative status or damage on the enemy in retaliation (using the character who cast the Wall Incarnation as the sourceChar). 
@@ -2588,11 +2603,11 @@ function init(){
 	var wallOfWonderIncarnation = new window.Incarnation("wall_of_wonder","Wall of Wonder");
 		shimmerinChar.incarnations["wall_of_wonder"] = wallOfWonderIncarnation;
 		wallOfWonderIncarnation.cost = {"mp":35}
-		wallOfWonderIncarnation.targetType = wallOfWonderIncarnation.TargetTypesEnum.allAllies;
+		wallOfWonderIncarnation.targetType = window.Ability.TargetTypesEnum.allAllies;
 		wallOfWonderIncarnation.effect = function(sourceChar,targetChars){
 			// raise the wall of wonder flag for each allied party member
 			for(let target of targetChars){
-				target.combatFlags |= target.CombatFlags.FLAG_WONDER_WALLED;	
+				target.combatFlags |= window.Character.CombatFlags.FLAG_WONDER_WALLED;	
 			}
 			
 			this.processCost(sourceChar);
@@ -2607,7 +2622,7 @@ function init(){
 		var phantasmagoriaIncarnation = new window.Incarnation("phantasmagoria","Phantasmagoria");
 		shimmerinChar.incarnations["phantasmagoria"] = phantasmagoriaIncarnation;
 		phantasmagoriaIncarnation.cost = {"mp":20}
-		phantasmagoriaIncarnation.targetType = phantasmagoriaIncarnation.TargetTypesEnum.singleEnemy;
+		phantasmagoriaIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 		phantasmagoriaIncarnation.calcDmg = function(sourceChar,targetChar){
 			return sourceChar.stats["pwr"]*2 - targetChar.stats["res"];
 		}
@@ -2630,7 +2645,7 @@ function init(){
 		var caressOfZephyrIncarnation = new window.Incarnation("caress_of_zephyr","Caress of the Zephyr");
 		shimmerinChar.incarnations["caress_of_zephyr"] = caressOfZephyrIncarnation;
 		caressOfZephyrIncarnation.cost = {"mp":25}
-		caressOfZephyrIncarnation.targetType = caressOfZephyrIncarnation.TargetTypesEnum.singleEnemy;
+		caressOfZephyrIncarnation.targetType = window.Ability.TargetTypesEnum.singleEnemy;
 		caressOfZephyrIncarnation.calcDmg = function(sourceChar,targetChar){
 			return sourceChar.stats["pwr"]*2 - targetChar.stats["def"]/2;	
 		}
@@ -2664,9 +2679,11 @@ init();
 </head>
 <body>
 <script>
-var playerParty = [State.variables.characters['player']];
-var enemyParty = [State.variables.characters['puck']];
-var combat = new window.Combat(playerParty,enemyParty,"");
+var combat = new window.Combat({
+	playerParty : [State.variables.characters['player']],
+	enemyParty : [State.variables.characters['puck']],
+	destPassageName : ""
+});
 State.variables.godling_strat_chosen = window.godling_strat_surgical_system;
 </script>
 <button onclick="State.variables.characters['puck'].runAI(combat,'enemy')">Test</button>
