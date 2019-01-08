@@ -396,25 +396,19 @@ window.Ability.prototype.processCost = function(character){
 It is necessary to implement toJSON and clone for all complex objects to facilitate
 JSON de/serialization
 */
-window.Ability.prototype.toJSON = function () {
-	// Return a code string that will create a new instance
-	// of Ability with our current data.
-	return JSON.reviveWrapper(String.format(
-		'new window.Ability({0},{1})',
-		JSON.stringify(this.id),
-		JSON.stringify(this.name)
-	));
+window.Ability.prototype.toJSON = function() {
+    return JSON.reviveWrapper('new window.Ability($ReviveData$)',this);
 };
-window.Ability.prototype.clone = function () {
-	// Return a new instance containing our current data.
-	return new window.Ability(
-		this.id,
-		this.name
-	);
+window.Ability.prototype.clone = function() {
+    // Return a new instance containing our current data.
+    return new window.Ability(
+        this
+    );
 };
 
 window.Incarnation = function Incarnation(id,name){
 	// Incarnation inherits from Ability
+	// todo: I think Incarnation will need basically the same treatment as Ability re: cc and paramaterized ctor
 	window.Ability.call(this,id,name);
 	
 }
@@ -1078,14 +1072,11 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 		
 	}// end processRoundBottom()
 window.Combat.prototype.toJSON = function() {
-    return JSON.reviveWrapper('new window.Combat(undefined,undefined,undefined,$ReviveData$)',this);
+    return JSON.reviveWrapper('new window.Combat($ReviveData$)',this);
 };
 window.Combat.prototype.clone = function() {
     // Return a new instance containing our current data.
     return new window.Combat(
-        undefined,
-        undefined,
-        undefined,
         this
     );
 };
