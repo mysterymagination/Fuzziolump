@@ -310,11 +310,20 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.StatusEffect.prototype.toJSON = function () {
+
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
+
 	// Return a code string that will create a new instance
 	// of Ability with our current data.
 	return JSON.reviveWrapper(
 		'new window.StatusEffect($ReviveData$)',
-		this
+		data
 	);
 };
 window.StatusEffect.prototype.clone = function () {
@@ -404,7 +413,14 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.Ability.prototype.toJSON = function() {
-    return JSON.reviveWrapper('new window.Ability($ReviveData$)',this);
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
+    return JSON.reviveWrapper('new window.Ability($ReviveData$)',data);
 };
 window.Ability.prototype.clone = function() {
     // Return a new instance containing our current data.
@@ -438,11 +454,19 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.Incarnation.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
+
 	// Return a code string that will create a new instance
 	// of Incarnation with our current data.
 	return JSON.reviveWrapper(
 		'new window.Incarnation($ReviveData$)',
-		this
+		data
 	);
 };
 window.Incarnation.prototype.clone = function () {
@@ -481,11 +505,18 @@ JSON de/serialization
 */
 
 window.Entity.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	// Return a code string that will create a new instance
 	// of Entity with our current data.
 	return JSON.reviveWrapper(
 		'new Entity($ReviveData$)',
-		this
+		data
 	);
 };
 window.Entity.prototype.clone = function () {
@@ -762,11 +793,18 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.Character.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	// Return a code string that will create a new instance
 	// of Character with our current data.
 	return JSON.reviveWrapper(
 		'new window.Character($ReviveData$)',
-		this
+		data
 	);
 };
 window.Character.prototype.clone = function () {
@@ -828,11 +866,18 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.Player.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	// Return a code string that will create a new instance
 	// of Player with our current data.
 	return JSON.reviveWrapper(
 		'new window.Player($ReviveData$)',
-		this
+		data
 	);
 };
 window.Player.prototype.clone = function () {
@@ -1152,7 +1197,14 @@ window.Combat.prototype.randoCombatantExcept = function(exceptCharacter){
 		
 	}// end processRoundBottom()
 window.Combat.prototype.toJSON = function() {
-    return JSON.reviveWrapper('new window.Combat($ReviveData$)',this);
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
+    return JSON.reviveWrapper('new window.Combat($ReviveData$)',data);
 };
 window.Combat.prototype.clone = function() {
     // Return a new instance containing our current data.
@@ -1176,9 +1228,16 @@ window.Room = function Room(config){
 }
 
 window.Room.prototype.toJSON = function(){
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	return JSON.reviveWrapper(
 		'new window.Room($ReviveData$)',
-		this
+		data
 	);
 };
 window.Room.prototype.clone = function () {
@@ -1222,11 +1281,18 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.Item.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	// Return a code string that will create a new instance
 	// of Item with our current data.
 	return JSON.reviveWrapper(
 		'new window.Item($ReviveData$)',
-		this
+		data
 	);
 };
 window.Item.prototype.clone = function () {
@@ -1450,11 +1516,18 @@ It is necessary to implement toJSON and clone for all complex objects to facilit
 JSON de/serialization
 */
 window.AnIceMole.prototype.toJSON = function () {
+	// NOTE: Do not use `this` directly for $ReviveData$ or you'll trigger
+	// out of control recursion and SO.  Make a copy of the own
+	// properties instead.
+	var data = {};
+	Object.keys(this).forEach(function (propertyName) {
+		data[propertyName] = clone(this[propertyName]);
+	}, this);
 	// Return a code string that will create a new instance
 	// of AnIceMole with our current data.
 	return JSON.reviveWrapper(
 		'new AnIceMole($ReviveData$)',
-		this
+		data
 		);
 };
 window.AnIceMole.prototype.clone = function () {
