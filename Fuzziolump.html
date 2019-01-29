@@ -983,6 +983,7 @@ window.Character.prototype.toJSON = function () {
 	// properties instead.
 	var data = {};
 	Object.keys(this).forEach(function (propertyName) {
+		console.log("in toJson for "+this.name+", cloning "+propertyName);
 		data[propertyName] = clone(this[propertyName]);
 	}, this);
 	// Return a code string that will create a new instance
@@ -2317,11 +2318,12 @@ function init(){
 	puckChar.incarnations["swords_dance"] = swordsDance;
 	
 	puckChar.runAI = function(combat,role){
+		alert("reached Puck runAI fn... have fn!  Speaking of, puckChar variable at this point says "+puckChar);
 		if(role){
 			if(role === "enemy"){
 				var chosenAbility = undefined;
 				var chosenTarget = undefined;
-
+				
 				/*
 				// todo: for debug only
 				// just hammer away at the Player to test death detection
@@ -2380,7 +2382,7 @@ function init(){
 								// buff discovered on this player!  Get 'im!
 								// todox: consider removing or deprioritizing this exit cond since it trumps the story scenario checks currently and those can't be moved above basic data gathering
 								/*
-								puckChar.incarnations["rapier_wit"].effect(puckChar,player);
+								this.incarnations["rapier_wit"].effect(this,player);
 								return;
 								*/
 								
@@ -2406,25 +2408,25 @@ function init(){
 				if(State.variables.godling_strat_chosen === window.godling_strat_viral_violence){
 					if(playerLeastDefense.stats.hp < playerLeastDefense.stats.maxHP/2){
 						// if the player char with least def is bloodied...
-						if(window.hasStatusEffect(puckChar,window.statusEffectsDict["bloodlust"])){
+						if(window.hasStatusEffect(this,window.statusEffectsDict["bloodlust"])){
 							// if Puck already has bloodlust, go ahead and clobber the poor sucker with lowest defense and HP < 50%
 							/*
-							puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
-							combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+							this.abilities["attack"].effect(this,playerLeastDefense);
+							combat.combatLogContent = this.abilities["attack"].generateFlavorText();
 							return;
 							*/
-							chosenAbility = puckChar.abilities["attack"];
+							chosenAbility = this.abilities["attack"];
 							chosenTarget = playerLeastDefense;
 						}else{
 							// Puck doesn't have bloodlust yet, so get it!
 								/*
-								puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);
-							combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
+								this.incarnations["swords_dance"].effect(this,this);
+							combat.combatLogContent = this.incarnations["swords_dance"].generateFlavorText();
 							
 							return;
 							*/
-							chosenAbility = puckChar.incarnations["swords_dance"];
-							chosenTarget = puckChar;
+							chosenAbility = this.incarnations["swords_dance"];
+							chosenTarget = this;
 						}
 					}
 				}else if(State.variables.godling_strat_chosen === window.godling_strat_surgical_system){
@@ -2432,21 +2434,21 @@ function init(){
 					if(playerWithTargetBuff){
 							if(!window.hasStatusEffect(playerWithTargetBuff,window.statusEffectsDict["doubt"])){
 							
-/*								puckChar.incarnations["rapier_wit"].effect(puckChar,playerWithTargetBuff);
-								combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
+/*								this.incarnations["rapier_wit"].effect(this,playerWithTargetBuff);
+								combat.combatLogContent = this.incarnations["rapier_wit"].generateFlavorText();
 								return;
 								*/
-								chosenAbility = puckChar.incarnations["rapier_wit"];
+								chosenAbility = this.incarnations["rapier_wit"];
 								chosenTarget = playerWithTargetBuff;
 						}// end if player with target buff does not already have doubt
 						else if(anyPlayerOffenseBuffed){
 							// presumably in this case every character with an offensive buff already has doubt.  With our scale balancing work done, just fry 'em with Rain of Radiance!
 							
-/*							puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
-							combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+/*							this.incarnations["rain_of_radiance"].effect(this,combat.playerParty);
+							combat.combatLogContent = this.incarnations["rain_of_radiance"].generateFlavorText();
 							return;
 							*/
-							chosenAbility = puckChar.incarnations["rain_of_radiance"];
+							chosenAbility = this.incarnations["rain_of_radiance"];
 							chosenTarget = playerParty;
 						}
 					}
@@ -2454,11 +2456,11 @@ function init(){
 					// if everyone is at max HP, use Rain of Radiance to fix that little problem
 					if(maxHealth){
 							
-/*						puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
-						combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+/*						this.incarnations["rain_of_radiance"].effect(this,combat.playerParty);	
+						combat.combatLogContent = this.incarnations["rain_of_radiance"].generateFlavorText();
 						return;
 						*/
-						chosenAbility = puckChar.incarnations["rain_of_radiance"];
+						chosenAbility = this.incarnations["rain_of_radiance"];
 						chosenTarget = playerParty;
 					}
 				}
@@ -2467,7 +2469,7 @@ function init(){
 				
 				/// begin defaults block -- at this point in the script, if Puck has not already picked an abl he will either do one mostly at random OR spam Rain of Radiance if his health is below 50% ///
 			if(chosenAbility === undefined && chosenTarget === undefined){
-				if(puckChar.stats.hp > puckChar.stats.maxHP/2){
+				if(this.stats.hp > this.stats.maxHP/2){
 					// rando time!
 				var percentageRandoAbl = window.rollPercentage();
 				/* wtf
@@ -2488,58 +2490,58 @@ function init(){
 				if(percentageRandoAbl <= 35){
 					// todo: maybe consider targeting player with least HP if the least HPness is relatively greater than the least defenseness (relative standing)?
 			
-/*					puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);
-					combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+/*					this.abilities["attack"].effect(this,playerLeastDefense);
+					combat.combatLogContent = this.abilities["attack"].generateFlavorText();
 					return;
 					*/
-					chosenAbility = puckChar.abilities["attack"];
+					chosenAbility = this.abilities["attack"];
 					chosenTarget = playerLeastDefense;
 				}else if(percentageRandoAbl > 35 && percentageRandoAbl <= 65){
 					
-/*					puckChar.incarnations["rapier_wit"].effect(puckChar,playerRandoTarget);
-					combat.combatLogContent = puckChar.incarnations["rapier_wit"].generateFlavorText();
+/*					this.incarnations["rapier_wit"].effect(this,playerRandoTarget);
+					combat.combatLogContent = this.incarnations["rapier_wit"].generateFlavorText();
 					return;
 					*/
-					chosenAbility = puckChar.incarnations["rapier_wit"];
+					chosenAbility = this.incarnations["rapier_wit"];
 					chosenTarget = playerRandoTarget;
 				}else if(percentageRandoAbl > 65 && percentageRandoAbl <= 85){
 					
-					if(!window.hasStatusEffect(puckChar,window.statusEffectsDict["bloodlust"])){					
-/*						puckChar.incarnations["swords_dance"].effect(puckChar,puckChar);	
-																																																				combat.combatLogContent = puckChar.incarnations["swords_dance"].generateFlavorText();
+					if(!window.hasStatusEffect(this,window.statusEffectsDict["bloodlust"])){					
+/*						this.incarnations["swords_dance"].effect(this,this);	
+																																																				combat.combatLogContent = this.incarnations["swords_dance"].generateFlavorText();
 																																																				return;
 																																																				*/
-						chosenAbility = puckChar.incarnations["swords_dance"];
-						chosenTarget = puckChar;
+						chosenAbility = this.incarnations["swords_dance"];
+						chosenTarget = this;
 																																								}else{
 
 						// Puck already has Bloodlust, so do the atk strat
 																																									
-																																			/*						puckChar.abilities["attack"].effect(puckChar,playerLeastDefense);	
-																																									combat.combatLogContent = puckChar.abilities["attack"].generateFlavorText();
+																																			/*						this.abilities["attack"].effect(this,playerLeastDefense);	
+																																									combat.combatLogContent = this.abilities["attack"].generateFlavorText();
 																																								return;
 																																									*/
-																																									chosenAbility = puckChar.abilities["attack"];
+																																									chosenAbility = this.abilities["attack"];
 																																									chosenTarget = playerLeastDefense;
 																																								}
 				}else{
 					
-/*					puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);	
-					combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+/*					this.incarnations["rain_of_radiance"].effect(this,combat.playerParty);	
+					combat.combatLogContent = this.incarnations["rain_of_radiance"].generateFlavorText();
 					return;
 					*/
-					chosenAbility = puckChar.incarnations["rain_of_radiance"];
+					chosenAbility = this.incarnations["rain_of_radiance"];
 					chosenTarget = playerParty;
 				}// end rando time
 			 }// end Puck HP > 50%
 			 else{
 			 	// being severely injured, Puck now starts to spam Rain of Radiance if no earlier behaviors were proced
 				 
-/*				 puckChar.incarnations["rain_of_radiance"].effect(puckChar,combat.playerParty);
-				 combat.combatLogContent = puckChar.incarnations["rain_of_radiance"].generateFlavorText();
+/*				 this.incarnations["rain_of_radiance"].effect(this,combat.playerParty);
+				 combat.combatLogContent = this.incarnations["rain_of_radiance"].generateFlavorText();
 				 return;
 				 */
-				 chosenAbility = puckChar.incarnations["rain_of_radiance"];
+				 chosenAbility = this.incarnations["rain_of_radiance"];
 				 chosenTarget = playerParty;
 			 }
 			} // end if abl and target are not yet chosen, landing us in defaults
@@ -2549,15 +2551,15 @@ function init(){
 		
 // todo: if confused, reassign chosenTarget with 50% self-target and 50% original target(s)
 				// todo: this reassignment would ideally take ability target types into account
-				if(window.hasStatusEffect(puckChar,window.statusEffectsDict["confuse"])){
+				if(window.hasStatusEffect(this,window.statusEffectsDict["confuse"])){
 					
 // confuse's effect is to roll percentage and return true if value is > 50
-					if(window.getStatusEffect(puckChar,"confuse").effect()){
-						chosenTarget = puckChar;	
+					if(window.getStatusEffect(this,"confuse").effect()){
+						chosenTarget = this;	
 					}
 			}
-			else if(window.hasStatusEffect(puckChar,window.statusEffectsDict["charm"])){
-				var charmStatusInstance = window.getStatusEffect(puckChar,"charm");
+			else if(window.hasStatusEffect(this,window.statusEffectsDict["charm"])){
+				var charmStatusInstance = window.getStatusEffect(this,"charm");
 				var charmingCharacterId = charmStatusInstance.sourceCharacterId;
 					if(chosenTarget.id === charmingCharacterId){
 						 // rando reassign to someone other than charming character
@@ -2596,9 +2598,9 @@ function init(){
 				
 				// apply the effect to Puck
 				var randoReprisalAbility = window.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
-						randoReprisalAbility.effect(puckChar);
+						randoReprisalAbility.effect(this);
 						// todo: need support for abilities going off without a caster/target.  For the demo, simply saying Miss Fortune for wielder and Puck for target of rando wall of wonder effect is fine.
-						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character({id:"miss_fortune",name:"Miss Fortune"}),puckChar);
+						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character({id:"miss_fortune",name:"Miss Fortune"}),this);
 				
 				}// end wall of wonder flag processing
 			}// end combat flag processing loop for target(s)
@@ -2610,8 +2612,8 @@ function init(){
 					if(chosenAbility.targetType === window.Ability.TargetTypesEnum.allEnemies){
 
 						// multi-target attack, expects an array of chars as target	
-					chosenAbility.effect(puckChar,targets);
-					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets);
+					chosenAbility.effect(this,targets);
+					combat.combatLogContent = chosenAbility.generateFlavorText(this,targets);
 
 					for(let targetKey in targets[0]){
 						console.log("target "+targets[0]+" with name "+targets[0].name+" has prop: "+targetKey);
@@ -2621,8 +2623,8 @@ function init(){
 						
 					}else{
 						// single target attack, expects only single character as target
-						chosenAbility.effect(puckChar,targets[0]);
-					combat.combatLogContent = chosenAbility.generateFlavorText(puckChar,targets[0]);
+						chosenAbility.effect(this,targets[0]);
+					combat.combatLogContent = chosenAbility.generateFlavorText(this,targets[0]);
 
 					for(let targetKey in targets[0]){
 						console.log("target "+targets[0]+" with name "+targets[0].name+" has prop: "+targetKey);
@@ -2633,7 +2635,7 @@ function init(){
 				}else{
 					// abl cost is an object map with keys that match the mutable resource stats... completely on purpose and by design, that was.
 					for(costElement in chosenAbility.cost){
-						puckChar.stats[costElement] -= chosenAbility.cost[costElement];	
+						this.stats[costElement] -= chosenAbility.cost[costElement];	
 					}
 				}// end if no targets left after flag processing, so only abl cost is applied
 				
@@ -3052,13 +3054,7 @@ function init(){
 
 /// begin init ///
 init();
-/// end init ///
-
-
-
-
-
-</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
+/// end init ///</script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
 &lt;&lt;set $known_id_nuvi to false&gt;&gt;
 
@@ -4266,6 +4262,7 @@ $combatArena.combatLogContent
 				TODO: in order to process an enemy party with more than one monster, we&#39;d need something closer to the player party proc in enemy side.  For now this shortcut will work.
 				&lt;&lt;/silently&gt;&gt;
 				/*runAI() takes care of setting log content*/
+				&lt;&lt;run alert(&quot;about to run Puck&#39;s AI.  He says &quot;+$combatArena.enemyParty[0].name);&gt;&gt;
 				&lt;&lt;run $combatArena.enemyParty[0].runAI($combatArena,&quot;enemy&quot;)&gt;&gt;
 				&lt;&lt;run console.log(&quot;ran enemy AI for &quot;+$combatArena.enemyParty[0].name)&gt;&gt;
 			&lt;&lt;else&gt;&gt;
@@ -4397,25 +4394,9 @@ does not work in CombatPlayer passage since combatLog DIV id only exists in Comb
   &lt;/tr&gt;
 &lt;/table&gt;</tw-passagedata><tw-passagedata pid="65" name="Bush_Warren_Council_Exit" tags="conversation" position="37,1944" size="100,100">The council of animals files out through the small door beyond the table, &lt;&lt;if $godling_strat_chosen === window.godling_strat_diplomancy&gt;&gt;Mooty offering a cheerful wave before ducking down to follow the others.&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_surgical_system&gt;&gt;Dr. Beakman inclining his enormous multi-hued beak toward you in a gesture of respect.&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_viral_violence&gt;&gt;Marrah turning briefly for one last longing gaze.&lt;&lt;/if&gt;&gt;  When they&#39;re gone, the faeries serving as illumination abruptly vanish and the room is plunged into inky darkness.  A harsh grinding sound fills the void and a moment later a shaft of golden light reveals the badgers opening the skylight far above.  Once you can clearly see Nuvi&#39;s &lt;&lt;if $godling_strat_chosen === window.godling_strat_viral_violence&gt;&gt;worried whiskery face, positioned somewhat further away from you than usual,&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_surgical_system&gt;&gt;apprehensive whiskery face, fuzzy brow furrowed with concern and the effort of analyzing the complex proposal you just made,&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_diplomancy&gt;&gt;grinning sun-bathed whiskery face, hovering close enough to tickle your cheeks (which you suspect may be his fond intent),&lt;&lt;/if&gt;&gt; the badgers proceed to roll back the boulder blocking the &lt;&lt;if $godling_strat_chosen === window.godling_strat_viral_violence&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Viral_Violence]]&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_surgical_system&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Surgical_System]]&lt;&lt;elseif $godling_strat_chosen === window.godling_strat_diplomancy&gt;&gt;[[main entry tunnel-&gt;Encounter_Puck_Diplomancy]]&lt;&lt;/if&gt;&gt;.</tw-passagedata><tw-passagedata pid="66" name="Puck_Bossfight" tags="combat boss puck" position="120,2292" size="100,100">// set combat params and forward (valiantly) to Combat!
 &lt;&lt;script&gt;&gt;
-/* apparently this is legal JS
-var x1 = {};        // object
-
-x1.MyClass = function MyClass(stuff,effectFn){ 
-	this.msg = stuff;
-	this.effect = effectFn;
-}
-
-var myClass = new x1.MyClass(&quot;hello from myclass&quot;, function(){return &quot;testing functional functionality in JS&quot;});
-
-var myClass2 = new x1.MyClass(&quot;hello from myotherclass&quot;, function(){return &quot;for a second time, we are testing functional functionality in JS&quot;});
-*/
-
-var characters = State.variables.characters;
-
-var monster_party = [characters[&quot;puck&quot;]];
 State.variables.combatArena = new window.Combat({
 playerParty : State.variables.party,
-	enemyParty : [State.variables.characters[&#39;puck&#39;]],
+	enemyParty : [State.variables.characters[&quot;puck&quot;]],
 	destPassageName : &quot;&quot;});
 State.variables.combatArena.turnOwner = &quot;player&quot;;
 &lt;&lt;/script&gt;&gt;
