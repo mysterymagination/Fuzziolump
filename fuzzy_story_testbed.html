@@ -2063,7 +2063,7 @@ function init(){
 		return window.rollDie(6) *window.calcMod(sourceChar.attributes["charisma"]) - window.calcMod(targetChar.attributes["charisma"]);	
 	}
 	rapierWit.effect = function(sourceChar,targetChar){
-		this.dmg = rapierWit.calcDmg(sourceChar,targetChar);
+		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats.hp -= this.dmg;
 		window.addUniqueStatusEffect(targetChar,doubtStatusEffect);
 		
@@ -2096,7 +2096,7 @@ function init(){
 	*/
 	rainOfRadiance.effect = function(sourceChar,targetChars){
 		// note: most of the time you can't have a single dmg calculated for a group abl since usually the source and target char are taken into account in the calcDmg().  Not for this one, though!
-		this.dmg = rainOfRadiance.calcDmg(sourceChar,targetChars);
+		this.dmg = this.calcDmg(sourceChar,targetChars);
 		for(let target of targetChars){
 			target.stats.hp -= 	this.dmg;
 			console.log(this.dmg+" damage dealt to "+target.name);
@@ -2125,7 +2125,7 @@ function init(){
 	}
 	swordsDance.targetType = window.Ability.TargetTypesEnum.singleAlly;
 	swordsDance.effect = function(sourceChar,targetChar){
-		window.addUniqueStatusEffect(targetChar,bloodlustStatusEffect);	
+		window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["bloodlust"]);	
 		
 		// mp cost
 		this.processCost(sourceChar);
@@ -2133,7 +2133,7 @@ function init(){
 	puckChar.incarnations["swords_dance"] = swordsDance;
 	
 	puckChar.runAI = function(combat,role){
-		alert("reached Puck runAI fn... have fn!");
+		console.log("reached Puck runAI fn... have fn!");
 		if(role){
 			if(role === "enemy"){
 				var chosenAbility = undefined;
@@ -2368,7 +2368,7 @@ function init(){
 				// todo: this reassignment would ideally take ability target types into account
 				if(window.hasStatusEffect(this,window.statusEffectsDict["confuse"])){
 					
-// confuse's effect is to roll percentage and return true if value is > 50
+// confuse's effect is to roll percentage and return true if value is > 50, basically the pokemon card game version of confusion :)
 					if(window.getStatusEffect(this,"confuse").effect()){
 						chosenTarget = this;	
 					}
@@ -2415,7 +2415,7 @@ function init(){
 				var randoReprisalAbility = window.incarnationsDict[incarnationKeys[randoIncarnationIndex]];
 						randoReprisalAbility.effect(this);
 						// todo: need support for abilities going off without a caster/target.  For the demo, simply saying Miss Fortune for wielder and Puck for target of rando wall of wonder effect is fine.
-						combat.combatLog += radnoReprisalAbility.generateFlavorText(new Character({id:"miss_fortune",name:"Miss Fortune"}),this);
+						combat.combatLog += randoReprisalAbility.generateFlavorText(new Character({id:"miss_fortune",name:"Miss Fortune"}),this);
 				
 				}// end wall of wonder flag processing
 			}// end combat flag processing loop for target(s)
