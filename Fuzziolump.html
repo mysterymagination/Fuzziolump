@@ -191,6 +191,7 @@
 
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">Config.history.maxStates = 0;   // no history limit
 //alert("config ctor: "+Config.constructor);
 var known_id_nuvi = false;
@@ -2320,7 +2321,7 @@ function init(){
 	puckChar.incarnations["swords_dance"] = swordsDance;
 	
 	puckChar.runAI = function(combat,role){
-		alert("reached Puck runAI fn... have fn!  Speaking of, puckChar variable at this point says "+puckChar);
+		alert("reached Puck runAI fn... have fn!");
 		if(role){
 			if(role === "enemy"){
 				var chosenAbility = undefined;
@@ -3057,6 +3058,7 @@ function init(){
 /// begin init ///
 init();
 /// end init ///
+
 
 </script><tw-passagedata pid="1" name="Chamber of Soiled Vestments" tags="" position="230,37" size="100,100">&lt;&lt;nobr&gt;&gt;
 &lt;&lt;set $inv to []&gt;&gt;
