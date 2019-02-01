@@ -2065,7 +2065,7 @@ function init(){
 	rapierWit.effect = function(sourceChar,targetChar){
 		this.dmg = this.calcDmg(sourceChar,targetChar);
 		targetChar.stats.hp -= this.dmg;
-		window.addUniqueStatusEffect(targetChar,doubtStatusEffect);
+		window.addUniqueStatusEffect(targetChar,window.statusEffectsDict["doubt"]);
 		
 		// possible player death processing
 		// todo: move this and similar common abl processes to a common abl I/O
